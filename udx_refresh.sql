@@ -6,3 +6,6 @@ create function udx.sort_list_set(string, string, string) returns string locatio
 
 drop function if exists udx.sort_alleles(string,string);
 create function udx.sort_alleles(string, string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Sort_Allele_List";
+
+drop function if exists udx.to_aa(string);
+create function udx.to_aa(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="To_AA";

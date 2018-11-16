@@ -12,3 +12,7 @@ create table if not exists udx.udf_sort_alleles (arg1_alleles string, arg2_delim
 insert overwrite udx.udf_sort_alleles values ( "89G, 56Y, 2S, 160T", ", ", NULL),(NULL,", ",""),( "89G, 56Y, 2S, 160T", NULL,""),("A160T;S53G;M140R","",NULL),("",";",NULL),
 ("A160T;S53G;M140R",";",NULL),("A1starkC3starkA2","stark",NULL),("89G, 56Y, 2S, 160T","#",NULL),("A,C,B",",",NULL);
 insert overwrite udx.udf_sort_alleles select arg1_alleles,arg2_delim, udx.sort_alleles(arg1_alleles,arg2_delim) from udx.udf_sort_alleles;
+
+create table if not exists udx.udf_to_aa_1 (arg1_nucleotides string, outcome string);
+insert overwrite udx.udf_to_aa_1 (arg1_nucleotides) values ("ATGAGG---GGGTGGTAG"),(""),(NULL),("ATGaggCC"),("...ATG.-~GGG"),("AGGaagARG---GCGgcwGCRgcnzzz"),("..ATG..");
+insert overwrite udx.udf_to_aa_1 select arg1_nucleotides,udx.to_aa(arg1_nucleotides) from udx.udf_to_aa_1;

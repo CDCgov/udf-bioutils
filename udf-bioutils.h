@@ -28,7 +28,7 @@ inline std::vector<std::string> split_by_substr	(const std::string& str, const s
 inline StringVal to_StringVal			(FunctionContext* context, const std::string& str);
 
 StringVal Sort_List_By_Substring	(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal );
-StringVal Sort_List_By_Set		(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal );
+StringVal Sort_List_By_Set		(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal, const StringVal& outDelimVal );
 StringVal Sort_Allele_List		(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal );
 StringVal To_AA				(FunctionContext* context, const StringVal& ntsVal );
 StringVal To_AA_Mutant			(FunctionContext* context, const StringVal& ntsVal, const StringVal& alleleVal, const IntVal& pos );

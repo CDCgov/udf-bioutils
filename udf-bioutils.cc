@@ -122,13 +122,18 @@ StringVal Sort_List_By_Substring(FunctionContext* context, const StringVal& list
 	return to_StringVal(context, s);
 }
 
-StringVal Sort_List_By_Set(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal ) {
-	if ( listVal.is_null || delimVal.is_null ) { return StringVal::null(); }
+StringVal Sort_List_By_Set(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal, const StringVal& outDelimVal ) {
+	if ( listVal.is_null || delimVal.is_null || outDelimVal.is_null ) { return StringVal::null(); }
 	if ( listVal.len == 0 || delimVal.len == 0) { return listVal; };
 	
 	std::vector<std::string> tokens;
 	std::string list  ((const char *)listVal.ptr,listVal.len);
 	std::string delim ((const char *)delimVal.ptr,delimVal.len);
+
+	std::string odelim = "";
+	if ( outDelimVal.len > 0 ) {
+		odelim.assign ((const char *)outDelimVal.ptr,outDelimVal.len);
+	}
 
 	// Initialize positions
 	std::string::size_type lastPos = list.find_first_not_of(delim, 0);
@@ -142,7 +147,7 @@ StringVal Sort_List_By_Set(FunctionContext* context, const StringVal& listVal, c
 	// Use the usual ascending sort
 	std::sort(tokens.begin(), tokens.end());
 	std::string s = tokens[0];
-	for ( std::vector<std::string>::const_iterator i = tokens.begin() +1; i < tokens.end(); ++i) { s += delim + *i; }
+	for ( std::vector<std::string>::const_iterator i = tokens.begin() +1; i < tokens.end(); ++i) { s += odelim + *i; }
 
 	return to_StringVal(context, s);
 }

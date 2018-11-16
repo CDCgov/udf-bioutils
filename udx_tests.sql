@@ -1,0 +1,1 @@
+select "sort_list" as udf, sum(coalesce(outcome,"NULL") = coalesce(udx.sort_list(arg1_list,arg2_delim),"NULL")) as correct, count(*) as total_tests, sum(coalesce(outcome,"NULL") = coalesce(udx.sort_list(arg1_list,arg2_delim),"NULL")) / count(*) * 100 as percent_correct from udx.udf_sort_list;

@@ -108,7 +108,7 @@ inline StringVal to_StringVal(FunctionContext* context, const std::string& s) {
 // We take a string of delimited values in a string and sort it in ascending order
 StringVal Sort_List_By_Substring(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal ) {
 	if ( listVal.is_null || delimVal.is_null ) { return StringVal::null(); }
-	if ( listVal.len == 0 ) { return listVal; };
+	if ( listVal.len == 0 || delimVal.len == 0 ) { return listVal; };
 	
 	std::string list  ((const char *)listVal.ptr,listVal.len);
 	std::string delim ((const char *)delimVal.ptr,delimVal.len);
@@ -124,7 +124,7 @@ StringVal Sort_List_By_Substring(FunctionContext* context, const StringVal& list
 
 StringVal Sort_List_By_Set(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal ) {
 	if ( listVal.is_null || delimVal.is_null ) { return StringVal::null(); }
-	if ( listVal.len == 0 ) { return listVal; };
+	if ( listVal.len == 0 || delimVal.len == 0) { return listVal; };
 	
 	std::vector<std::string> tokens;
 	std::string list  ((const char *)listVal.ptr,listVal.len);
@@ -150,7 +150,7 @@ StringVal Sort_List_By_Set(FunctionContext* context, const StringVal& listVal, c
 // We take a string of delimited values in a string and sort it in ascending order
 StringVal Sort_Allele_List(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal ) {
 	if ( listVal.is_null || delimVal.is_null ) { return StringVal::null(); }
-	if ( listVal.len == 0 ) { return listVal; };
+	if ( listVal.len == 0 || delimVal.len == 0 ) { return listVal; };
 
 	std::string list  ((const char *)listVal.ptr,listVal.len);
 	std::string delim ((const char *)delimVal.ptr,delimVal.len);

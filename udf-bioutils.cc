@@ -211,6 +211,29 @@ StringVal To_AA(FunctionContext* context, const StringVal& ntsVal ) {
 	return to_StringVal(context,residues);
 }
 
+StringVal To_AA_Mutant(FunctionContext* context, const StringVal& ntsVal, const StringVal& alleleVal, const IntVal& pos ) {
+	if ( ntsVal.is_null || alleleVal.is_null ) { return StringVal::null(); }
+	if ( ntsVal.len == 0 || alleleVal.len == 0 ) { return ntsVal; };
+
+	std::string bases ((const char *)ntsVal.ptr,ntsVal.len);
+	std::string allele ((const char *)alleleVal.ptr,alleleVal.len);
+
+	if ( pos.val < 1 ) {
+		bases = allele + bases;
+	} else if ( pos.val > ntsVal.len ) {
+		bases = bases + allele;
+	} else if ( (pos.val + alleleVal.len - 1) > ntsVal.len ) {
+		bases.replace(pos.val-1,ntsVal.len - pos.val + 1,allele);
+	} else {
+		bases.replace(pos.val-1,allele.size(),allele);
+	}
+
+	// Copy sorted string to StringVal structure
+	StringVal result(context, bases.size());
+	memcpy(result.ptr, bases.c_str(), bases.size());
+	return To_AA(context,result);
+}
+
 // Take the reverse complement of the nucleotide string
 StringVal Rev_Complement(FunctionContext* context, const StringVal& ntsVal ) {
 	if ( ntsVal.is_null ) { return StringVal::null(); }
@@ -218,9 +241,16 @@ StringVal Rev_Complement(FunctionContext* context, const StringVal& ntsVal ) {
 
 	std::string seq ((const char *)ntsVal.ptr,ntsVal.len);
 	reverse(seq.begin(), seq.end());
-	for (std::size_t i = 0; i < seq.length(); i++){
-		seq[i] = toupper(seq[i]);	
-		if( 	  seq[i] == 'G' ) {
+	int was_lower = 0;
+	for (std::size_t i = 0; i < seq.length(); i++) {
+		if ( islower(seq[i]) ) {
+			seq[i] -= 32;	
+			was_lower = 1;
+		} else {
+			was_lower = 0;
+		}
+
+		if( seq[i] == 'G' ) {
 			seq[i] = 'C';
 		} else if(seq[i] == 'C') {
 			seq[i] = 'G';
@@ -246,27 +276,11 @@ StringVal Rev_Complement(FunctionContext* context, const StringVal& ntsVal ) {
 			seq[i] = 'D';
 		} else if(seq[i] == 'U' ) {
 			seq[i] = 'A';
-		} 
+		}
+ 
+		if ( was_lower ) { seq[i] += 32; }
 	}
-
 	return to_StringVal(context,seq);
-}
-
-StringVal To_AA_Mutant(FunctionContext* context, const StringVal& ntsVal, const StringVal& alleleVal, const IntVal& pos ) {
-	if ( ntsVal.is_null ) { return StringVal::null(); }
-	if ( ntsVal.len == 0 ) { return ntsVal; };
-
-	if ( alleleVal.is_null || alleleVal.len == 0 || pos.val < 1 || pos.val > ntsVal.len || (pos.val + alleleVal.len - 1) > ntsVal.len ) { return StringVal::null(); }
-
-	std::string bases ((const char *)ntsVal.ptr,ntsVal.len);
-	std::string allele ((const char *)alleleVal.ptr,alleleVal.len);
-
-	bases.replace(pos.val-1,allele.size(),allele);
-
-	// Copy sorted string to StringVal structure
-	StringVal result(context, bases.size());
-	memcpy(result.ptr, bases.c_str(), bases.size());
-	return To_AA(context,result);
 }
 
 // Create a mutation list from two aligned strings

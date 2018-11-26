@@ -9,3 +9,9 @@ create function udx.sort_alleles(string, string) returns string location "/user/
 
 drop function if exists udx.to_aa(string);
 create function udx.to_aa(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="To_AA";
+
+drop function if exists udx.to_aa(string,string,int);
+create function udx.to_aa(string,string,int) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="To_AA_Mutant";
+
+drop function if exists udx.reverse_complement(string);
+create function udx.reverse_complement(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Rev_Complement";

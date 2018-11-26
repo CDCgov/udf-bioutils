@@ -33,8 +33,8 @@ StringVal Sort_Allele_List		(FunctionContext* context, const StringVal& listVal,
 StringVal To_AA				(FunctionContext* context, const StringVal& ntsVal );
 StringVal To_AA_Mutant			(FunctionContext* context, const StringVal& ntsVal, const StringVal& alleleVal, const IntVal& pos );
 StringVal Rev_Complement		(FunctionContext* context, const StringVal& ntsVal );
-StringVal Mapped_Substring		(FunctionContext* context, const StringVal& sequence, const StringVal& rangeMap );
-StringVal Mutation_List			(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 );
+StringVal Substring_By_Range		(FunctionContext* context, const StringVal& sequence, const StringVal& rangeMap );
+StringVal Mutation_List_Strict		(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 );
 StringVal Mutation_List_No_Ambiguous	(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 );
 IntVal Hamming_Distance			(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 );
 BooleanVal Contains_An_Element		(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal );

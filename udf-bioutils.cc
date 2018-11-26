@@ -283,84 +283,7 @@ StringVal Rev_Complement(FunctionContext* context, const StringVal& ntsVal ) {
 	return to_StringVal(context,seq);
 }
 
-// Create a mutation list from two aligned strings
-// Ignore resolvable ambiguations
-StringVal Mutation_List_No_Ambiguous(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
-	if ( sequence1.is_null  || sequence2.is_null  ) { return StringVal::null(); }
-	if ( sequence1.len == 0 || sequence2.len == 0 ) { return sequence1; };
-
-	std::size_t length = sequence1.len;
-	if ( sequence2.len < sequence1.len ) {
-		length = sequence2.len;
-	}
-
-	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
-	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
-	std::string buffer = "";
-
-	for (std::size_t i = 0; i < length; i++) {
-		if ( seq1[i] != seq2[i] ) {
-			seq1[i] = toupper(seq1[i]);
-			seq2[i] = toupper(seq2[i]);
-			if ( seq1[i] != seq2[i] ) {
-				if ( seq1[i] != '.' && seq2[i] != '.' ) {
-					if ( ambig_equal.count( std::string() + seq1[i] + seq2[i] ) == 0 ) {
-						if ( buffer.length() > 0 ) {
-							buffer += ", ";
-							buffer += seq1[i];
-							buffer += boost::lexical_cast<std::string>(i+1);
-							buffer += seq2[i];
-						} else {
-							buffer = seq1[i] + boost::lexical_cast<std::string>(i+1) + seq2[i];
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return to_StringVal(context,buffer);
-}
-
-
-// Create a mutation list from two aligned strings
-StringVal Mutation_List(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
-	if ( sequence1.is_null  || sequence2.is_null  ) { return StringVal::null(); }
-	if ( sequence1.len == 0 || sequence2.len == 0 ) { return sequence1; };
-
-	std::size_t length = sequence1.len;
-	if ( sequence2.len < sequence1.len ) {
-		length = sequence2.len;
-	}
-
-	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
-	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
-	std::string buffer = "";
-
-	for (std::size_t i = 0; i < length; i++) {
-		if ( seq1[i] != seq2[i] ) {
-			seq1[i] = toupper(seq1[i]);
-			seq2[i] = toupper(seq2[i]);
-			if ( seq1[i] != seq2[i] ) {
-				if ( seq1[i] != '.' && seq2[i] != '.' ) {
-					if ( buffer.length() > 0 ) {
-						buffer += ", ";
-						buffer += seq1[i];
-						buffer += boost::lexical_cast<std::string>(i+1);
-						buffer += seq2[i];
-					} else {
-						buffer = seq1[i] + boost::lexical_cast<std::string>(i+1) + seq2[i];
-					}
-				}
-			}
-		}
-	}
-
-	return to_StringVal(context,buffer);
-}
-
-
-StringVal Mapped_Substring(FunctionContext* context, const StringVal& sequence, const StringVal& rangeMap ) {
+StringVal Substring_By_Range(FunctionContext* context, const StringVal& sequence, const StringVal& rangeMap ) {
 	if ( sequence.is_null  || sequence.len == 0 || rangeMap.is_null || rangeMap.len == 0 ) { return StringVal::null(); }
 
 	std::string seq ((const char *)sequence.ptr,sequence.len);
@@ -410,6 +333,80 @@ StringVal Mapped_Substring(FunctionContext* context, const StringVal& sequence, 
 	return to_StringVal(context,buffer);
 }
 
+// Create a mutation list from two aligned strings
+StringVal Mutation_List_Strict(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
+	if ( sequence1.is_null  || sequence2.is_null  ) { return StringVal::null(); }
+	if ( sequence1.len == 0 || sequence2.len == 0 ) { return StringVal::null(); };
+
+	std::size_t length = sequence1.len;
+	if ( sequence2.len < sequence1.len ) {
+		length = sequence2.len;
+	}
+
+	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
+	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
+	std::string buffer = "";
+
+	for (std::size_t i = 0; i < length; i++) {
+		if ( seq1[i] != seq2[i] ) {
+			seq1[i] = toupper(seq1[i]);
+			seq2[i] = toupper(seq2[i]);
+			if ( seq1[i] != seq2[i] ) {
+				if ( seq1[i] != '.' && seq2[i] != '.' ) {
+					if ( buffer.length() > 0 ) {
+						buffer += ", ";
+						buffer += seq1[i];
+						buffer += boost::lexical_cast<std::string>(i+1);
+						buffer += seq2[i];
+					} else {
+						buffer = seq1[i] + boost::lexical_cast<std::string>(i+1) + seq2[i];
+					}
+				}
+			}
+		}
+	}
+
+	return to_StringVal(context,buffer);
+}
+
+// Create a mutation list from two aligned strings
+// Ignore resolvable ambiguations
+StringVal Mutation_List_No_Ambiguous(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
+	if ( sequence1.is_null  || sequence2.is_null  ) { return StringVal::null(); }
+	if ( sequence1.len == 0 || sequence2.len == 0 ) { return StringVal::null(); };
+
+	std::size_t length = sequence1.len;
+	if ( sequence2.len < sequence1.len ) {
+		length = sequence2.len;
+	}
+
+	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
+	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
+	std::string buffer = "";
+
+	for (std::size_t i = 0; i < length; i++) {
+		if ( seq1[i] != seq2[i] ) {
+			seq1[i] = toupper(seq1[i]);
+			seq2[i] = toupper(seq2[i]);
+			if ( seq1[i] != seq2[i] ) {
+				if ( seq1[i] != '.' && seq2[i] != '.' ) {
+					if ( ambig_equal.count( std::string() + seq1[i] + seq2[i] ) == 0 ) {
+						if ( buffer.length() > 0 ) {
+							buffer += ", ";
+							buffer += seq1[i];
+							buffer += boost::lexical_cast<std::string>(i+1);
+							buffer += seq2[i];
+						} else {
+							buffer = seq1[i] + boost::lexical_cast<std::string>(i+1) + seq2[i];
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return to_StringVal(context,buffer);
+}
 
 IntVal Hamming_Distance(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
 	if ( sequence1.is_null  || sequence2.is_null  ) { return IntVal::null(); }
@@ -457,7 +454,6 @@ BooleanVal Contains_An_Element(FunctionContext* context, const StringVal& string
 	return BooleanVal(false);
 }
 
-
 BooleanVal Is_An_Element(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal ) {
 	if ( string1.is_null || string2.is_null || delimVal.is_null ) { return BooleanVal::null(); }
 	if ( string1.len == 0 || string2.len == 0 ) { return BooleanVal(false); }
@@ -474,7 +470,6 @@ BooleanVal Is_An_Element(FunctionContext* context, const StringVal& string1, con
 	}
 	return BooleanVal(false);
 }
-
 
 BooleanVal Contains_Symmetric(FunctionContext* context, const StringVal& string1, const StringVal& string2 ) {
 	if ( string1.is_null || string2.is_null  ) { return BooleanVal::null(); }

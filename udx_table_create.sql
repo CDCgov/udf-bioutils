@@ -24,3 +24,15 @@ insert overwrite udx.udf_to_aa_2 select arg1_nucleotides,arg2_replacement,arg3_s
 create table if not exists udx.udf_reverse_complement (arg1_nucleotides string, outcome string);
 insert overwrite udx.udf_reverse_complement (arg1_nucleotides) values ("ATGAGG---GGGTGGTAG"),("ctaccaccc---cctcat"),(""),(NULL),("gcatrykmbvdhuGCATRYKMBVDHU");
 insert overwrite udx.udf_reverse_complement select arg1_nucleotides,udx.reverse_complement(arg1_nucleotides) from udx.udf_reverse_complement;
+
+create table if not exists udx.udf_substr_range (arg1_string string, arg2_range_coords string, outcome string);
+insert overwrite udx.udf_substr_range (arg1_string,arg2_range_coords) values ("SammySheep","1..3"),(NULL,"1..3"),("SammySheep",NULL),("SammySheep",""),("","1..3"),("SammySheep","3..1;8..9;5"),("123456789","0..3"),("123456789","7..12"),("ABC456","1..2,5");
+insert overwrite udx.udf_substr_range select arg1_string,arg2_range_coords,udx.substr_range(arg1_string,arg2_range_coords) from udx.udf_substr_range;
+
+create table if not exists udx.udf_mutation_list_strict (arg1_seq string, arg2_seq string, outcome string);
+insert overwrite udx.udf_mutation_list_strict (arg1_seq,arg2_seq) values ("ATGAGGCAG","ATcAGGCrG"),(NULL,"ATcAGGCrG"),("ATGAGGCAG",NULL),("","ATcAGGCrG"),("ATGAGGCAG",""),("ATGAGGCAG","ATcAGGCrGnnn");
+insert overwrite udx.udf_mutation_list_strict select arg1_seq,arg2_seq,udx.mutation_list_strict(arg1_seq,arg2_seq) from udx.udf_mutation_list_strict;
+
+create table if not exists udx.udf_mutation_list (arg1_seq string, arg2_seq string, outcome string);
+insert overwrite udx.udf_mutation_list (arg1_seq,arg2_seq) values ("ATGAGGCAG","ATcAGGCrG"),(NULL,"ATcAGGCrG"),("ATGAGGCAG",NULL),("","ATcAGGCrG"),("ATGAGGCAG",""),("ATGAGGCAG","ATcAGGCrGnnn");
+insert overwrite udx.udf_mutation_list select arg1_seq,arg2_seq,udx.mutation_list(arg1_seq,arg2_seq) from udx.udf_mutation_list;

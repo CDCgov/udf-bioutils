@@ -36,3 +36,11 @@ insert overwrite udx.udf_mutation_list_strict select arg1_seq,arg2_seq,udx.mutat
 create table if not exists udx.udf_mutation_list (arg1_seq string, arg2_seq string, outcome string);
 insert overwrite udx.udf_mutation_list (arg1_seq,arg2_seq) values ("ATGAGGCAG","ATcAGGCrG"),(NULL,"ATcAGGCrG"),("ATGAGGCAG",NULL),("","ATcAGGCrG"),("ATGAGGCAG",""),("ATGAGGCAG","ATcAGGCrGnnn");
 insert overwrite udx.udf_mutation_list select arg1_seq,arg2_seq,udx.mutation_list(arg1_seq,arg2_seq) from udx.udf_mutation_list;
+
+create table if not exists udx.udf_hamming_distance_1 (arg1_seq string, arg2_seq string, outcome int);
+insert overwrite udx.udf_hamming_distance_1 (arg1_seq,arg2_seq) values ("ATGAGGCAG","ATcAGGCrG"),(NULL,"ATcAGGCrG"),("ATGAGGCAG",NULL),("","ATcAGGCrG"),("ATGAGGCAG",""),("ATGAGGCAG","ATcAGGCrGnnn"),("AGCT.","AGCTN"),("AGCT-","AGCTN");
+insert overwrite udx.udf_hamming_distance_1 select arg1_seq,arg2_seq,udx.hamming_distance(arg1_seq,arg2_seq) from udx.udf_hamming_distance_1;
+
+create table if not exists udx.udf_hamming_distance_2 (arg1_seq string, arg2_seq string, arg3_pairwise_deletion_set string, outcome int);
+insert overwrite udx.udf_hamming_distance_2 (arg1_seq,arg2_seq,arg3_pairwise_deletion_set) values ("ATGAGGCAG","ATcAGGCrG","-"),(NULL,"ATcAGGCrG","-"),("ATGAGGCAG",NULL,"-"),("","ATcAGGCrG","-"),("ATGAGGCAG","","-"),("ATGAGGCAG","ATcAGGCrGnnn","-"),("AGCTN","AGCT.","-"),("AGCTN","AGCT-","-"),("AGCTNNN","AGCT.-~","-"),("AGCTNNN","AGCT.-~","-~"),("AGC","AGX","");
+insert overwrite udx.udf_hamming_distance_2 select arg1_seq,arg2_seq,arg3_pairwise_deletion_set,udx.hamming_distance(arg1_seq,arg2_seq,arg3_pairwise_deletion_set) from udx.udf_hamming_distance_2;

@@ -37,6 +37,7 @@ StringVal Substring_By_Range		(FunctionContext* context, const StringVal& sequen
 StringVal Mutation_List_Strict		(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 );
 StringVal Mutation_List_No_Ambiguous	(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 );
 IntVal Hamming_Distance			(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 );
+IntVal Hamming_Distance_Pairwise_Delete	(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2, const StringVal& pairwise_delete_set );
 BooleanVal Contains_An_Element		(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal );
 BooleanVal Is_An_Element		(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal );
 BooleanVal Contains_Symmetric		(FunctionContext* context, const StringVal& string1, const StringVal& string2 );

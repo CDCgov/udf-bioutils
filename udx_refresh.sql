@@ -24,3 +24,9 @@ create function udx.mutation_list_strict(string,string) returns string location 
 
 drop function if exists udx.mutation_list(string,string);
 create function udx.mutation_list(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_No_Ambiguous";
+
+drop function if exists udx.hamming_distance(string,string);
+create function udx.hamming_distance(string,string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Hamming_Distance";
+
+drop function if exists udx.hamming_distance(string,string,string);
+create function udx.hamming_distance(string,string,string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Hamming_Distance_Pairwise_Delete";

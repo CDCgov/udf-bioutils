@@ -6,3 +6,17 @@ For further reading:
 * [Impala User-Defined Functions](https://www.cloudera.com/documentation/enterprise/6/6.0/topics/impala_udf.html)
 * [Impala UDF Samples](https://github.com/cloudera/impala-udf-samples)
 * [Impala GitHub mirror](https://github.com/apache/impala)
+
+---
+
+## Function Descriptions
+
+
+<pre><b>contains_element(string str, string list, string delimiter)</b></pre>
+**Return type:**`boolean`
+**Purpose:** Examines if *any* element in `list` split by `delimiter` is contained in string `str`. If the delimiter is empty, each element is a character. A `NULL` is in any argument will return a null value.
+
+<br />
+<br />
+
+

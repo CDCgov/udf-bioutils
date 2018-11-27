@@ -54,5 +54,5 @@ insert overwrite udx.udf_is_element (arg1_string,arg2_list,arg3_delim) values ("
 insert overwrite udx.udf_is_element select arg1_string,arg2_list,arg3_delim,udx.is_element(arg1_string,arg2_list,arg3_delim) from udx.udf_is_element;
 
 create table if not exists udx.udf_contains_sym (arg1_string string, arg2_string string, outcome boolean);
-insert overwrite udx.udf_contains_sym (arg1_string,arg2_string) values ("sam","samuel"),("samuel","sam"),(NULL,"sam"),("sam",NULL),("","sam"),("sam",""),("SAM","samuel");
+insert overwrite udx.udf_contains_sym (arg1_string,arg2_string) values ("sam","samuel"),("samuel","sam"),(NULL,"sam"),("sam",NULL),("","sam"),("sam",""),("",""),("sam","sam"),("SAM","samuel");
 insert overwrite udx.udf_contains_sym select arg1_string,arg2_string,udx.contains_sym(arg1_string,arg2_string) from udx.udf_contains_sym;

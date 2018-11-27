@@ -30,3 +30,12 @@ create function udx.hamming_distance(string,string) returns int location "/user/
 
 drop function if exists udx.hamming_distance(string,string,string);
 create function udx.hamming_distance(string,string,string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Hamming_Distance_Pairwise_Delete";
+
+drop function if exists udx.contains_element(string,string,string);
+create function udx.contains_element(string,string,string) returns boolean location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Contains_An_Element";
+
+drop function if exists udx.is_element(string,string,string);
+create function udx.is_element(string,string,string) returns boolean location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Is_An_Element";
+
+drop function if exists udx.contains_sym(string,string);
+create function udx.contains_sym(string,string) returns boolean location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Contains_Symmetric";

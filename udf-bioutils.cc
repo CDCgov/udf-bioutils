@@ -86,17 +86,24 @@ bool comp_allele (std::string s1,std::string s2) {
 
 // Courtesy https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
 inline std::vector<std::string> split_by_substr(const std::string& str, const std::string& delim) {
-    std::vector<std::string> tokens;
-    std::size_t prev = 0;
-    std::size_t pos = 0;
-    do {
-        pos = str.find(delim, prev);
-        if (pos == std::string::npos) pos = str.length();
-        std::string token = str.substr(prev, pos-prev);
-        if (!token.empty()) tokens.push_back(token);
-        prev = pos + delim.length();
-    } while (pos < str.length() && prev < str.length());
-    return tokens;
+	std::vector<std::string> tokens;
+	std::size_t prev = 0;
+	std::size_t pos = 0;
+
+	if ( delim.length() == 0 ) {
+		for(std::size_t k = 0;k < str.length();k++) {
+			tokens.push_back(str.substr(k,1));
+		}
+	} else {
+		do {
+			pos = str.find(delim, prev);
+			if (pos == std::string::npos) pos = str.length();
+			std::string token = str.substr(prev, pos-prev);
+			if (!token.empty()) tokens.push_back(token);
+			prev = pos + delim.length();
+		} while (pos < str.length() && prev < str.length());
+	}
+	return tokens;
 }
 
 inline StringVal to_StringVal(FunctionContext* context, const std::string& s) {
@@ -473,8 +480,7 @@ IntVal Hamming_Distance(FunctionContext* context, const StringVal& sequence1, co
 	return IntVal(hamming_distance);
 }
 
-
-BooleanVal Contains_An_Element(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal &delimVal ) {
+BooleanVal Contains_An_Element(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal ) {
 	if ( string1.is_null || string2.is_null || delimVal.is_null ) { return BooleanVal::null(); }
 	if ( string1.len == 0 || string2.len == 0 ) { return BooleanVal(false); }
 
@@ -510,7 +516,7 @@ BooleanVal Is_An_Element(FunctionContext* context, const StringVal& string1, con
 
 BooleanVal Contains_Symmetric(FunctionContext* context, const StringVal& string1, const StringVal& string2 ) {
 	if ( string1.is_null || string2.is_null  ) { return BooleanVal::null(); }
-	if ( string1.len == 0 != string2.len == 0 ) { return BooleanVal(false); }
+	if ( (string1.len == 0) != (string2.len == 0) ) { return BooleanVal(false); }
 
 	std::string s1 ((const char *)string1.ptr,string1.len);
 	std::string s2 ((const char *)string2.ptr,string2.len);

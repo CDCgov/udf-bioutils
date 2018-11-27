@@ -12,11 +12,12 @@ For further reading:
 ## Function Descriptions
 
 
-<pre><b>contains_element(string str, string list, string delimiter)</b></pre>
-**Return type:**`boolean`
-**Purpose:** Examines if *any* element in `list` split by `delimiter` is contained in string `str`. If the delimiter is empty, each element is a character. A `NULL` is in any argument will return a null value.
+<pre><b>contains_element(<i>string str, string list, string delimiter</i>)</b></pre>
+<p> **Return type:** `boolean`
+<p> **Purpose:** Examines if *any* element in `list` split by `delimiter` is contained in string `str`. If the delimiter is empty, each element is a character. A `NULL` in any argument will return a null value.
 
 <br />
-<br />
 
-
+<pre><b>contains_sym(<i>string str1, string str2</i>)</b></pre>
+<p> **Return type:** `boolean`
+<p> **Purpose:** Returns true if `str1` is a substring of `str2` or vice-versa. If *just one* argument is an empty string, the function returns false. A `NULL` in any argument will return a null value.

@@ -1,6 +1,6 @@
 # User-defined bioinformatics utilities for Impala SQL
 
-Functions are created in the **udx** schema and can be shown via `use udx; show functions;` commands. Tables in **udx** show function input arguments and expected return values (*outcome*). The tables are named after the function, but with a prefix for user-defined functions (_udf_) or user-defined aggregate functions (_uda_) and with a numeric suffix if the function has been [overloaded](https://en.wikipedia.org/wiki/Function_overloading). For convenience, I have written SQL files to re-create the function bindings in the event the library has been updated ([udx_refresh.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_refresh.sql)), to perform regression testing ([udx_tests.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_tests.sql)), or to ensure functions exist after a server restart ([udx_ensure.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_ensure.sql), not necessary after CDH6+). If the behavior of the function changes over time, one can re-create the example tables using the [udx_create_tables.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_create_table.sql) file.
+Functions are created in the **udx** schema and can be shown via `use udx; show functions;` commands. Tables in **udx** show function input arguments and expected return values (*outcome*). The tables are named after the function, but with a prefix for user-defined functions (_udf_) or user-defined aggregate functions (_uda_) and with a numeric suffix if the function has been [overloaded](https://en.wikipedia.org/wiki/Function_overloading). For convenience, I have written SQL files to re-create the function bindings in the event the library has been updated ([udx_refresh.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_refresh.sql)), to perform regression testing ([udx_tests.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_tests.sql)), or to ensure functions exist after a server restart ([udx_ensure.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_ensure.sql), not necessary after CDH6+). If the behavior of the function changes over time, one can re-create the example tables using the [udx_table_create.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_table_create.sql) file. *Please feel free to submit bugs and feature requests as issues within GitLab.*
 
 For further reading related to function development:
 * [Impala User-Defined Functions](https://www.cloudera.com/documentation/enterprise/6/6.0/topics/impala_udf.html)
@@ -48,3 +48,22 @@ For further reading related to function development:
 <pre><b>sort_alleles(<i>string allele_or_mutation_list, string delim</i>)</b></b></pre>
 <p> **Return type:** `string`
 <p> **Purpose:** Returns a list of sorted mutations (e.g., `A2G, T160K`) or alleles (e.g., `2G 160K`) where the list delimiter `delim` is used both for splitting elements and for the output of the sorted list. Alleles and mutations are sorted first by their integer position, unlike other list sorting which looks at the element as a string. If any argument is `NULL` a null value is returned.
+
+<br />
+
+<pre><b>sort_list(<i>string list, string delim</i>)</b>, <b>sort_list_set(<i>string list, string delim_set, string output_delim</i>)</b></pre>
+<p> **Return type:** `string`
+<p> **Purpose:** Returns an alphabetically sorted list of elements in the string `list` delimited by `delim` or `delim_set`. The function `sort_list` interprets multi-character delimiters as a whole string while the function `sort_list_set` treats each character in the argument `delim_set` as a single-character delimiter (all are applied). The input and output delimiter for `sort_list` are taken to be the same while the output delimiter for `sort_list_set` is specified by `output_delim`. If any argument is `NULL` a null value is returned.
+
+
+<br />
+
+<pre><b>substr_range(<i>string str, string range_coords</i>)</b></b></pre>
+<p> **Return type:** `string`
+<p> **Purpose:** Returns the characters in `str` specified by `range_coords`. All characters are concatenated as specified by `range_coords`. Ranges may be listed in forward and reverse, which affects output order, and are denoted by `#..#`. Multiple ranges or single characters may be separated using a semi-colon or comma. For example: `10..1;12;15;20..25`. If any argument is `NULL` or an empty string, a null value is returned.
+
+<br />
+
+<pre><b>to_aa(<i>string nucleotides[, string replacement_nucleotides, int starting_position]</i>)</b></pre>
+<p> **Return type:** `string`
+<p> **Purpose:** Translates a nucleotide sequence to an amino acid sequence starting at position 1 of argument `nucleotides` (including resolvable ambiguous codons). Unknown or partial codons are translated as `?`, mixed or partially gapped codons are translated as `~`, and deletions (`-`) or missing data (`.`) are compacted from 3 to 1 character. Residues are always written out in uppercase. *Optionally*, one may overwrite a portion of the nucleotide sequence prior to translation by providing `replacement_nucleotides` and a `starting_position`. Specifying out-of-range indices will append to the 5' or 3' end while specifying a replacement sequence larger than the original will result in the extra nucleotides being appended after in-range bases are overwritten. If any argument is `NULL` a null value is returned. If the `replacement_nucleotides` argument is an empty string, the `nucleotides` argument is translated as-is. On the other hand, if the `nucleotides` argument is an empty string but `replacement_nucleotides` is not, then `replacement_nucleotides` is translated and returned.

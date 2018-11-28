@@ -219,8 +219,12 @@ StringVal To_AA(FunctionContext* context, const StringVal& ntsVal ) {
 }
 
 StringVal To_AA_Mutant(FunctionContext* context, const StringVal& ntsVal, const StringVal& alleleVal, const IntVal& pos ) {
-	if ( ntsVal.is_null || alleleVal.is_null ) { return StringVal::null(); }
-	if ( ntsVal.len == 0 || alleleVal.len == 0 ) { return ntsVal; };
+	if ( ntsVal.is_null || alleleVal.is_null || pos.is_null ) { return StringVal::null(); }
+	if ( alleleVal.len == 0 ) { 
+		return To_AA(context,ntsVal);
+	} else if ( ntsVal.len == 0 ) { 
+		return To_AA(context,alleleVal);
+	}
 
 	std::string bases ((const char *)ntsVal.ptr,ntsVal.len);
 	std::string allele ((const char *)alleleVal.ptr,alleleVal.len);

@@ -18,7 +18,7 @@ insert overwrite udx.udf_to_aa_1 (arg1_nucleotides) values ("ATGAGG---GGGTGGTAG"
 insert overwrite udx.udf_to_aa_1 select arg1_nucleotides,udx.to_aa(arg1_nucleotides) from udx.udf_to_aa_1;
 
 create table if not exists udx.udf_to_aa_2 (arg1_nucleotides string, arg2_replacement string, arg3_start_position int, outcome string);
-insert overwrite udx.udf_to_aa_2 (arg1_nucleotides,arg2_replacement,arg3_start_position) values ("ATGAGG---GGGTGGTAG","G",1),("","",1),(NULL,NULL,1),("ATGaggCC","ATG",4),("...ATG.-~GGG","atgggg",1),("ATGcagAGG","GGG",4),("ATGcagAGG","GGG",0),("ATGcagAGG","GGG",10),("ATG","ggATG",2);
+insert overwrite udx.udf_to_aa_2 (arg1_nucleotides,arg2_replacement,arg3_start_position) values ("ATGAGG---GGGTGGTAG","G",1),("","G",1),("ATG","",1),(NULL,"G",1),("ATG",NULL,1),("ATG","G",NULL),("ATGaggCC","ATG",4),("...ATG.-~GGG","atgggg",1),("ATGcagAGG","GGG",4),("ATGcagAGG","GGG",0),("ATGcagAGG","GGG",10),("ATG","ggATG",2);
 insert overwrite udx.udf_to_aa_2 select arg1_nucleotides,arg2_replacement,arg3_start_position,udx.to_aa(arg1_nucleotides,arg2_replacement,arg3_start_position) from udx.udf_to_aa_2;
 
 create table if not exists udx.udf_reverse_complement (arg1_nucleotides string, outcome string);

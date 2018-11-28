@@ -19,11 +19,11 @@ create function udx.reverse_complement(string) returns string location "/user/vf
 drop function if exists udx.substr_range(string,string);
 create function udx.substr_range(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Substring_By_Range";
 
-drop function if exists udx.mutation_list_strict(string,string);
-create function udx.mutation_list_strict(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_Strict";
-
 drop function if exists udx.mutation_list(string,string);
-create function udx.mutation_list(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_No_Ambiguous";
+create function udx.mutation_list(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_Strict";
+
+drop function if exists udx.mutation_list_nt(string,string);
+create function udx.mutation_list_nt(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_No_Ambiguous";
 
 drop function if exists udx.hamming_distance(string,string);
 create function udx.hamming_distance(string,string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Hamming_Distance";

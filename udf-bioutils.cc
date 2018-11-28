@@ -417,7 +417,7 @@ StringVal Mutation_List_No_Ambiguous(FunctionContext* context, const StringVal& 
 
 IntVal Hamming_Distance_Pairwise_Delete(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2, const StringVal& pairwise_delete_set ) {
 	if ( sequence1.is_null  || sequence2.is_null || pairwise_delete_set.is_null  ) { return IntVal::null(); }
-	if ( sequence1.len == 0 || sequence2.len == 0 ) { return IntVal(0); };
+	if ( sequence1.len == 0 || sequence2.len == 0 ) { return IntVal::null(); };
 
 	std::size_t length = sequence1.len;
 	if ( sequence2.len < sequence1.len ) {
@@ -426,7 +426,7 @@ IntVal Hamming_Distance_Pairwise_Delete(FunctionContext* context, const StringVa
 
 	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
 	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
-	boost::unordered_map<char,int> m; m['.']=1;
+	boost::unordered_map<char,int> m;
 
 	if ( pairwise_delete_set.len > 0 ) {
 		std::string dset ((const char *)pairwise_delete_set.ptr,pairwise_delete_set.len);
@@ -453,8 +453,7 @@ IntVal Hamming_Distance_Pairwise_Delete(FunctionContext* context, const StringVa
 
 IntVal Hamming_Distance(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
 	if ( sequence1.is_null  || sequence2.is_null  ) { return IntVal::null(); }
-	if ( sequence1.len == 0 || sequence2.len == 0 ) { return IntVal(0); };
-
+	if ( sequence1.len == 0 || sequence2.len == 0 ) { return IntVal::null(); };
 
 	std::size_t length = sequence1.len;
 	if ( sequence2.len < sequence1.len ) {

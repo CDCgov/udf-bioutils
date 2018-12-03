@@ -1,7 +1,12 @@
 create table if not exists udx.udf_sort_list (arg1_list string, arg2_delim string, outcome string);
 insert overwrite udx.udf_sort_list values ( "B;C;A", ";", NULL),( "B;C;A", NULL,"OK"),(NULL,";","OK"),
-("B;C;A","",NULL),("BstarkCstarkA","stark",NULL),("Ok Bye;Hello, yes!",";,",NULL),("Ok Bye;Hello, yes!",";",NULL);
+("B;C;A","",NULL),("BstarkCstarkA","stark",NULL),("Ok Bye;Hello, yes!",";,",NULL),("Ok Bye;Hello, yes!",";",NULL),("A,B,A,C",",",NULL);
 insert overwrite udx.udf_sort_list select arg1_list,arg2_delim, udx.sort_list(arg1_list,arg2_delim) from udx.udf_sort_list;
+
+create table if not exists udx.udf_sort_list_unique (arg1_list string, arg2_delim string, outcome string);
+insert overwrite udx.udf_sort_list_unique values ( "B;C;A", ";", NULL),( "B;C;A", NULL,"OK"),(NULL,";","OK"),
+("B;C;A","",NULL),("BstarkCstarkA","stark",NULL),("Ok Bye;Hello, yes!",";,",NULL),("Ok Bye;Hello, yes!",";",NULL),("A,B,A,C",",",NULL);
+insert overwrite udx.udf_sort_list_unique select arg1_list,arg2_delim, udx.sort_list_unique(arg1_list,arg2_delim) from udx.udf_sort_list_unique;
 
 create table if not exists udx.udf_sort_list_set (arg1_list string, arg2_delim_set string, arg3_output_delim string, outcome string);
 insert overwrite udx.udf_sort_list_set values ( "B;C;A",";",":",""),(NULL,";",":",""),( "B;C;A",NULL,":",""),("B;C;A",";",NULL,""),("B;C;A",";","",""),

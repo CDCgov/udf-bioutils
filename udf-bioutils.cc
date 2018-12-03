@@ -129,6 +129,27 @@ StringVal Sort_List_By_Substring(FunctionContext* context, const StringVal& list
 	return to_StringVal(context, s);
 }
 
+// We take a string of delimited values in a string and sort it in ascending order
+StringVal Sort_List_By_Substring_Unique(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal ) {
+	if ( listVal.is_null || delimVal.is_null ) { return StringVal::null(); }
+	if ( listVal.len == 0 || delimVal.len == 0 ) { return listVal; };
+	
+	std::string list  ((const char *)listVal.ptr,listVal.len);
+	std::string delim ((const char *)delimVal.ptr,delimVal.len);
+	std::vector<std::string> tokens = split_by_substr(list,delim);
+
+	// Use the usual ascending sort
+	std::sort(tokens.begin(), tokens.end());
+	std::string s = tokens[0];
+	for ( std::size_t i = 1; i < tokens.size(); i++) {
+		if ( tokens[i] != tokens[i-1] ) {
+			s += delim + tokens[i];
+		}
+	}
+
+	return to_StringVal(context, s);
+}
+
 StringVal Sort_List_By_Set(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal, const StringVal& outDelimVal ) {
 	if ( listVal.is_null || delimVal.is_null || outDelimVal.is_null ) { return StringVal::null(); }
 	if ( listVal.len == 0 || delimVal.len == 0) { return listVal; };

@@ -51,9 +51,9 @@ For further reading related to function development:
 
 <br />
 
-<pre><b>sort_list(<i>string list, string delim</i>)</b>, <b>sort_list_set(<i>string list, string delim_set, string output_delim</i>)</b></pre>
+<pre><b>sort_list(<i>string list, string delim</i>)</b>, <b>sort_list_unique(<i>string L, string D</i>)</b>, <b>sort_list_set(<i>string list, string delim_set, string output_delim</i>)</b></pre>
 **Return type:** `string`<br />
-**Purpose:** Returns an alphabetically sorted list of elements in the string `list` delimited by `delim` or `delim_set`. The function `sort_list` interprets multi-character delimiters as a whole string while the function `sort_list_set` treats each character in the argument `delim_set` as a single-character delimiter (all are applied). The input and output delimiter for `sort_list` are taken to be the same while the output delimiter for `sort_list_set` is specified by `output_delim`. If any argument is `NULL` a null value is returned.<br />
+**Purpose:** Returns an alphabetically sorted list of elements in the string `list` delimited by `delim` or `delim_set`. The function `sort_list` interprets multi-character delimiters as a whole string while the function `sort_list_set` treats each character in the argument `delim_set` as a single-character delimiter (all are applied). The input and output delimiter for `sort_list` are taken to be the same while the output delimiter for `sort_list_set` is specified by `output_delim`. If any argument is `NULL` a null value is returned. The function variant `sort_list_unique` behaves exactly like `sort_list` but removes redundant elements.<br />
 
 
 <br />

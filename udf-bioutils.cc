@@ -16,6 +16,9 @@
 #include <boost/unordered_map.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/range/algorithm_ext/erase.hpp>
+#include <openssl/sha.h>
+#include <openssl/md5.h>
 
 // Initialize hashes for C++98
 boost::unordered_map<std::string,std::string> get_genetic_code() {
@@ -550,4 +553,38 @@ BooleanVal Contains_Symmetric(FunctionContext* context, const StringVal& string1
 	} else {
 		return BooleanVal(false);
 	}
+}
+
+StringVal nt_id(FunctionContext* context, const StringVal& sequence ) {
+	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
+	std::string seq ((const char *)sequence.ptr,sequence.len);
+	boost::remove_erase_if(seq, boost::is_any_of(" :.~-"));
+	boost::to_upper(seq);
+
+	unsigned char obuf[21];
+	SHA1( (const unsigned char*) seq.c_str(), seq.size(), obuf);
+	
+	char buffer[42 * sizeof(char)]; int j;
+	for(j = 0; j < 20; j++) {
+	    sprintf(&buffer[2*j*sizeof(char)], "%02x", obuf[j]);
+	}
+
+	return to_StringVal(context, buffer);
+}
+
+StringVal variant_hash(FunctionContext* context, const StringVal &sequence ) {
+	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
+	std::string seq ((const char *)sequence.ptr,sequence.len);
+	boost::remove_erase_if(seq, boost::is_any_of(" :.-"));
+	boost::to_upper(seq);
+
+	unsigned char obuf[17];
+	MD5( (const unsigned char*) seq.c_str(), seq.size(), obuf);
+	
+	char buffer[34 * sizeof(char)]; int j;
+	for(j = 0; j < 16; j++) {
+	    sprintf(&buffer[2*j*sizeof(char)], "%02x", obuf[j]);
+	}
+
+	return to_StringVal(context, buffer);
 }

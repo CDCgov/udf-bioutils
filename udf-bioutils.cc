@@ -3,7 +3,7 @@
 // Relies on Cloudera headers being installed.
 // Current version supports C++98
 
-#include "udf-sample.h"
+#include "udf-bioutils.h"
 
 #include <cctype>
 #include <cmath>
@@ -11,52 +11,41 @@
 #include <algorithm>
 #include <vector>
 #include <sstream>
-#include <map>
 #include <locale>
 #include <boost/unordered_map.hpp>
+#include <boost/unordered_set.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <openssl/sha.h>
 #include <openssl/md5.h>
 
-// Initialize hashes for C++98
-boost::unordered_map<std::string,std::string> get_genetic_code() {
-	boost::unordered_map<std::string,std::string> m;
-        m["TAA"]="*";m["TAG"]="*";m["TAR"]="*";m["TGA"]="*";m["TRA"]="*";m["GCA"]="A";m["GCB"]="A";m["GCC"]="A";m["GCD"]="A";m["GCG"]="A";m["GCH"]="A";
-        m["GCK"]="A";m["GCM"]="A";m["GCN"]="A";m["GCR"]="A";m["GCS"]="A";m["GCT"]="A";m["GCV"]="A";m["GCW"]="A";m["GCY"]="A";m["TGC"]="C";m["TGT"]="C";
-        m["TGY"]="C";m["GAC"]="D";m["GAT"]="D";m["GAY"]="D";m["GAA"]="E";m["GAG"]="E";m["GAR"]="E";m["TTC"]="F";m["TTT"]="F";m["TTY"]="F";m["GGA"]="G";
-        m["GGB"]="G";m["GGC"]="G";m["GGD"]="G";m["GGG"]="G";m["GGH"]="G";m["GGK"]="G";m["GGM"]="G";m["GGN"]="G";m["GGR"]="G";m["GGS"]="G";m["GGT"]="G";
-        m["GGV"]="G";m["GGW"]="G";m["GGY"]="G";m["CAC"]="H";m["CAT"]="H";m["CAY"]="H";m["ATA"]="I";m["ATC"]="I";m["ATH"]="I";m["ATM"]="I";m["ATT"]="I";
-        m["ATW"]="I";m["ATY"]="I";m["AAA"]="K";m["AAG"]="K";m["AAR"]="K";m["CTA"]="L";m["CTB"]="L";m["CTC"]="L";m["CTD"]="L";m["CTG"]="L";m["CTH"]="L";
-        m["CTK"]="L";m["CTM"]="L";m["CTN"]="L";m["CTR"]="L";m["CTS"]="L";m["CTT"]="L";m["CTV"]="L";m["CTW"]="L";m["CTY"]="L";m["TTA"]="L";m["TTG"]="L";
-        m["TTR"]="L";m["YTA"]="L";m["YTG"]="L";m["YTR"]="L";m["ATG"]="M";m["AAC"]="N";m["AAT"]="N";m["AAY"]="N";m["CCA"]="P";m["CCB"]="P";m["CCC"]="P";
-        m["CCD"]="P";m["CCG"]="P";m["CCH"]="P";m["CCK"]="P";m["CCM"]="P";m["CCN"]="P";m["CCR"]="P";m["CCS"]="P";m["CCT"]="P";m["CCV"]="P";m["CCW"]="P";
-        m["CCY"]="P";m["CAA"]="Q";m["CAG"]="Q";m["CAR"]="Q";m["AGA"]="R";m["AGG"]="R";m["AGR"]="R";m["CGA"]="R";m["CGB"]="R";m["CGC"]="R";m["CGD"]="R";
-        m["CGG"]="R";m["CGH"]="R";m["CGK"]="R";m["CGM"]="R";m["CGN"]="R";m["CGR"]="R";m["CGS"]="R";m["CGT"]="R";m["CGV"]="R";m["CGW"]="R";m["CGY"]="R";
-        m["MGA"]="R";m["MGG"]="R";m["MGR"]="R";m["AGC"]="S";m["AGT"]="S";m["AGY"]="S";m["TCA"]="S";m["TCB"]="S";m["TCC"]="S";m["TCD"]="S";m["TCG"]="S";
-        m["TCH"]="S";m["TCK"]="S";m["TCM"]="S";m["TCN"]="S";m["TCR"]="S";m["TCS"]="S";m["TCT"]="S";m["TCV"]="S";m["TCW"]="S";m["TCY"]="S";m["ACA"]="T";
-        m["ACB"]="T";m["ACC"]="T";m["ACD"]="T";m["ACG"]="T";m["ACH"]="T";m["ACK"]="T";m["ACM"]="T";m["ACN"]="T";m["ACR"]="T";m["ACS"]="T";m["ACT"]="T";
-        m["ACV"]="T";m["ACW"]="T";m["ACY"]="T";m["GTA"]="V";m["GTB"]="V";m["GTC"]="V";m["GTD"]="V";m["GTG"]="V";m["GTH"]="V";m["GTK"]="V";m["GTM"]="V";
-        m["GTN"]="V";m["GTR"]="V";m["GTS"]="V";m["GTT"]="V";m["GTV"]="V";m["GTW"]="V";m["GTY"]="V";m["TGG"]="W";m["TAC"]="Y";m["TAT"]="Y";m["TAY"]="Y";
-	m["---"]="-";m["..."]=".";m["~~~"]="~";
-	return m;
-}
+boost::unordered_map<std::string,std::string> gc = {
+        {"TAA","*"},{"TAG","*"},{"TAR","*"},{"TGA","*"},{"TRA","*"},{"GCA","A"},{"GCB","A"},{"GCC","A"},{"GCD","A"},{"GCG","A"},{"GCH","A"},
+        {"GCK","A"},{"GCM","A"},{"GCN","A"},{"GCR","A"},{"GCS","A"},{"GCT","A"},{"GCV","A"},{"GCW","A"},{"GCY","A"},{"TGC","C"},{"TGT","C"},
+        {"TGY","C"},{"GAC","D"},{"GAT","D"},{"GAY","D"},{"GAA","E"},{"GAG","E"},{"GAR","E"},{"TTC","F"},{"TTT","F"},{"TTY","F"},{"GGA","G"},
+        {"GGB","G"},{"GGC","G"},{"GGD","G"},{"GGG","G"},{"GGH","G"},{"GGK","G"},{"GGM","G"},{"GGN","G"},{"GGR","G"},{"GGS","G"},{"GGT","G"},
+        {"GGV","G"},{"GGW","G"},{"GGY","G"},{"CAC","H"},{"CAT","H"},{"CAY","H"},{"ATA","I"},{"ATC","I"},{"ATH","I"},{"ATM","I"},{"ATT","I"},
+        {"ATW","I"},{"ATY","I"},{"AAA","K"},{"AAG","K"},{"AAR","K"},{"CTA","L"},{"CTB","L"},{"CTC","L"},{"CTD","L"},{"CTG","L"},{"CTH","L"},
+        {"CTK","L"},{"CTM","L"},{"CTN","L"},{"CTR","L"},{"CTS","L"},{"CTT","L"},{"CTV","L"},{"CTW","L"},{"CTY","L"},{"TTA","L"},{"TTG","L"},
+        {"TTR","L"},{"YTA","L"},{"YTG","L"},{"YTR","L"},{"ATG","M"},{"AAC","N"},{"AAT","N"},{"AAY","N"},{"CCA","P"},{"CCB","P"},{"CCC","P"},
+        {"CCD","P"},{"CCG","P"},{"CCH","P"},{"CCK","P"},{"CCM","P"},{"CCN","P"},{"CCR","P"},{"CCS","P"},{"CCT","P"},{"CCV","P"},{"CCW","P"},
+        {"CCY","P"},{"CAA","Q"},{"CAG","Q"},{"CAR","Q"},{"AGA","R"},{"AGG","R"},{"AGR","R"},{"CGA","R"},{"CGB","R"},{"CGC","R"},{"CGD","R"},
+        {"CGG","R"},{"CGH","R"},{"CGK","R"},{"CGM","R"},{"CGN","R"},{"CGR","R"},{"CGS","R"},{"CGT","R"},{"CGV","R"},{"CGW","R"},{"CGY","R"},
+        {"MGA","R"},{"MGG","R"},{"MGR","R"},{"AGC","S"},{"AGT","S"},{"AGY","S"},{"TCA","S"},{"TCB","S"},{"TCC","S"},{"TCD","S"},{"TCG","S"},
+        {"TCH","S"},{"TCK","S"},{"TCM","S"},{"TCN","S"},{"TCR","S"},{"TCS","S"},{"TCT","S"},{"TCV","S"},{"TCW","S"},{"TCY","S"},{"ACA","T"},
+        {"ACB","T"},{"ACC","T"},{"ACD","T"},{"ACG","T"},{"ACH","T"},{"ACK","T"},{"ACM","T"},{"ACN","T"},{"ACR","T"},{"ACS","T"},{"ACT","T"},
+        {"ACV","T"},{"ACW","T"},{"ACY","T"},{"GTA","V"},{"GTB","V"},{"GTC","V"},{"GTD","V"},{"GTG","V"},{"GTH","V"},{"GTK","V"},{"GTM","V"},
+        {"GTN","V"},{"GTR","V"},{"GTS","V"},{"GTT","V"},{"GTV","V"},{"GTW","V"},{"GTY","V"},{"TGG","W"},{"TAC","Y"},{"TAT","Y"},{"TAY","Y"},
+        {"---","-"},{"...","."},{"~~~","~"}
+};
 
-boost::unordered_map<std::string,int> get_ambig_equal() {
-	boost::unordered_map<std::string,int> m;
-	m["AM"]=1;m["MA"]=1;m["CM"]=1;m["MC"]=1;m["AV"]=1;m["VA"]=1;m["CV"]=1;m["VC"]=1;
-	m["GV"]=1;m["VG"]=1;m["AN"]=1;m["NA"]=1;m["CN"]=1;m["NC"]=1;m["GN"]=1;m["NG"]=1;
-	m["TN"]=1;m["NT"]=1;m["AH"]=1;m["HA"]=1;m["CH"]=1;m["HC"]=1;m["TH"]=1;m["HT"]=1;
-	m["AR"]=1;m["RA"]=1;m["GR"]=1;m["RG"]=1;m["AD"]=1;m["DA"]=1;m["GD"]=1;m["DG"]=1;
-	m["TD"]=1;m["DT"]=1;m["AW"]=1;m["WA"]=1;m["TW"]=1;m["WT"]=1;m["CS"]=1;m["SC"]=1;
-	m["GS"]=1;m["SG"]=1;m["CB"]=1;m["BC"]=1;m["GB"]=1;m["BG"]=1;m["TB"]=1;m["BT"]=1;
-	m["CY"]=1;m["YC"]=1;m["TY"]=1;m["YT"]=1;m["GK"]=1;m["KG"]=1;m["TK"]=1;m["KT"]=1;
-	return m;
-}
-
-boost::unordered_map<std::string,std::string> gc = get_genetic_code();
-boost::unordered_map<std::string,int> ambig_equal = get_ambig_equal();
+boost::unordered_set<std::string> ambig_equal = {
+        "AM","MA","CM","MC","AV","VA","CV","VC","GV","VG","AN","NA","CN","NC","GN","NG",
+        "TN","NT","AH","HA","CH","HC","TH","HT","AR","RA","GR","RG","AD","DA","GD","DG",
+        "TD","DT","AW","WA","TW","WT","CS","SC","GS","SG","CB","BC","GB","BG","TB","BT",
+        "CY","YC","TY","YT","GK","KG","TK","KT"
+};
 
 // Compare alleles for two strings.
 bool comp_allele (std::string s1,std::string s2) { 

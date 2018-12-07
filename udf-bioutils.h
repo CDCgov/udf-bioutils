@@ -15,10 +15,12 @@
 // Altered by Sam Shepard for use with udf-bioutils
 // 2017-07-08
 
-#ifndef SAMPLES_UDF_H
-#define SAMPLES_UDF_H
+#ifndef UDF_BIOUTILS_H
+#define UDF_BIOUTILS_H
 
 #include <impala_udf/udf.h>
+#include <string>
+#include <vector>
 
 using namespace impala_udf;
 

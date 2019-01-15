@@ -42,3 +42,9 @@ create function udx.is_element(string,string,string) returns boolean location "/
 
 drop function if exists udx.contains_sym(string,string);
 create function udx.contains_sym(string,string) returns boolean location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Contains_Symmetric";
+
+drop function if exists udx.nt_id(string);
+create function udx.nt_id(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="nt_id";
+
+drop function if exists udx.variant_hash(string);
+create function udx.variant_hash(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="variant_hash";

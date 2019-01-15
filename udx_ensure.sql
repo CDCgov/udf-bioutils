@@ -13,6 +13,8 @@ create function if not exists udx.hamming_distance(string,string,string) returns
 create function if not exists udx.contains_element(string,string,string) returns boolean location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Contains_An_Element";
 create function if not exists udx.is_element(string,string,string) returns boolean location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Is_An_Element";
 create function if not exists udx.contains_sym(string,string) returns boolean location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Contains_Symmetric";
+create function if not exists udx.nt_id(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="nt_id";
+create function if not exists udx.variant_hash(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="variant_hash";
 
 create function if not exists default.sort_list(string, string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Sort_List_By_Substring";
 create function if not exists default.sort_list_unique(string, string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Sort_List_By_Substring_Unique";
@@ -29,3 +31,5 @@ create function if not exists default.hamming_distance(string,string,string) ret
 create function if not exists default.contains_element(string,string,string) returns boolean location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Contains_An_Element";
 create function if not exists default.is_element(string,string,string) returns boolean location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Is_An_Element";
 create function if not exists default.contains_sym(string,string) returns boolean location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Contains_Symmetric";
+create function if not exists default.nt_id(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="nt_id";
+create function if not exists default.variant_hash(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="variant_hash";

@@ -12,15 +12,17 @@
 #include <vector>
 #include <sstream>
 #include <locale>
-#include <boost/unordered_map.hpp>
-#include <boost/unordered_set.hpp>
+//#include <boost/unordered_map.hpp>
+//#include <boost/unordered_set.hpp>
+#include <unordered_map>
+#include <unordered_set>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <openssl/sha.h>
 #include <openssl/md5.h>
 
-boost::unordered_map<std::string,std::string> gc = {
+std::unordered_map<std::string,std::string> gc = {
         {"TAA","*"},{"TAG","*"},{"TAR","*"},{"TGA","*"},{"TRA","*"},{"GCA","A"},{"GCB","A"},{"GCC","A"},{"GCD","A"},{"GCG","A"},{"GCH","A"},
         {"GCK","A"},{"GCM","A"},{"GCN","A"},{"GCR","A"},{"GCS","A"},{"GCT","A"},{"GCV","A"},{"GCW","A"},{"GCY","A"},{"TGC","C"},{"TGT","C"},
         {"TGY","C"},{"GAC","D"},{"GAT","D"},{"GAY","D"},{"GAA","E"},{"GAG","E"},{"GAR","E"},{"TTC","F"},{"TTT","F"},{"TTY","F"},{"GGA","G"},
@@ -40,7 +42,7 @@ boost::unordered_map<std::string,std::string> gc = {
         {"---","-"},{"...","."},{"~~~","~"}
 };
 
-boost::unordered_set<std::string> ambig_equal = {
+std::unordered_set<std::string> ambig_equal = {
         "AM","MA","CM","MC","AV","VA","CV","VC","GV","VG","AN","NA","CN","NC","GN","NG",
         "TN","NT","AH","HA","CH","HC","TH","HT","AR","RA","GR","RG","AD","DA","GD","DG",
         "TD","DT","AW","WA","TW","WT","CS","SC","GS","SG","CB","BC","GB","BG","TB","BT",
@@ -113,12 +115,16 @@ StringVal Sort_List_By_Substring(FunctionContext* context, const StringVal& list
 	std::string delim ((const char *)delimVal.ptr,delimVal.len);
 	std::vector<std::string> tokens = split_by_substr(list,delim);
 
-	// Use the usual ascending sort
-	std::sort(tokens.begin(), tokens.end());
-	std::string s = tokens[0];
-	for ( std::vector<std::string>::const_iterator i = tokens.begin() +1; i < tokens.end(); ++i) { s += delim + *i; }
+	if ( tokens.size() == 0 ) {
+		return listVal;
+	} else {
+		// Use the usual ascending sort
+		std::sort(tokens.begin(), tokens.end());
+		std::string s = tokens[0];
+		for ( std::vector<std::string>::const_iterator i = tokens.begin() +1; i < tokens.end(); ++i) { s += delim + *i; }
 
-	return to_StringVal(context, s);
+		return to_StringVal(context, s);
+	}
 }
 
 // We take a string of delimited values in a string and sort it in ascending order
@@ -130,16 +136,20 @@ StringVal Sort_List_By_Substring_Unique(FunctionContext* context, const StringVa
 	std::string delim ((const char *)delimVal.ptr,delimVal.len);
 	std::vector<std::string> tokens = split_by_substr(list,delim);
 
-	// Use the usual ascending sort
-	std::sort(tokens.begin(), tokens.end());
-	std::string s = tokens[0];
-	for ( std::size_t i = 1; i < tokens.size(); i++) {
-		if ( tokens[i] != tokens[i-1] ) {
-			s += delim + tokens[i];
+	if ( tokens.size() == 0 ) {
+		return listVal;
+	} else {
+		// Use the usual ascending sort
+		std::sort(tokens.begin(), tokens.end());
+		std::string s = tokens[0];
+		for ( std::size_t i = 1; i < tokens.size(); i++) {
+			if ( tokens[i] != tokens[i-1] ) {
+				s += delim + tokens[i];
+			}
 		}
-	}
 
-	return to_StringVal(context, s);
+		return to_StringVal(context, s);
+	}
 }
 
 StringVal Sort_List_By_Set(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal, const StringVal& outDelimVal ) {
@@ -181,12 +191,16 @@ StringVal Sort_Allele_List(FunctionContext* context, const StringVal& listVal, c
 	std::string delim ((const char *)delimVal.ptr,delimVal.len);
 	std::vector<std::string> tokens = split_by_substr(list,delim);
 
-	// Use the usual ascending sort
-	std::sort(tokens.begin(), tokens.end(), comp_allele);
-	std::string s = tokens[0];
-	for ( std::vector<std::string>::const_iterator i = tokens.begin() +1; i < tokens.end(); ++i) { s += delim + *i; }
+	if ( tokens.size() == 0 ) {
+		return listVal;
+	} else {
+		// Use the usual ascending sort
+		std::sort(tokens.begin(), tokens.end(), comp_allele);
+		std::string s = tokens[0];
+		for ( std::vector<std::string>::const_iterator i = tokens.begin() +1; i < tokens.end(); ++i) { s += delim + *i; }
 
-	return to_StringVal(context,s);
+		return to_StringVal(context,s);
+	}
 }
 
 // We take codon(s) and translate it/them
@@ -321,14 +335,7 @@ StringVal Substring_By_Range(FunctionContext* context, const StringVal& sequence
 	for(int i = 0; i < tokens.size(); i++ ) {
 		if ( tokens[i].find("..") != std::string::npos ) {
 			std::vector<std::string> range = split_by_substr(tokens[i],"..");
-//			std::string::size_type lastPos = tokens[i].find_first_not_of("..", 0);
-//			std::string::size_type pos     = tokens[i].find_first_of("..", lastPos);
-//			while (std::string::npos != pos || std::string::npos != lastPos) {
-//				range.push_back(tokens[i].substr(lastPos, pos - lastPos));
-//				lastPos = tokens[i].find_first_not_of("..", pos);
-//				pos = tokens[i].find_first_of("..", lastPos);
-//			}
-		
+			if ( range.size() == 0 ) { return StringVal::null(); }	
 			a = atoi(range[0].c_str()) - 1;
 			b = atoi(range[1].c_str()) - 1;
 
@@ -443,7 +450,7 @@ IntVal Hamming_Distance_Pairwise_Delete(FunctionContext* context, const StringVa
 
 	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
 	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
-	boost::unordered_map<char,int> m;
+	std::unordered_map<char,int> m;
 
 	if ( pairwise_delete_set.len > 0 ) {
 		std::string dset ((const char *)pairwise_delete_set.ptr,pairwise_delete_set.len);
@@ -496,6 +503,36 @@ IntVal Hamming_Distance(FunctionContext* context, const StringVal& sequence1, co
 	return IntVal(hamming_distance);
 }
 
+IntVal Nt_Distance(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
+	if ( sequence1.is_null  || sequence2.is_null  ) { return IntVal::null(); }
+	if ( sequence1.len == 0 || sequence2.len == 0 ) { return IntVal::null(); };
+
+	std::size_t length = sequence1.len;
+	if ( sequence2.len < sequence1.len ) {
+		length = sequence2.len;
+	}
+
+	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
+	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
+
+	int hamming_distance = 0;
+	for (std::size_t i = 0; i < length; i++) {
+		if ( seq1[i] != seq2[i] ) {
+			seq1[i] = toupper(seq1[i]);
+			seq2[i] = toupper(seq2[i]);
+			if ( seq1[i] != seq2[i] ) {
+				if ( seq1[i] != '.' && seq2[i] != '.' ) {
+					if ( ambig_equal.count( std::string() + seq1[i] + seq2[i] ) == 0 ) {
+						hamming_distance++;
+					}
+				}
+			}
+		}
+	}
+
+	return IntVal(hamming_distance);
+}
+
 BooleanVal Contains_An_Element(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal ) {
 	if ( string1.is_null || string2.is_null || delimVal.is_null ) { return BooleanVal::null(); }
 	if ( string1.len == 0 || string2.len == 0 ) { return BooleanVal(false); }
@@ -505,11 +542,17 @@ BooleanVal Contains_An_Element(FunctionContext* context, const StringVal& string
 	std::string delim ((const char *)delimVal.ptr,delimVal.len);
 	std::vector<std::string> tokens = split_by_substr(s2,delim);
 
+	// if the delim = string, then of course nothing can be found
+	if ( tokens.size() == 0 ) { return BooleanVal(false); }
+
+	// otherwise search for the element
 	for ( std::vector<std::string>::const_iterator i = tokens.begin(); i < tokens.end(); ++i) {
 		if ( s1.find(*i) != std::string::npos && (*i).length() > 0 ) {
 			return BooleanVal(true);
 		}
 	}
+
+	// otherwise element was never found
 	return BooleanVal(false);
 }
 
@@ -522,6 +565,7 @@ BooleanVal Is_An_Element(FunctionContext* context, const StringVal& string1, con
 	std::string delim ((const char *)delimVal.ptr,delimVal.len);
 	std::vector<std::string> tokens = split_by_substr(s2,delim);
 
+	if ( tokens.size() == 0 ) { return BooleanVal(false); }
 	for ( std::vector<std::string>::const_iterator i = tokens.begin(); i < tokens.end(); ++i) {
 		if ( s1 == (*i) && (*i).length() > 0 ) {
 			return BooleanVal(true);

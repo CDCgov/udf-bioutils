@@ -137,7 +137,11 @@ StringVal Sort_List_By_Substring_Unique(FunctionContext* context, const StringVa
 	std::vector<std::string> tokens = split_by_substr(list,delim);
 
 	if ( tokens.size() == 0 ) {
-		return listVal;
+		if ( list == delim ) {
+			return StringVal("");
+		} else {
+			return listVal;
+		}
 	} else {
 		// Use the usual ascending sort
 		std::sort(tokens.begin(), tokens.end());
@@ -319,6 +323,26 @@ StringVal Rev_Complement(FunctionContext* context, const StringVal& ntsVal ) {
 		if ( was_lower ) { seq[i] += 32; }
 	}
 	return to_StringVal(context,seq);
+}
+
+StringVal Complete_String_Date(FunctionContext* context, const StringVal& dateStr ) {
+	if ( dateStr.is_null  || dateStr.len == 0 ) { return StringVal::null(); }
+	std::string date ((const char *)dateStr.ptr,dateStr.len);
+	std::vector<std::string> tokens;
+	boost::split(tokens, date, boost::is_any_of("-/."));
+	std::string buffer = "";
+
+	if ( tokens.size() >= 3 ) {
+		buffer = tokens[0] + "-" + tokens[1] + "-" + tokens[2];
+	} else if ( tokens.size() == 2 ) {
+		buffer = tokens[0] + "-" + tokens[1] + "-01";
+	} else if ( tokens.size() == 1 ) {
+		buffer = tokens[0] + "-01-01";
+	} else {
+		return StringVal::null(); 
+	}
+
+	return to_StringVal(context,buffer);
 }
 
 StringVal Substring_By_Range(FunctionContext* context, const StringVal& sequence, const StringVal& rangeMap ) {

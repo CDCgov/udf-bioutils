@@ -45,6 +45,7 @@ IntVal Nt_Distance			(FunctionContext* context, const StringVal& sequence1, cons
 BooleanVal Contains_An_Element		(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal );
 BooleanVal Is_An_Element		(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal );
 BooleanVal Contains_Symmetric		(FunctionContext* context, const StringVal& string1, const StringVal& string2 );
+StringVal Complete_String_Date		(FunctionContext* context, const StringVal& dateStr );
 
 // available in CentOS 7, CDH 6
 StringVal nt_id				(FunctionContext* context, const StringVal& sequence );

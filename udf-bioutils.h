@@ -38,6 +38,7 @@ StringVal To_AA_Mutant			(FunctionContext* context, const StringVal& ntsVal, con
 StringVal Rev_Complement		(FunctionContext* context, const StringVal& ntsVal );
 StringVal Substring_By_Range		(FunctionContext* context, const StringVal& sequence, const StringVal& rangeMap );
 StringVal Mutation_List_Strict		(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 );
+StringVal Mutation_List_Strict		(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2, const StringVal& rangeMap );
 StringVal Mutation_List_No_Ambiguous	(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 );
 IntVal Hamming_Distance			(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 );
 IntVal Hamming_Distance_Pairwise_Delete	(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2, const StringVal& pairwise_delete_set );
@@ -50,5 +51,6 @@ StringVal Complete_String_Date		(FunctionContext* context, const StringVal& date
 // available in CentOS 7, CDH 6
 StringVal nt_id				(FunctionContext* context, const StringVal& sequence );
 StringVal variant_hash			(FunctionContext* context, const StringVal& sequence );
+StringVal Range_From_List(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal );
 
 #endif

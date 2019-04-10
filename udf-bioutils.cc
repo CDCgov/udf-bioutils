@@ -4,6 +4,7 @@
 // Current version supports C++98
 
 #include "udf-bioutils.h"
+#include "common.h"
 
 #include <cctype>
 #include <cmath>
@@ -49,6 +50,8 @@ std::unordered_set<std::string> ambig_equal = {
         "CY","YC","TY","YT","GK","KG","TK","KT"
 };
 
+
+// Utility functions
 // Compare alleles for two strings.
 bool comp_allele (std::string s1,std::string s2) { 
 	int x = 0;
@@ -78,6 +81,37 @@ bool comp_allele (std::string s1,std::string s2) {
 	}
 }
 
+// Inline functions
+inline std::vector<int> split_set_by_substr(const std::string& str, const std::string& delim) {
+	std::unordered_set<std::string> tokens;
+	std::size_t prev = 0;
+	std::size_t pos = 0;
+
+	if ( delim.length() == 0 ) {
+		for(std::size_t k = 0;k < str.length();k++) {
+			tokens.insert(str.substr(k,1));
+		}
+	} else {
+		do {
+			pos = str.find(delim, prev);
+			if (pos == std::string::npos) pos = str.length();
+			std::string token = str.substr(prev, pos-prev);
+			if (!token.empty()) { 
+				tokens.insert( token );
+			}
+			prev = pos + delim.length();
+		} while (pos < str.length() && prev < str.length());
+	}
+
+	std::vector<int> v; int num;
+	for ( auto it = tokens.begin(); it != tokens.end(); ++it ) {
+		try { num = std::stoi(*it); } catch(...) { continue; }
+		v.push_back( num );
+	}
+	return v;
+}
+
+
 // Courtesy https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
 inline std::vector<std::string> split_by_substr(const std::string& str, const std::string& delim) {
 	std::vector<std::string> tokens;
@@ -105,8 +139,11 @@ inline StringVal to_StringVal(FunctionContext* context, const std::string& s) {
 	memcpy(result.ptr, s.c_str(), s.size());
 	return result;
 }
+// Finished with inlines
+
 
 // We take a string of delimited values in a string and sort it in ascending order
+IMPALA_UDF_EXPORT
 StringVal Sort_List_By_Substring(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal ) {
 	if ( listVal.is_null || delimVal.is_null ) { return StringVal::null(); }
 	if ( listVal.len == 0 || delimVal.len == 0 ) { return listVal; };
@@ -128,6 +165,49 @@ StringVal Sort_List_By_Substring(FunctionContext* context, const StringVal& list
 }
 
 // We take a string of delimited values in a string and sort it in ascending order
+IMPALA_UDF_EXPORT
+StringVal Range_From_List(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal ) {
+	if ( listVal.is_null || delimVal.is_null ) { return StringVal::null(); }
+	if ( listVal.len == 0 || delimVal.len == 0 ) { return listVal; };
+	
+	std::string list  ((const char *)listVal.ptr,listVal.len);
+	std::string delim ((const char *)delimVal.ptr,delimVal.len);
+	std::vector<int> tokens = split_set_by_substr(list,delim);
+	std::sort( tokens.begin(), tokens.end() );
+
+	if ( tokens.size() == 0 ) {
+		return StringVal::null();
+	} else {
+		std::vector<int>::iterator it = tokens.begin();
+		std::string s = std::to_string(*it); 
+		int previous = *it; ++it;
+		int range = 0;
+		
+		while( it!=tokens.end() ) {
+			if ( *it == (previous+1) ) {
+				range = 1;
+			} else {
+				if ( range ) {
+					range = 0;
+					s += ".." + std::to_string(previous);
+					s += delim + std::to_string(*it);
+				} else {
+					s += delim + std::to_string(*it);
+				}
+			}
+			previous = *it; ++it;
+		}
+
+		if ( range ) {
+			s += ".." + std::to_string(previous);
+		}
+
+		return to_StringVal(context, s);
+	}
+}
+
+// We take a string of delimited values in a string and sort it in ascending order
+IMPALA_UDF_EXPORT
 StringVal Sort_List_By_Substring_Unique(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal ) {
 	if ( listVal.is_null || delimVal.is_null ) { return StringVal::null(); }
 	if ( listVal.len == 0 || delimVal.len == 0 ) { return listVal; };
@@ -156,6 +236,7 @@ StringVal Sort_List_By_Substring_Unique(FunctionContext* context, const StringVa
 	}
 }
 
+IMPALA_UDF_EXPORT
 StringVal Sort_List_By_Set(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal, const StringVal& outDelimVal ) {
 	if ( listVal.is_null || delimVal.is_null || outDelimVal.is_null ) { return StringVal::null(); }
 	if ( listVal.len == 0 || delimVal.len == 0) { return listVal; };
@@ -187,6 +268,7 @@ StringVal Sort_List_By_Set(FunctionContext* context, const StringVal& listVal, c
 }
 
 // We take a string of delimited values in a string and sort it in ascending order
+IMPALA_UDF_EXPORT
 StringVal Sort_Allele_List(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal ) {
 	if ( listVal.is_null || delimVal.is_null ) { return StringVal::null(); }
 	if ( listVal.len == 0 || delimVal.len == 0 ) { return listVal; };
@@ -208,6 +290,7 @@ StringVal Sort_Allele_List(FunctionContext* context, const StringVal& listVal, c
 }
 
 // We take codon(s) and translate it/them
+IMPALA_UDF_EXPORT
 StringVal To_AA(FunctionContext* context, const StringVal& ntsVal ) {
 	if ( ntsVal.is_null ) { return StringVal::null(); }
 	if ( ntsVal.len == 0 ) { return ntsVal; };
@@ -249,6 +332,7 @@ StringVal To_AA(FunctionContext* context, const StringVal& ntsVal ) {
 	return to_StringVal(context,residues);
 }
 
+IMPALA_UDF_EXPORT
 StringVal To_AA_Mutant(FunctionContext* context, const StringVal& ntsVal, const StringVal& alleleVal, const IntVal& pos ) {
 	if ( ntsVal.is_null || alleleVal.is_null || pos.is_null ) { return StringVal::null(); }
 	if ( alleleVal.len == 0 ) { 
@@ -277,6 +361,7 @@ StringVal To_AA_Mutant(FunctionContext* context, const StringVal& ntsVal, const 
 }
 
 // Take the reverse complement of the nucleotide string
+IMPALA_UDF_EXPORT
 StringVal Rev_Complement(FunctionContext* context, const StringVal& ntsVal ) {
 	if ( ntsVal.is_null ) { return StringVal::null(); }
 	if ( ntsVal.len == 0 ) { return ntsVal; };
@@ -325,6 +410,7 @@ StringVal Rev_Complement(FunctionContext* context, const StringVal& ntsVal ) {
 	return to_StringVal(context,seq);
 }
 
+IMPALA_UDF_EXPORT
 StringVal Complete_String_Date(FunctionContext* context, const StringVal& dateStr ) {
 	if ( dateStr.is_null  || dateStr.len == 0 ) { return StringVal::null(); }
 	std::string date ((const char *)dateStr.ptr,dateStr.len);
@@ -345,6 +431,7 @@ StringVal Complete_String_Date(FunctionContext* context, const StringVal& dateSt
 	return to_StringVal(context,buffer);
 }
 
+IMPALA_UDF_EXPORT
 StringVal Substring_By_Range(FunctionContext* context, const StringVal& sequence, const StringVal& rangeMap ) {
 	if ( sequence.is_null  || sequence.len == 0 || rangeMap.is_null || rangeMap.len == 0 ) { return StringVal::null(); }
 
@@ -360,8 +447,13 @@ StringVal Substring_By_Range(FunctionContext* context, const StringVal& sequence
 		if ( tokens[i].find("..") != std::string::npos ) {
 			std::vector<std::string> range = split_by_substr(tokens[i],"..");
 			if ( range.size() == 0 ) { return StringVal::null(); }	
-			a = atoi(range[0].c_str()) - 1;
-			b = atoi(range[1].c_str()) - 1;
+
+			try {
+				a = std::stoi(range[0]) - 1;
+				b = std::stoi(range[1]) - 1;
+			} catch (...) { 
+				return StringVal::null();
+			}
 
 			if ( b >= L )	{ b = L - 1; }
 			if ( a >= L )	{ a = L - 1; }
@@ -378,7 +470,12 @@ StringVal Substring_By_Range(FunctionContext* context, const StringVal& sequence
 				}
 			}
 		} else {
-			x = atoi(tokens[i].c_str()) - 1;
+			try {
+				x = std::stoi(tokens[i]) - 1;
+			} catch(...) {
+				return StringVal::null();
+			}
+
 			if ( x < L && x >= 0 ) {
 				buffer += seq[x];
 			}
@@ -389,6 +486,7 @@ StringVal Substring_By_Range(FunctionContext* context, const StringVal& sequence
 }
 
 // Create a mutation list from two aligned strings
+IMPALA_UDF_EXPORT
 StringVal Mutation_List_Strict(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
 	if ( sequence1.is_null  || sequence2.is_null  ) { return StringVal::null(); }
 	if ( sequence1.len == 0 || sequence2.len == 0 ) { return StringVal::null(); };
@@ -424,8 +522,91 @@ StringVal Mutation_List_Strict(FunctionContext* context, const StringVal& sequen
 	return to_StringVal(context,buffer);
 }
 
+IMPALA_UDF_EXPORT
+StringVal Mutation_List_Strict(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2, const StringVal& rangeMap ) {
+	if ( sequence1.is_null  || sequence2.is_null || rangeMap.is_null  ) { return StringVal::null(); }
+	if ( sequence1.len == 0 || sequence2.len == 0 || rangeMap.len == 0 ) { return StringVal::null(); };
+
+	std::size_t length = sequence1.len;
+	if ( sequence2.len < sequence1.len ) {
+		length = sequence2.len;
+	}
+
+	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
+	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
+	std::string map ((const char *)rangeMap.ptr,rangeMap.len);
+
+	int x,a,b;
+	int L = length;
+	std::vector<int> sites;
+	std::vector<std::string> tokens;
+	boost::split(tokens, map, boost::is_any_of(";,"));
+	for(int i = 0; i < tokens.size(); i++ ) {
+		if ( tokens[i].find("..") != std::string::npos ) {
+			std::vector<std::string> range = split_by_substr(tokens[i],"..");
+			if ( range.size() == 0 ) { return StringVal::null(); }	
+
+			try {
+				a = std::stoi(range[0]) - 1;
+				b = std::stoi(range[1]) - 1;
+			} catch(...) {
+				return StringVal::null();
+			}
+
+			if ( b >= L )	{ b = L - 1; }
+			if ( a >= L )	{ a = L - 1; }
+			if ( a < 0 )	{ a = 0; }
+			if ( b < 0 )	{ b = 0; }
+
+			if ( a <= b ) { 
+				for( int j = a; j <= b; j++ ) {
+					sites.push_back(j);
+				}
+			} else {
+				for( int j = a; j >= b; j-- ) {
+					sites.push_back(j);
+				}
+			}
+		} else {
+			try {
+				x = std::stoi(tokens[i]) - 1;
+			} catch (...) {
+				return StringVal::null();
+			}
+
+			if ( x < L && x >= 0 ) {
+				sites.push_back(x);
+				
+			}
+		}
+	}
+
+	int pos = 0;
+	std::string buffer = "";
+	for ( const auto& i : sites ) {
+		if ( i < length && i > -1 ) {
+			seq1[i] = toupper(seq1[i]);
+			seq2[i] = toupper(seq2[i]);
+			if ( seq1[i] != seq2[i] ) {
+				if ( seq1[i] != '.' && seq2[i] != '.' ) {
+					pos = i + 1;
+					if ( buffer.length() > 0 ) {
+						buffer += std::string(", ") + seq1[i] + std::to_string(pos) + seq2[i];
+					} else {
+						buffer += seq1[i] + std::to_string(pos) + seq2[i];
+					}
+				}
+			}
+		}
+	}
+
+	return to_StringVal(context,buffer);
+}
+
+
 // Create a mutation list from two aligned strings
 // Ignore resolvable ambiguations
+IMPALA_UDF_EXPORT
 StringVal Mutation_List_No_Ambiguous(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
 	if ( sequence1.is_null  || sequence2.is_null  ) { return StringVal::null(); }
 	if ( sequence1.len == 0 || sequence2.len == 0 ) { return StringVal::null(); };
@@ -463,6 +644,7 @@ StringVal Mutation_List_No_Ambiguous(FunctionContext* context, const StringVal& 
 	return to_StringVal(context,buffer);
 }
 
+IMPALA_UDF_EXPORT
 IntVal Hamming_Distance_Pairwise_Delete(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2, const StringVal& pairwise_delete_set ) {
 	if ( sequence1.is_null  || sequence2.is_null || pairwise_delete_set.is_null  ) { return IntVal::null(); }
 	if ( sequence1.len == 0 || sequence2.len == 0 ) { return IntVal::null(); };
@@ -499,6 +681,7 @@ IntVal Hamming_Distance_Pairwise_Delete(FunctionContext* context, const StringVa
 	return IntVal(hamming_distance);
 }
 
+IMPALA_UDF_EXPORT
 IntVal Hamming_Distance(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
 	if ( sequence1.is_null  || sequence2.is_null  ) { return IntVal::null(); }
 	if ( sequence1.len == 0 || sequence2.len == 0 ) { return IntVal::null(); };
@@ -527,6 +710,7 @@ IntVal Hamming_Distance(FunctionContext* context, const StringVal& sequence1, co
 	return IntVal(hamming_distance);
 }
 
+IMPALA_UDF_EXPORT
 IntVal Nt_Distance(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
 	if ( sequence1.is_null  || sequence2.is_null  ) { return IntVal::null(); }
 	if ( sequence1.len == 0 || sequence2.len == 0 ) { return IntVal::null(); };
@@ -557,6 +741,7 @@ IntVal Nt_Distance(FunctionContext* context, const StringVal& sequence1, const S
 	return IntVal(hamming_distance);
 }
 
+IMPALA_UDF_EXPORT
 BooleanVal Contains_An_Element(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal ) {
 	if ( string1.is_null || string2.is_null || delimVal.is_null ) { return BooleanVal::null(); }
 	if ( string1.len == 0 || string2.len == 0 ) { return BooleanVal(false); }
@@ -580,6 +765,7 @@ BooleanVal Contains_An_Element(FunctionContext* context, const StringVal& string
 	return BooleanVal(false);
 }
 
+IMPALA_UDF_EXPORT
 BooleanVal Is_An_Element(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal ) {
 	if ( string1.is_null || string2.is_null || delimVal.is_null ) { return BooleanVal::null(); }
 	if ( string1.len == 0 || string2.len == 0 ) { return BooleanVal(false); }
@@ -598,6 +784,7 @@ BooleanVal Is_An_Element(FunctionContext* context, const StringVal& string1, con
 	return BooleanVal(false);
 }
 
+IMPALA_UDF_EXPORT
 BooleanVal Contains_Symmetric(FunctionContext* context, const StringVal& string1, const StringVal& string2 ) {
 	if ( string1.is_null || string2.is_null  ) { return BooleanVal::null(); }
 	if ( (string1.len == 0) != (string2.len == 0) ) { return BooleanVal(false); }
@@ -612,6 +799,7 @@ BooleanVal Contains_Symmetric(FunctionContext* context, const StringVal& string1
 	}
 }
 
+IMPALA_UDF_EXPORT
 StringVal nt_id(FunctionContext* context, const StringVal& sequence ) {
 	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
 	std::string seq ((const char *)sequence.ptr,sequence.len);
@@ -629,6 +817,7 @@ StringVal nt_id(FunctionContext* context, const StringVal& sequence ) {
 	return to_StringVal(context, buffer);
 }
 
+IMPALA_UDF_EXPORT
 StringVal variant_hash(FunctionContext* context, const StringVal &sequence ) {
 	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
 	std::string seq ((const char *)sequence.ptr,sequence.len);

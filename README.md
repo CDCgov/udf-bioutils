@@ -36,9 +36,17 @@ For further reading related to function development:
 
 <br />
 
-<pre><b>hamming_distance(<i>string sequence1, string sequence2[, string pairwise_deletion_set]</i>)</b></pre>
+<pre><b>hamming_distance(<i>string sequence1, string sequence2[, string pairwise_deletion_set]</i>)</b>, <b>nt_distance(<i>string sequence1, string sequence2</i>)</b></pre>
 **Return type:** `int`<br />
-**Purpose:** Counts the [number of differences](https://en.wikipedia.org/wiki/Hamming_distance) between two sequences (though any strings may be used). If one sequence is longer than the other, the extra characters are discarded from the calculation. By default, any pair of characters with a `.` as an element is ignored by the calculation. In *DAIS*, the `.` character is used for missing data. Optionally, one may explicitly add a pairwise deletion character set. If any pair of characters contain any of the characters in the argument, that position is ignored from the calculation. If any argument is `NULL` or either sequence argument is an empty string, a null value is returned. If the optional `pairwise_deletion_set` argument is an empty string, no pairwise deletion is performed.<br />
+**Purpose:** Counts the [number of differences](https://en.wikipedia.org/wiki/Hamming_distance) between two sequences (though any strings may be used). 
+If one sequence is longer than the other, the extra characters are discarded from the calculation. 
+By default, any pair of characters with a `.` as an element is ignored by the calculation. 
+In *DAIS*, the `.` character is used for missing data. Optionally, one may explicitly add a pairwise deletion character set. 
+If any pair of characters contain any of the characters in the argument, that position is ignored from the calculation. 
+If any argument is `NULL` or either sequence argument is an empty string, a null value is returned. 
+If the optional `pairwise_deletion_set` argument is an empty string, no pairwise deletion is performed.
+The `nt_distance` function is the same as the default version of `hamming_distance` but does not count ambiguated differences. For example, A ≠ T but A = R.
+<br />
 
 <br />
 

@@ -1,6 +1,9 @@
 # User-defined bioinformatics utilities for Impala SQL
 
-Functions are created in the **udx** schema and can be shown via `use udx; show functions;` commands. Tables in **udx** show function input arguments and expected return values (*outcome*). The tables are named after the function, but with a prefix for user-defined functions (_udf_) or user-defined aggregate functions (_uda_) and with a numeric suffix if the function has been [overloaded](https://en.wikipedia.org/wiki/Function_overloading). For convenience, I have written SQL files to re-create the function bindings in the event the library has been updated ([udx_refresh.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_refresh.sql)), to perform regression testing ([udx_tests.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_tests.sql)), or to ensure functions exist after a server restart ([udx_ensure.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_ensure.sql), not necessary after CDH6+). If the behavior of the function changes over time, one can re-create the example tables using the [udx_table_create.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_table_create.sql) file. *Please feel free to submit bugs and feature requests as issues within GitLab.*
+Functions are created in the **udx** schema and can be shown via `use udx; show functions;` commands. 
+Tables in **udx** show function input arguments and expected return values (*outcome*). 
+The tables are named after the function, but with a prefix for user-defined functions (_udf_) or user-defined aggregate functions (_uda_) and with a suffix indicating argument/return types to help distinguish when the function has been [overloaded](https://en.wikipedia.org/wiki/Function_overloading). For convenience, I have written SQL files to re-create the function bindings in the event the library has been updated ([udx_refresh.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_refresh.sql)), to perform regression testing ([udx_tests.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_tests.sql)), or to ensure functions exist after a server restart ([udx_ensure.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_ensure.sql), not necessary after CDH6+). 
+If the behavior of the function changes over time, one can re-create the example tables using the [udx_table_create.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_table_create.sql) file. *Please feel free to submit bugs and feature requests as issues within GitLab.*
 
 For further reading related to function development:
 * [Impala User-Defined Functions](https://www.cloudera.com/documentation/enterprise/6/6.0/topics/impala_udf.html)
@@ -9,6 +12,12 @@ For further reading related to function development:
 
 
 ## Function Descriptions
+<pre><b>complete_date(<i>string date</i>)</b></pre>
+**Return type:** `string`<br />
+**Purpose:** Parses string dates with delimiters `.`,`/`, and `-`; adds missing month or day component when applicable (as the first of either). A `NULL` in the argument will return a null value.<br />
+
+<br />
+
 <pre><b>contains_sym(<i>string str1, string str2</i>)</b></pre>
 **Return type:** `boolean`<br />
 **Purpose:** Returns true if `str1` is a substring of `str2` or vice-versa. If *just one* argument is an empty string, the function returns false. A `NULL` in any argument will return a null value.<br />
@@ -27,15 +36,27 @@ For further reading related to function development:
 
 <br />
 
-<pre><b>hamming_distance(<i>string sequence1, string sequence2[, string pairwise_deletion_set]</i>)</b></pre>
+<pre><b>hamming_distance(<i>string sequence1, string sequence2[, string pairwise_deletion_set]</i>)</b>, <b>nt_distance(<i>string sequence1, string sequence2</i>)</b></pre>
 **Return type:** `int`<br />
-**Purpose:** Counts the [number of differences](https://en.wikipedia.org/wiki/Hamming_distance) between two sequences (though any strings may be used). If one sequence is longer than the other, the extra characters are discarded from the calculation. By default, any pair of characters with a `.` as an element is ignored by the calculation. In *DAIS*, the `.` character is used for missing data. Optionally, one may explicitly add a pairwise deletion character set. If any pair of characters contain any of the characters in the argument, that position is ignored from the calculation. If any argument is `NULL` or either sequence argument is an empty string, a null value is returned. If the optional `pairwise_deletion_set` argument is an empty string, no pairwise deletion is performed.<br />
+**Purpose:** Counts the [number of differences](https://en.wikipedia.org/wiki/Hamming_distance) between two sequences (though any strings may be used). 
+If one sequence is longer than the other, the extra characters are discarded from the calculation. 
+By default, any pair of characters with a `.` as an element is ignored by the calculation. 
+In *DAIS*, the `.` character is used for missing data. Optionally, one may explicitly add a pairwise deletion character set. 
+If any pair of characters contain any of the characters in the argument, that position is ignored from the calculation. 
+If any argument is `NULL` or either sequence argument is an empty string, a null value is returned. 
+If the optional `pairwise_deletion_set` argument is an empty string, no pairwise deletion is performed.
+The `nt_distance` function is the same as the default version of `hamming_distance` but does not count ambiguated differences. For example, A ≠ T but A = R.
+<br />
 
 <br />
 
-<pre><b>mutation_list(<i>string sequence1, string sequence2</i>)</b>, <b>mutation_list_nt(<i>string sequence1, string sequence2</i>)</b></pre>
+<pre><b>mutation_list(<i>string sequence1, string sequence2 [, string range]</i>)</b>, <b>mutation_list_nt(<i>string sequence1, string sequence2</i>)</b></pre>
 **Return type:** `string`<br />
-**Purpose:** Returns a list of mutations from `sequence1` to `sequence2`, delimited by a comma and space. For example: `A2G, T160K, G340R`. If any argument is `NULL` or empty, a null value is returned. The function `mutation_list` returns differences and may be used for nucleotide, amino acid, or any other sequence. Alternatively, the function `mutation_list_nt` is *suitable only for nucleotide sequences* and ignores resolvable differences involving ambiguous nucleotides (e.g., "R2G" would not be listed).<br />
+**Purpose:** Returns a list of mutations from `sequence1` to `sequence2`, delimited by a comma and space. 
+If the `range` argument is included, only those sites will be compared (see the description of `range_coords` in `substr_range`).
+For example: `A2G, T160K, G340R`. If any argument is `NULL` or empty, a null value is returned. 
+The function `mutation_list` returns differences and may be used for nucleotide, amino acid, or any other sequence. 
+Alternatively, the function `mutation_list_nt` is *suitable only for nucleotide sequences* and ignores resolvable differences involving ambiguous nucleotides (e.g., "R2G" would not be listed).<br />
 
 <br />
 
@@ -60,10 +81,34 @@ For further reading related to function development:
 
 <pre><b>substr_range(<i>string str, string range_coords</i>)</b></b></pre>
 **Return type:** `string`<br />
-**Purpose:** Returns the characters in `str` specified by `range_coords`. All characters are concatenated as specified by `range_coords`. Ranges may be listed in forward and reverse, which affects output order, and are denoted by `#..#`. Multiple ranges or single characters may be separated using a semi-colon or comma. For example: `10..1;12;15;20..25`. If any argument is `NULL` or an empty string, a null value is returned.<br />
+**Purpose:** Returns the characters in `str` specified by `range_coords`. 
+All characters are concatenated as specified by `range_coords`. 
+Ranges may be listed in forward and reverse, which affects output order, and are denoted by `#..#`. 
+Multiple ranges or single characters may be separated using a semi-colon or comma. 
+For example: `10..1;12;15;20..25`. 
+If any argument is `NULL` or an empty string, a null value is returned.<br />
+
+<br />
+
+<pre><b>range_from_list(<i>string list, string delim</i>)</b></b></pre>
+**Return type:** `string`<br />
+**Purpose:** Takes string `list` of integers separated by string `delim` (split by substring) and returns a string *range* in the format described in `substr_range` for the field `range_coords`.
+List elements will be added uniquely as a set. 
+If a non-integer element is found or any argument is `NULL`, a null value is returned.
+If an empty `list` is given it is returned as-is; if an empty `delim` is given, the `list` is returned.
+<br />
 
 <br />
 
 <pre><b>to_aa(<i>string nucleotides[, string replacement_nucleotides, int starting_position]</i>)</b></pre>
 **Return type:** `string`<br />
 **Purpose:** Translates a nucleotide sequence to an amino acid sequence starting at position 1 of argument `nucleotides` (including resolvable ambiguous codons). Unknown or partial codons are translated as `?`, mixed or partially gapped codons are translated as `~`, and deletions (`-`) or missing data (`.`) are compacted from 3 to 1 character. Residues are always written out in uppercase. *Optionally*, one may overwrite a portion of the nucleotide sequence prior to translation by providing `replacement_nucleotides` and a `starting_position`. Specifying out-of-range indices will append to the 5' or 3' end while specifying a replacement sequence larger than the original will result in the extra nucleotides being appended after in-range bases are overwritten. If any argument is `NULL` a null value is returned. If the `replacement_nucleotides` argument is an empty string, the `nucleotides` argument is translated as-is. On the other hand, if the `nucleotides` argument is an empty string but `replacement_nucleotides` is not, then `replacement_nucleotides` is translated and returned.<br />
+
+<br />
+
+<pre><b>variant_hash(<i>string residues</i>)</b>, <b>nt_id(<i>string nucleotides</i>)</b></pre>
+**Return type:** `string`<br />
+**Purpose:** Returns hashed identifiers for aligned or unaligned sequences. 
+Case is ignored in the hash, as are spaces, `:`, `-`, and `.`; `nt_id` also ignores `~`, which represents a translated partial codon in the `variant_hash`. 
+The `variant_hash` is a 32 character [hexadecimal](https://en.wikipedia.org/wiki/Hexadecimal#Binary_conversion) from the [md5](https://en.wikipedia.org/wiki/MD5) hash while the `nt_id` is a 40 character hexadecimal from the [sha1](https://en.wikipedia.org/wiki/SHA-1) hash.
+Null values or empty string return `NULL`.<br />

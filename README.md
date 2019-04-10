@@ -53,7 +53,7 @@ The `nt_distance` function is the same as the default version of `hamming_distan
 <pre><b>mutation_list(<i>string sequence1, string sequence2 [, string range]</i>)</b>, <b>mutation_list_nt(<i>string sequence1, string sequence2</i>)</b></pre>
 **Return type:** `string`<br />
 **Purpose:** Returns a list of mutations from `sequence1` to `sequence2`, delimited by a comma and space. 
-If the range argument is included, only those sites will be compared.
+If the `range` argument is included, only those sites will be compared (see the description of `range_coords` in `substr_range`).
 For example: `A2G, T160K, G340R`. If any argument is `NULL` or empty, a null value is returned. 
 The function `mutation_list` returns differences and may be used for nucleotide, amino acid, or any other sequence. 
 Alternatively, the function `mutation_list_nt` is *suitable only for nucleotide sequences* and ignores resolvable differences involving ambiguous nucleotides (e.g., "R2G" would not be listed).<br />
@@ -81,7 +81,12 @@ Alternatively, the function `mutation_list_nt` is *suitable only for nucleotide 
 
 <pre><b>substr_range(<i>string str, string range_coords</i>)</b></b></pre>
 **Return type:** `string`<br />
-**Purpose:** Returns the characters in `str` specified by `range_coords`. All characters are concatenated as specified by `range_coords`. Ranges may be listed in forward and reverse, which affects output order, and are denoted by `#..#`. Multiple ranges or single characters may be separated using a semi-colon or comma. For example: `10..1;12;15;20..25`. If any argument is `NULL` or an empty string, a null value is returned.<br />
+**Purpose:** Returns the characters in `str` specified by `range_coords`. 
+All characters are concatenated as specified by `range_coords`. 
+Ranges may be listed in forward and reverse, which affects output order, and are denoted by `#..#`. 
+Multiple ranges or single characters may be separated using a semi-colon or comma. 
+For example: `10..1;12;15;20..25`. 
+If any argument is `NULL` or an empty string, a null value is returned.<br />
 
 <br />
 

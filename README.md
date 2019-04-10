@@ -1,6 +1,9 @@
 # User-defined bioinformatics utilities for Impala SQL
 
-Functions are created in the **udx** schema and can be shown via `use udx; show functions;` commands. Tables in **udx** show function input arguments and expected return values (*outcome*). The tables are named after the function, but with a prefix for user-defined functions (_udf_) or user-defined aggregate functions (_uda_) and with a numeric suffix if the function has been [overloaded](https://en.wikipedia.org/wiki/Function_overloading). For convenience, I have written SQL files to re-create the function bindings in the event the library has been updated ([udx_refresh.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_refresh.sql)), to perform regression testing ([udx_tests.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_tests.sql)), or to ensure functions exist after a server restart ([udx_ensure.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_ensure.sql), not necessary after CDH6+). If the behavior of the function changes over time, one can re-create the example tables using the [udx_table_create.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_table_create.sql) file. *Please feel free to submit bugs and feature requests as issues within GitLab.*
+Functions are created in the **udx** schema and can be shown via `use udx; show functions;` commands. 
+Tables in **udx** show function input arguments and expected return values (*outcome*). 
+The tables are named after the function, but with a prefix for user-defined functions (_udf_) or user-defined aggregate functions (_uda_) and with a suffix indicating argument/return types to help distinguish when the function has been [overloaded](https://en.wikipedia.org/wiki/Function_overloading). For convenience, I have written SQL files to re-create the function bindings in the event the library has been updated ([udx_refresh.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_refresh.sql)), to perform regression testing ([udx_tests.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_tests.sql)), or to ensure functions exist after a server restart ([udx_ensure.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_ensure.sql), not necessary after CDH6+). 
+If the behavior of the function changes over time, one can re-create the example tables using the [udx_table_create.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_table_create.sql) file. *Please feel free to submit bugs and feature requests as issues within GitLab.*
 
 For further reading related to function development:
 * [Impala User-Defined Functions](https://www.cloudera.com/documentation/enterprise/6/6.0/topics/impala_udf.html)
@@ -9,6 +12,12 @@ For further reading related to function development:
 
 
 ## Function Descriptions
+<pre><b>complete_date(<i>string date</i>)</b></pre>
+**Return type:** `string`<br />
+**Purpose:** Parses string dates with delimiters `.`,`/`, and `-`; adds missing month or day component when applicable (as first of either). A `NULL` in the argument will return a null value.<br />
+
+<br />
+
 <pre><b>contains_sym(<i>string str1, string str2</i>)</b></pre>
 **Return type:** `boolean`<br />
 **Purpose:** Returns true if `str1` is a substring of `str2` or vice-versa. If *just one* argument is an empty string, the function returns false. A `NULL` in any argument will return a null value.<br />
@@ -33,9 +42,13 @@ For further reading related to function development:
 
 <br />
 
-<pre><b>mutation_list(<i>string sequence1, string sequence2</i>)</b>, <b>mutation_list_nt(<i>string sequence1, string sequence2</i>)</b></pre>
+<pre><b>mutation_list(<i>string sequence1, string sequence2 [, string range]</i>)</b>, <b>mutation_list_nt(<i>string sequence1, string sequence2</i>)</b></pre>
 **Return type:** `string`<br />
-**Purpose:** Returns a list of mutations from `sequence1` to `sequence2`, delimited by a comma and space. For example: `A2G, T160K, G340R`. If any argument is `NULL` or empty, a null value is returned. The function `mutation_list` returns differences and may be used for nucleotide, amino acid, or any other sequence. Alternatively, the function `mutation_list_nt` is *suitable only for nucleotide sequences* and ignores resolvable differences involving ambiguous nucleotides (e.g., "R2G" would not be listed).<br />
+**Purpose:** Returns a list of mutations from `sequence1` to `sequence2`, delimited by a comma and space. 
+If the range argument is included, only those sites will be compared.
+For example: `A2G, T160K, G340R`. If any argument is `NULL` or empty, a null value is returned. 
+The function `mutation_list` returns differences and may be used for nucleotide, amino acid, or any other sequence. 
+Alternatively, the function `mutation_list_nt` is *suitable only for nucleotide sequences* and ignores resolvable differences involving ambiguous nucleotides (e.g., "R2G" would not be listed).<br />
 
 <br />
 

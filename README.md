@@ -90,6 +90,14 @@ If any argument is `NULL` or an empty string, a null value is returned.<br />
 
 <br />
 
+<pre><b>range_from_list(<i>string list, string delim</i>)</b></b></pre>
+**Return type:** `string`<br />
+**Purpose:** Takes string `list` of integers separated by `delim` and returns a string *range* in the format described in `substr_range` for the field `range_coords`.
+List elements will be added uniquely as a set. 
+If a non-integer element is found, any argument is `NULL`, or an empty string is given, a null value is returned.<br />
+
+<br />
+
 <pre><b>to_aa(<i>string nucleotides[, string replacement_nucleotides, int starting_position]</i>)</b></pre>
 **Return type:** `string`<br />
 **Purpose:** Translates a nucleotide sequence to an amino acid sequence starting at position 1 of argument `nucleotides` (including resolvable ambiguous codons). Unknown or partial codons are translated as `?`, mixed or partially gapped codons are translated as `~`, and deletions (`-`) or missing data (`.`) are compacted from 3 to 1 character. Residues are always written out in uppercase. *Optionally*, one may overwrite a portion of the nucleotide sequence prior to translation by providing `replacement_nucleotides` and a `starting_position`. Specifying out-of-range indices will append to the 5' or 3' end while specifying a replacement sequence larger than the original will result in the extra nucleotides being appended after in-range bases are overwritten. If any argument is `NULL` a null value is returned. If the `replacement_nucleotides` argument is an empty string, the `nucleotides` argument is translated as-is. On the other hand, if the `nucleotides` argument is an empty string but `replacement_nucleotides` is not, then `replacement_nucleotides` is translated and returned.<br />
@@ -101,6 +109,4 @@ If any argument is `NULL` or an empty string, a null value is returned.<br />
 **Purpose:** Returns hashed identifiers for aligned or unaligned sequences. 
 Case is ignored in the hash, as are spaces, `:`, `-`, and `.`; `nt_id` also ignores `~`, which represents a translated partial codon in the `variant_hash`. 
 The `variant_hash` is a 32 character [hexadecimal](https://en.wikipedia.org/wiki/Hexadecimal#Binary_conversion) from the [md5](https://en.wikipedia.org/wiki/MD5) hash while the `nt_id` is a 40 character hexadecimal from the [sha1](https://en.wikipedia.org/wiki/SHA-1) hash.
-Null values or empty string return `NULL`.
-
-<br />
+Null values or empty string return `NULL`.<br />

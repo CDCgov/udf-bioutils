@@ -27,7 +27,7 @@ create function if not exists default.to_aa(string) returns string location "/us
 create function if not exists default.to_aa(string,string,int) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="To_AA_Mutant";
 create function if not exists default.reverse_complement(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Rev_Complement";
 create function if not exists default.substr_range(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Substring_By_Range";
-create function if not exists default.range_from_list(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Range_From_list";
+create function if not exists default.range_from_list(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Range_From_List";
 create function if not exists default.mutation_list(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_Strict";
 create function if not exists default.mutation_list(string,string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_Strict";
 create function if not exists default.mutation_list_nt(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_No_Ambiguous";

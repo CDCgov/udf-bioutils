@@ -92,9 +92,11 @@ If any argument is `NULL` or an empty string, a null value is returned.<br />
 
 <pre><b>range_from_list(<i>string list, string delim</i>)</b></b></pre>
 **Return type:** `string`<br />
-**Purpose:** Takes string `list` of integers separated by `delim` and returns a string *range* in the format described in `substr_range` for the field `range_coords`.
+**Purpose:** Takes string `list` of integers separated by string `delim` (split by substring) and returns a string *range* in the format described in `substr_range` for the field `range_coords`.
 List elements will be added uniquely as a set. 
-If a non-integer element is found, any argument is `NULL`, or an empty string is given, a null value is returned.<br />
+If a non-integer element is found or any argument is `NULL`, a null value is returned.
+If an empty `list` is given it is returned as-is; if an empty `delim` is given, the `list` is returned.
+<br />
 
 <br />
 

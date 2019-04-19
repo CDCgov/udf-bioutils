@@ -51,6 +51,7 @@ StringVal Complete_String_Date		(FunctionContext* context, const StringVal& date
 // available in CentOS 7, CDH 6
 StringVal nt_id				(FunctionContext* context, const StringVal& sequence );
 StringVal variant_hash			(FunctionContext* context, const StringVal& sequence );
-StringVal Range_From_List(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal );
+StringVal Range_From_List		(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal );
+StringVal md5				(FunctionContext* context, int num_vars, const StringVal* args );
 
 #endif

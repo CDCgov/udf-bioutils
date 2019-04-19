@@ -39,3 +39,12 @@ select "complete_date (s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.comple
 select "variant_hash (s):s" as udf, sum( outcome IS NOT DISTINCT FROM udx.variant_hash(arg1_residues)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.variant_hash(arg1_residues)) / count(*) * 100 as percent_correct from udx.udf__variant_hash__ss;
 
 select "nt_id (s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.nt_id(arg1_nucleotides)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.nt_id(arg1_nucleotides)) / count(*) * 100 as percent_correct from udx.udf__nt_id__ss;
+
+select 	"md5 (s ...):s" as udf, 
+	sum( outcome IS NOT DISTINCT FROM outcome2 ) as correct, 
+	count(*) as total_tests,
+	sum( outcome IS NOT DISTINCT FROM outcome2 ) / count(*) * 100 as percent_correct
+FROM (select outcome, udx.md5(arg1,arg2,arg3) as outcome2 from udx.udf__md5__s where args = "1,2,3" 
+	UNION select outcome, udx.md5(arg1,arg2) as outcome2 from udx.udf__md5__s where args = "1,2" 
+	UNION select outcome, udx.md5(arg1) as outcome2 from udx.udf__md5__s where args = "1" 
+) as Q

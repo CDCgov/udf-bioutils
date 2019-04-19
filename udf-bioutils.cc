@@ -834,3 +834,31 @@ StringVal variant_hash(FunctionContext* context, const StringVal &sequence ) {
 
 	return to_StringVal(context, buffer);
 }
+
+IMPALA_UDF_EXPORT
+StringVal md5(FunctionContext* context, int num_vars, const StringVal* args ) {
+	if ( num_vars == 0 || args[0].is_null ) { return StringVal::null(); }
+	std::string input ((const char *)args[0].ptr,args[0].len);
+	std::string delim = "\a";
+	for( int i = 1; i < num_vars; i++ ) {
+		if ( args[i].is_null ) {
+			return StringVal::null();
+		} else if ( args[i].len == 0 ) {
+			input += delim;
+		} else {
+			std::string next_var ((const char *)args[i].ptr,args[i].len);
+			input += delim + next_var.c_str();
+		}
+	}
+	if ( input.size() == 0 ) { return StringVal::null(); }
+
+	unsigned char obuf[17];
+	MD5( (const unsigned char*) input.c_str(), input.size(), obuf);
+	
+	char buffer[34 * sizeof(char)]; int j;
+	for(j = 0; j < 16; j++) {
+	    sprintf(&buffer[2*j*sizeof(char)], "%02x", obuf[j]);
+	}
+
+	return to_StringVal(context, buffer);
+}

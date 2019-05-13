@@ -112,3 +112,10 @@ If an empty `list` is given it is returned as-is; if an empty `delim` is given, 
 Case is ignored in the hash, as are spaces, `:`, `-`, and `.`; `nt_id` also ignores `~`, which represents a translated partial codon in the `variant_hash`. 
 The `variant_hash` is a 32 character [hexadecimal](https://en.wikipedia.org/wiki/Hexadecimal#Binary_conversion) from the [md5](https://en.wikipedia.org/wiki/MD5) hash while the `nt_id` is a 40 character hexadecimal from the [sha1](https://en.wikipedia.org/wiki/SHA-1) hash.
 Null values or empty string return `NULL`.<br />
+
+<br />
+
+<pre><b>md5(<i>string field1</i> [,string field2, ...]</i>)</b></b></pre>
+**Return type:** `string`<br />
+**Purpose:** This function takes a variable number of string fields (i.e., "[variadic](https://en.wikipedia.org/wiki/Variadic_function)") and returns a 32 character [hexadecimal](https://en.wikipedia.org/wiki/Hexadecimal#Binary_conversion) from the [md5](https://en.wikipedia.org/wiki/MD5) hash.
+Any null value in an argument or all empty strings returns `NULL`. Note: fields are concatenated with the [bell character](https://en.wikipedia.org/wiki/Bell_character) as the delimiter before hashing in order to preserve field boundaries.<br />

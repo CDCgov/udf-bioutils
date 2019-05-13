@@ -47,8 +47,8 @@ select 	"md5 (s ...):s" as udf,
 FROM (select outcome, udx.md5(arg1,arg2,arg3) as outcome2 from udx.udf__md5__s where args = "1,2,3" 
 	UNION select outcome, udx.md5(arg1,arg2) as outcome2 from udx.udf__md5__s where args = "1,2" 
 	UNION select outcome, udx.md5(arg1) as outcome2 from udx.udf__md5__s where args = "1" 
-) as Q
+) as Q;
 
 select "deletion_events (s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.deletion_events(arg1_sequence)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.deletion_events(arg1_sequence)) / count(*) * 100 as percent_correct from udx.udf__deletion_events__si;
 
-select "longest_deletion (s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.longest_deletion(arg1_sequence)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.longest_deletion(arg1_sequence)) / count(*) * 100 as percent_correct from udx.__longest_deletion__si;
+select "longest_deletion (s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.longest_deletion(arg1_sequence)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.longest_deletion(arg1_sequence)) / count(*) * 100 as percent_correct from udx.udf__longest_deletion__si;

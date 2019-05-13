@@ -47,11 +47,12 @@ BooleanVal Contains_An_Element		(FunctionContext* context, const StringVal& stri
 BooleanVal Is_An_Element		(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal );
 BooleanVal Contains_Symmetric		(FunctionContext* context, const StringVal& string1, const StringVal& string2 );
 StringVal Complete_String_Date		(FunctionContext* context, const StringVal& dateStr );
-
-// available in CentOS 7, CDH 6
 StringVal nt_id				(FunctionContext* context, const StringVal& sequence );
 StringVal variant_hash			(FunctionContext* context, const StringVal& sequence );
 StringVal Range_From_List		(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal );
 StringVal md5				(FunctionContext* context, int num_vars, const StringVal* args );
+
+IntVal Longest_Deletion			(FunctionContext* context, const StringVal& sequence );
+IntVal Number_Deletions			(FunctionContext* context, const StringVal& sequence );
 
 #endif

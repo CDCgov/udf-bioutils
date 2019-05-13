@@ -862,3 +862,57 @@ StringVal md5(FunctionContext* context, int num_vars, const StringVal* args ) {
 
 	return to_StringVal(context, buffer);
 }
+
+IMPALA_UDF_EXPORT
+IntVal Number_Deletions(FunctionContext* context, const StringVal& sequence ) {
+	if ( sequence.is_null )	  { return IntVal::null(); } 
+	if ( sequence.len == 0 ) { return IntVal(0); }
+
+	std::string seq ((const char *)sequence.ptr,sequence.len);
+	int number_of_indels = 0;
+	int open = 0;
+	
+	for( int i = 1; i < seq.size(); i++ ) {
+		if ( seq[i] == '-' ) {
+			if ( isalpha(seq[i-1]) ) {
+				open = 1;
+			}
+		} else if ( isalpha(seq[i]) ) {
+			if ( open > 0 ) {
+				number_of_indels++;
+				open = 0;
+			}		
+		}
+	}	
+
+	return IntVal(number_of_indels);
+}
+
+IMPALA_UDF_EXPORT
+IntVal Longest_Deletion(FunctionContext* context, const StringVal& sequence ) {
+	if ( sequence.is_null )	  { return IntVal::null(); } 
+	if ( sequence.len == 0 ) { return IntVal(0); }
+
+	std::string seq ((const char *)sequence.ptr,sequence.len);
+	int longest_del = 0;		// Longest deletion length
+	int open = 0;			// Open deletion length
+	
+	for( int i = 1; i < seq.size(); i++ ) {
+		if ( seq[i] == '-' ) {
+			if ( isalpha(seq[i-1]) ) {
+				open = 1;
+			} else if ( open > 0 ) {
+				open++;
+			}
+		} else if ( isalpha(seq[i]) ) {
+			if ( open > 0 ) {
+				if ( open > longest_del ) {
+					longest_del = open;
+				}
+				open = 0;
+			}	
+		}
+	}	
+
+	return IntVal(longest_del);
+}

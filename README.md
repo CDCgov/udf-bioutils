@@ -119,3 +119,12 @@ Null values or empty string return `NULL`.<br />
 **Return type:** `string`<br />
 **Purpose:** This function takes a variable number of string fields (i.e., "[variadic](https://en.wikipedia.org/wiki/Variadic_function)") and returns a 32 character [hexadecimal](https://en.wikipedia.org/wiki/Hexadecimal#Binary_conversion) from the [md5](https://en.wikipedia.org/wiki/MD5) hash.
 Any null value in an argument or all empty strings returns `NULL`. Note: fields are concatenated with the [bell character](https://en.wikipedia.org/wiki/Bell_character) as the delimiter before hashing in order to preserve field boundaries.<br />
+
+<br />
+
+<pre><b>longest_deletion(<i>string sequence</i>), deletion_events(<i>string sequence</i>)</b></pre>
+**Return type:** `int`<br />
+**Purpose:** Returns the length of the longest deletion in the `sequence` or the number of deletion events respectively. 
+In either function, a *deletion event* must have upstream and downstream alphabetic character to the deletion span (using `-` for deletion characters only). 
+The functions return `null` if the sequence is null and they return 0 if the empty string is used.
+<br />

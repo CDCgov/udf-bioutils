@@ -19,7 +19,7 @@ create function if not exists udx.contains_sym(string,string) returns boolean lo
 create function if not exists udx.nt_id(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="nt_id";
 create function if not exists udx.variant_hash(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="variant_hash";
 create function if not exists udx.complete_date(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Complete_String_Date";
-create function if not exists udx.md5(string ...) returns string location '/user/vfn4/udx/libudfbioutils.so' symbol='md5';
+create function if not exists udx.md5(string ...) returns string location "/user/vfn4/udx/libudfbioutils.so" symbol="md5";
 create function if not exists udx.longest_deletion(string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Longest_Deletion";
 create function if not exists udx.deletion_events(string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Number_Deletions";
 
@@ -44,6 +44,6 @@ create function if not exists default.contains_sym(string,string) returns boolea
 create function if not exists default.nt_id(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="nt_id";
 create function if not exists default.variant_hash(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="variant_hash";
 create function if not exists default.complete_date(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Complete_String_Date";
-create function if not exists default.md5(string ...) returns string location '/user/vfn4/udx/libudfbioutils.so' symbol='md5';
+create function if not exists default.md5(string ...) returns string location "/user/vfn4/udx/libudfbioutils.so" symbol="md5";
 create function if not exists default.longest_deletion(string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Longest_Deletion";
 create function if not exists default.deletion_events(string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Number_Deletions";

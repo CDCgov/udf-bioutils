@@ -44,6 +44,7 @@ IntVal Hamming_Distance			(FunctionContext* context, const StringVal& sequence1,
 IntVal Hamming_Distance_Pairwise_Delete	(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2, const StringVal& pairwise_delete_set );
 IntVal Nt_Distance			(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 );
 DoubleVal Physiochemical_Distance	(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 );
+StringVal Physiochemical_Distance_List	(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 );
 BooleanVal Contains_An_Element		(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal );
 BooleanVal Is_An_Element		(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal );
 BooleanVal Contains_Symmetric		(FunctionContext* context, const StringVal& string1, const StringVal& string2 );

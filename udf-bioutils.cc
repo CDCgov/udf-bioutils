@@ -23,6 +23,58 @@
 #include <openssl/sha.h>
 #include <openssl/md5.h>
 
+std::unordered_map<std::string,double> pcd = {
+	{"--",0.000000},{"-A",2.249089},{"-C",1.965731},{"-D",5.015307},{"-E",2.619198},{"-F",2.295300},{"-G",3.159415},{"-H",2.290895},{"-I",2.683561},
+	{"-K",2.596979},{"-L",2.596459},{"-M",3.187256},{"-N",2.043331},{"-P",3.021241},{"-Q",3.691869},{"-R",3.637142},{"-S",5.669383},{"-T",2.745560},
+	{"-V",2.300174},{"-W",2.319116},{"-Y",3.654066},{"A-",2.249089},{"AA",0.000000},{"AC",3.229938},{"AD",5.170251},{"AE",3.364045},{"AF",3.426281},
+	{"AG",4.259660},{"AH",3.430656},{"AI",3.390855},{"AK",3.828067},{"AL",1.247798},{"AM",4.154732},{"AN",3.901718},{"AP",3.962688},{"AQ",3.992255},
+	{"AR",4.650462},{"AS",5.542608},{"AT",3.765807},{"AV",1.726268},{"AW",4.167385},{"AY",5.337790},{"C-",1.965731},{"CA",3.229938},{"CC",0.000000},
+	{"CD",4.799896},{"CE",4.250329},{"CF",3.102950},{"CG",4.096022},{"CH",2.122616},{"CI",3.625603},{"CK",4.151819},{"CL",2.884978},{"CM",4.008728},
+	{"CN",3.489685},{"CP",2.979329},{"CQ",3.605052},{"CR",5.124656},{"CS",5.086767},{"CT",4.165381},{"CV",2.602403},{"CW",2.082931},{"CY",4.640743},
+	{"D-",5.015307},{"DA",5.170251},{"DC",4.799896},{"DD",0.000000},{"DE",5.956098},{"DF",7.012867},{"DG",7.653339},{"DH",4.053677},{"DI",7.509780},
+	{"DK",6.543439},{"DL",4.282674},{"DM",7.821502},{"DN",6.503038},{"DP",3.451637},{"DQ",1.630031},{"DR",8.073717},{"DS",2.295953},{"DT",7.595762},
+	{"DV",4.685435},{"DW",5.866515},{"DY",8.336756},{"E-",2.619198},{"EA",3.364045},{"EC",4.250329},{"ED",5.956098},{"EE",0.000000},{"EF",2.889152},
+	{"EG",4.685478},{"EH",3.885589},{"EI",3.290365},{"EK",2.875361},{"EL",4.020771},{"EM",3.176445},{"EN",2.934314},{"EP",4.888814},{"EQ",4.832194},
+	{"ER",4.007668},{"ES",7.292318},{"ET",3.300894},{"EV",3.767307},{"EW",3.475989},{"EY",3.931641},{"F-",2.295300},{"FA",3.426281},{"FC",3.102950},
+	{"FD",7.012867},{"FE",2.889152},{"FF",0.000000},{"FG",3.248554},{"FH",3.988734},{"FI",0.950947},{"FK",3.386458},{"FL",4.031303},{"FM",1.452033},
+	{"FN",2.555269},{"FP",4.987153},{"FQ",5.749722},{"FR",3.720376},{"FS",7.700617},{"FT",2.106015},{"FV",3.404174},{"FW",2.314627},{"FY",2.548921},
+	{"G-",3.159415},{"GA",4.259660},{"GC",4.096022},{"GD",7.653339},{"GE",4.685478},{"GF",3.248554},{"GG",0.000000},{"GH",4.973258},{"GI",2.862307},
+	{"GK",3.513574},{"GL",4.930933},{"GM",3.985662},{"GN",2.281995},{"GP",4.644438},{"GQ",6.449124},{"GR",2.777967},{"GS",7.713728},{"GT",1.794826},
+	{"GV",4.381997},{"GW",4.278271},{"GY",2.844205},{"H-",2.290895},{"HA",3.430656},{"HC",2.122616},{"HD",4.053677},{"HE",3.885589},{"HF",3.988734},
+	{"HG",4.973258},{"HH",0.000000},{"HI",4.606832},{"HK",3.389498},{"HL",3.224376},{"HM",4.383811},{"HN",3.669550},{"HP",3.400338},{"HQ",2.505015},
+	{"HR",4.913960},{"HS",4.936588},{"HT",4.832215},{"HV",3.585443},{"HW",2.643804},{"HY",5.219847},{"I-",2.683561},{"IA",3.390855},{"IC",3.625603},
+	{"ID",7.509780},{"IE",3.290365},{"IF",0.950947},{"IG",2.862307},{"IH",4.606832},{"II",0.000000},{"IK",3.622541},{"IL",4.154383},{"IM",1.843231},
+	{"IN",2.777607},{"IP",5.290028},{"IQ",6.259904},{"IR",3.562906},{"IS",8.025833},{"IT",1.659940},{"IV",3.501528},{"IW",3.194558},{"IY",2.661635},
+	{"K-",2.596979},{"KA",3.828067},{"KC",4.151819},{"KD",6.543439},{"KE",2.875361},{"KF",3.386458},{"KG",3.513574},{"KH",3.389498},{"KI",3.622541},
+	{"KK",0.000000},{"KL",4.628726},{"KM",3.271743},{"KN",1.957013},{"KP",4.904732},{"KQ",5.077834},{"KR",1.831912},{"KS",7.447268},{"KT",2.933564},
+	{"KV",4.695817},{"KW",3.608435},{"KY",3.366764},{"L-",2.596459},{"LA",1.247798},{"LC",2.884978},{"LD",4.282674},{"LE",4.020771},{"LF",4.031303},
+	{"LG",4.930933},{"LH",3.224376},{"LI",4.154383},{"LK",4.628726},{"LL",0.000000},{"LM",4.900633},{"LN",4.533056},{"LP",3.443298},{"LQ",3.274920},
+	{"LR",5.628819},{"LS",4.504032},{"LT",4.649613},{"LV",1.292594},{"LW",4.245197},{"LY",6.042466},{"M-",3.187256},{"MA",4.154732},{"MC",4.008728},
+	{"MD",7.821502},{"ME",3.176445},{"MF",1.452033},{"MG",3.985662},{"MH",4.383811},{"MI",1.843231},{"MK",3.271743},{"ML",4.900633},{"MM",0.000000},
+	{"MN",3.121698},{"MP",6.108183},{"MQ",6.426531},{"MR",3.528257},{"MS",8.669123},{"MT",2.741514},{"MV",4.558618},{"MW",2.816647},{"MY",2.694847},
+	{"N-",2.043331},{"NA",3.901718},{"NC",3.489685},{"ND",6.503038},{"NE",2.934314},{"NF",2.555269},{"NG",2.281995},{"NH",3.669550},{"NI",2.777607},
+	{"NK",1.957013},{"NL",4.533056},{"NM",3.121698},{"NN",0.000000},{"NP",4.056538},{"NQ",5.237738},{"NR",2.330923},{"NS",7.208530},{"NT",1.830109},
+	{"NV",4.079951},{"NW",2.923269},{"NY",2.121650},{"P-",3.021241},{"PA",3.962688},{"PC",2.979329},{"PD",3.451637},{"PE",4.888814},{"PF",4.987153},
+	{"PG",4.644438},{"PH",3.400338},{"PI",5.290028},{"PK",4.904732},{"PL",3.443298},{"PM",6.108183},{"PN",4.056538},{"PP",0.000000},{"PQ",2.935575},
+	{"PR",5.882474},{"PS",3.476464},{"PT",5.038512},{"PV",3.128562},{"PW",4.262112},{"PY",5.825624},{"Q-",3.691869},{"QA",3.992255},{"QC",3.605052},
+	{"QD",1.630031},{"QE",4.832194},{"QF",5.749722},{"QG",6.449124},{"QH",2.505015},{"QI",6.259904},{"QK",5.077834},{"QL",3.274920},{"QM",6.426531},
+	{"QN",5.237738},{"QP",2.935575},{"QQ",0.000000},{"QR",6.646255},{"QS",2.985532},{"QT",6.356398},{"QV",3.826160},{"QW",4.622251},{"QY",7.085640},
+	{"R-",3.637142},{"RA",4.650462},{"RC",5.124656},{"RD",8.073717},{"RE",4.007668},{"RF",3.720376},{"RG",2.777967},{"RH",4.913960},{"RI",3.562906},
+	{"RK",1.831912},{"RL",5.628819},{"RM",3.528257},{"RN",2.330923},{"RP",5.882474},{"RQ",6.646255},{"RR",0.000000},{"RS",8.677989},{"RT",2.422829},
+	{"RV",5.518152},{"RW",4.622196},{"RY",2.925919},{"S-",5.669383},{"SA",5.542608},{"SC",5.086767},{"SD",2.295953},{"SE",7.292318},{"SF",7.700617},
+	{"SG",7.713728},{"SH",4.936588},{"SI",8.025833},{"SK",7.447268},{"SL",4.504032},{"SM",8.669123},{"SN",7.208530},{"SP",3.476464},{"SQ",2.985532},
+	{"SR",8.677989},{"SS",0.000000},{"ST",8.093516},{"SV",4.911201},{"SW",6.744983},{"SY",9.051536},{"T-",2.745560},{"TA",3.765807},{"TC",4.165381},
+	{"TD",7.595762},{"TE",3.300894},{"TF",2.106015},{"TG",1.794826},{"TH",4.832215},{"TI",1.659940},{"TK",2.933564},{"TL",4.649613},{"TM",2.741514},
+	{"TN",1.830109},{"TP",5.038512},{"TQ",6.356398},{"TR",2.422829},{"TS",8.093516},{"TT",0.000000},{"TV",4.045306},{"TW",3.776321},{"TY",2.056380},
+	{"V-",2.300174},{"VA",1.726268},{"VC",2.602403},{"VD",4.685435},{"VE",3.767307},{"VF",3.404174},{"VG",4.381997},{"VH",3.585443},{"VI",3.501528},
+	{"VK",4.695817},{"VL",1.292594},{"VM",4.558618},{"VN",4.079951},{"VP",3.128562},{"VQ",3.826160},{"VR",5.518152},{"VS",4.911201},{"VT",4.045306},
+	{"VV",0.000000},{"VW",3.823493},{"VY",5.388970},{"W-",2.319116},{"WA",4.167385},{"WC",2.082931},{"WD",5.866515},{"WE",3.475989},{"WF",2.314627},
+	{"WG",4.278271},{"WH",2.643804},{"WI",3.194558},{"WK",3.608435},{"WL",4.245197},{"WM",2.816647},{"WN",2.923269},{"WP",4.262112},{"WQ",4.622251},
+	{"WR",4.622196},{"WS",6.744983},{"WT",3.776321},{"WV",3.823493},{"WW",0.000000},{"WY",3.440509},{"Y-",3.654066},{"YA",5.337790},{"YC",4.640743},
+	{"YD",8.336756},{"YE",3.931641},{"YF",2.548921},{"YG",2.844205},{"YH",5.219847},{"YI",2.661635},{"YK",3.366764},{"YL",6.042466},{"YM",2.694847},
+	{"YN",2.121650},{"YP",5.825624},{"YQ",7.085640},{"YR",2.925919},{"YS",9.051536},{"YT",2.056380},{"YV",5.388970},{"YW",3.440509},{"YY",0.000000}
+};
+
 std::unordered_map<std::string,std::string> gc = {
         {"TAA","*"},{"TAG","*"},{"TAR","*"},{"TGA","*"},{"TRA","*"},{"GCA","A"},{"GCB","A"},{"GCC","A"},{"GCD","A"},{"GCG","A"},{"GCH","A"},
         {"GCK","A"},{"GCM","A"},{"GCN","A"},{"GCR","A"},{"GCS","A"},{"GCT","A"},{"GCV","A"},{"GCW","A"},{"GCY","A"},{"TGC","C"},{"TGT","C"},
@@ -742,6 +794,80 @@ IntVal Nt_Distance(FunctionContext* context, const StringVal& sequence1, const S
 }
 
 IMPALA_UDF_EXPORT
+DoubleVal Physiochemical_Distance(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
+	if ( sequence1.is_null  || sequence2.is_null  ) { return DoubleVal::null(); }
+	if ( sequence1.len == 0 || sequence2.len == 0 ) { return DoubleVal::null(); };
+
+	std::size_t length = sequence1.len;
+	if ( sequence2.len < sequence1.len ) {
+		length = sequence2.len;
+	}
+
+	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
+	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
+
+	double pcd_distance = 0;
+	unsigned int number_valid = 0;
+	std::string buff = "";
+	for (std::size_t i = 0; i < length; i++) {
+		seq1[i] = toupper(seq1[i]);
+		seq2[i] = toupper(seq2[i]);
+		buff = std::string() + seq1[i] + seq2[i];
+		if ( pcd.count( buff ) > 0 ) {
+			pcd_distance += pcd[buff];
+			number_valid++;
+		}
+	}
+
+	if ( number_valid > 0 ) {
+		pcd_distance /= (double) number_valid;
+		return DoubleVal(pcd_distance);
+	} else {
+		DoubleVal::null();
+	}
+}
+
+IMPALA_UDF_EXPORT
+StringVal Physiochemical_Distance_List(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
+	if ( sequence1.is_null  || sequence2.is_null  ) { return StringVal::null(); }
+	if ( sequence1.len == 0 || sequence2.len == 0 ) { return StringVal::null(); };
+
+	std::size_t length = sequence1.len;
+	if ( sequence2.len < sequence1.len ) {
+		length = sequence2.len;
+	}
+
+	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
+	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
+
+	double pcd_distance = 0;
+	std::string buff = "";
+	std::string result = "";
+
+	std::size_t i =0;
+	seq1[i] = toupper(seq1[i]); seq2[i] = toupper(seq2[i]);
+	buff = std::string() + seq1[i] + seq2[i];
+	if ( pcd.count( buff ) > 0 ) {
+		result += std::to_string(pcd[buff]);
+	} else {
+		result += "NA";
+	}
+
+	for (i = 1; i < length; i++) {
+		seq1[i] = toupper(seq1[i]);
+		seq2[i] = toupper(seq2[i]);
+		buff = std::string() + seq1[i] + seq2[i];
+		if ( pcd.count( buff ) > 0 ) {
+			result += " " + std::to_string(pcd[buff]);
+		} else {
+			result += " NA";
+		}
+	}
+
+	return to_StringVal(context, result);
+}
+
+IMPALA_UDF_EXPORT
 BooleanVal Contains_An_Element(FunctionContext* context, const StringVal& string1, const StringVal& string2, const StringVal& delimVal ) {
 	if ( string1.is_null || string2.is_null || delimVal.is_null ) { return BooleanVal::null(); }
 	if ( string1.len == 0 || string2.len == 0 ) { return BooleanVal(false); }
@@ -815,6 +941,26 @@ StringVal nt_id(FunctionContext* context, const StringVal& sequence ) {
 	}
 
 	return to_StringVal(context, buffer);
+}
+
+IMPALA_UDF_EXPORT
+StringVal nt_std(FunctionContext* context, const StringVal& sequence ) {
+	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
+	std::string seq ((const char *)sequence.ptr,sequence.len);
+	boost::remove_erase_if(seq, boost::is_any_of(" :.~-"));
+	boost::to_upper(seq);
+
+	return to_StringVal(context, seq);
+}
+
+IMPALA_UDF_EXPORT
+StringVal aa_std(FunctionContext* context, const StringVal &sequence ) {
+	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
+	std::string seq ((const char *)sequence.ptr,sequence.len);
+	boost::remove_erase_if(seq, boost::is_any_of(" :.-"));
+	boost::to_upper(seq);
+
+	return to_StringVal(context, seq);
 }
 
 IMPALA_UDF_EXPORT

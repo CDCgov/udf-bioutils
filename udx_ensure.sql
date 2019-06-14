@@ -22,6 +22,10 @@ create function if not exists udx.complete_date(string) returns string location 
 create function if not exists udx.md5(string ...) returns string location "/user/vfn4/udx/libudfbioutils.so" symbol="md5";
 create function if not exists udx.longest_deletion(string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Longest_Deletion";
 create function if not exists udx.deletion_events(string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Number_Deletions";
+create function if not exists udx.nt_std(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="nt_std";
+create function if not exists udx.aa_std(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="aa_std";
+create function if not exists udx.pcd_list(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Physiochemical_Distance_List";
+create function if not exists udx.pcd(string,string) returns double location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Physiochemical_Distance";
 
 create function if not exists default.sort_list(string, string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Sort_List_By_Substring";
 create function if not exists default.sort_list_unique(string, string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Sort_List_By_Substring_Unique";
@@ -47,3 +51,7 @@ create function if not exists default.complete_date(string) returns string locat
 create function if not exists default.md5(string ...) returns string location "/user/vfn4/udx/libudfbioutils.so" symbol="md5";
 create function if not exists default.longest_deletion(string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Longest_Deletion";
 create function if not exists default.deletion_events(string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Number_Deletions";
+create function if not exists default.nt_std(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="nt_std";
+create function if not exists default.aa_std(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="aa_std";
+create function if not exists default.pcd_list(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Physiochemical_Distance_List";
+create function if not exists default.pcd(string,string) returns double location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Physiochemical_Distance";

@@ -574,6 +574,92 @@ StringVal Mutation_List_Strict(FunctionContext* context, const StringVal& sequen
 	return to_StringVal(context,buffer);
 }
 
+// Create a mutation list from two aligned strings
+// Add Glycosylation detection
+IMPALA_UDF_EXPORT
+StringVal Mutation_List_Strict_GLY(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
+	if ( sequence1.is_null  || sequence2.is_null  ) { return StringVal::null(); }
+	if ( sequence1.len == 0 || sequence2.len == 0 ) { return StringVal::null(); };
+
+	std::size_t length = sequence1.len;
+	if ( sequence2.len < sequence1.len ) {
+		length = sequence2.len;
+	}
+
+	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
+	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
+	std::string buffer = "";
+
+	int gly = 0;
+	for (std::size_t i = 0; i < length; i++) {
+		if ( seq1[i] != seq2[i] ) {
+			seq1[i] = toupper(seq1[i]);
+			seq2[i] = toupper(seq2[i]);
+			if ( seq1[i] != seq2[i] ) {
+				if ( seq1[i] != '.' && seq2[i] != '.' ) {
+					if ( buffer.length() > 0 ) {
+						buffer += ", ";
+						buffer += seq1[i];
+						buffer += boost::lexical_cast<std::string>(i+1);
+						buffer += seq2[i];
+					} else {
+						buffer = seq1[i] + boost::lexical_cast<std::string>(i+1) + seq2[i];
+					}
+					
+					// GLYCOSYLATION ADD
+					// ~N <= N
+					gly = 0;
+					if ( seq2[i] == 'N' ) {
+						// CHECK: .[^P][ST]
+						if ( (i+2) < length && seq2[i+1] != 'P' && (seq2[i+2] == 'T'||seq2[i+2] == 'S') ) {
+							buffer += "-ADD"; gly = 1;
+						}
+					// P => ~P
+					} else if ( seq1[i] == 'P' ) {
+						// CHECK: N.[ST]
+						if ( (i+1) < length && (i-1) >= 0 && seq2[i-1] == 'N' && (seq2[i+1] == 'T'||seq2[i+1] == 'S') ) {
+							buffer += "-ADD"; gly = 1;
+						}
+					// ~[ST] && [ST]
+					} else if ( seq1[i] != 'S' && seq1[i] != 'T' && (seq2[i] == 'S' || seq2[i] == 'T') ) {
+						// CHECK: N[^P].
+						if ( (i-2) >= 0 && seq2[i-2] == 'N' && seq2[i-1] != 'P' ) {
+							buffer += "-ADD"; gly = 1;
+						}
+					}
+
+					// GLYCOSYLATION LOSS
+					// N => ~N
+					if ( seq1[i] == 'N' ) {
+						// CHECK: .[^P][ST]
+						if ( (i+2) < length && seq1[i+1] != 'P' && (seq1[i+2] == 'T'||seq1[i+2] == 'S') ) {
+							buffer += "-LOSS"; gly = 1;
+						}
+					// ~P <= P
+					} else if ( seq2[i] == 'P' ) {
+						// CHECK: N.[ST]
+						if ( (i+1) < length && (i-1) >= 0 && seq1[i-1] == 'N' && (seq1[i+1] == 'T'||seq1[i+1] == 'S') ) {
+							buffer += "-LOSS"; gly = 1;
+						}
+					// [ST] && ~[ST]
+					} else if ( seq2[i] != 'S' && seq2[i] != 'T' && (seq1[i] == 'S' || seq1[i] == 'T') ) {
+						// CHECK: N[^P].
+						if ( (i-2) >= 0 && seq1[i-2] == 'N' && seq1[i-1] != 'P' ) {
+							buffer += "-LOSS"; gly = 1;
+						}
+					}
+
+					if ( gly ) {
+						buffer += "-GLY";
+					}
+				}
+			}
+		}
+	}
+
+	return to_StringVal(context,buffer);
+}
+
 IMPALA_UDF_EXPORT
 StringVal Mutation_List_Strict(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2, const StringVal& rangeMap ) {
 	if ( sequence1.is_null  || sequence2.is_null || rangeMap.is_null  ) { return StringVal::null(); }

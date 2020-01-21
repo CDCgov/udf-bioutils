@@ -590,7 +590,8 @@ StringVal Mutation_List_Strict_GLY(FunctionContext* context, const StringVal& se
 	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
 	std::string buffer = "";
 
-	int gly = 0;
+	int add_gly = 0;
+	int loss_gly = 0;
 	for (std::size_t i = 0; i < length; i++) {
 		if ( seq1[i] != seq2[i] ) {
 			seq1[i] = toupper(seq1[i]);
@@ -605,51 +606,70 @@ StringVal Mutation_List_Strict_GLY(FunctionContext* context, const StringVal& se
 					} else {
 						buffer = seq1[i] + boost::lexical_cast<std::string>(i+1) + seq2[i];
 					}
+
 					
 					// GLYCOSYLATION ADD
+					add_gly = 0;
+
 					// ~N <= N
-					gly = 0;
 					if ( seq2[i] == 'N' ) {
 						// CHECK: .[^P][ST]
 						if ( (i+2) < length && seq2[i+1] != 'P' && (seq2[i+2] == 'T'||seq2[i+2] == 'S') ) {
-							buffer += "-ADD"; gly = 1;
-						}
-					// P => ~P
-					} else if ( seq1[i] == 'P' ) {
-						// CHECK: N.[ST]
-						if ( (i+1) < length && (i-1) >= 0 && seq2[i-1] == 'N' && (seq2[i+1] == 'T'||seq2[i+1] == 'S') ) {
-							buffer += "-ADD"; gly = 1;
-						}
-					// ~[ST] && [ST]
-					} else if ( seq1[i] != 'S' && seq1[i] != 'T' && (seq2[i] == 'S' || seq2[i] == 'T') ) {
-						// CHECK: N[^P].
-						if ( (i-2) >= 0 && seq2[i-2] == 'N' && seq2[i-1] != 'P' ) {
-							buffer += "-ADD"; gly = 1;
+							add_gly = 1;
 						}
 					}
 
+					// P => ~P
+					if ( !add_gly && seq1[i] == 'P' ) {
+						// CHECK: N.[ST]
+						if ( (i+1) < length && (i-1) >= 0 && seq2[i-1] == 'N' && (seq2[i+1] == 'T'||seq2[i+1] == 'S') ) {
+							add_gly = 1;
+						}
+					}
+ 
+					// ~[ST] && [ST]
+					if ( !add_gly && seq1[i] != 'S' && seq1[i] != 'T' && (seq2[i] == 'S' || seq2[i] == 'T') ) {
+						// CHECK: N[^P].
+						if ( (i-2) >= 0 && seq2[i-2] == 'N' && seq2[i-1] != 'P' ) {
+							add_gly = 1;
+						}
+					}
+
+
 					// GLYCOSYLATION LOSS
+					loss_gly = 0;
+
 					// N => ~N
 					if ( seq1[i] == 'N' ) {
 						// CHECK: .[^P][ST]
 						if ( (i+2) < length && seq1[i+1] != 'P' && (seq1[i+2] == 'T'||seq1[i+2] == 'S') ) {
-							buffer += "-LOSS"; gly = 1;
-						}
-					// ~P <= P
-					} else if ( seq2[i] == 'P' ) {
-						// CHECK: N.[ST]
-						if ( (i+1) < length && (i-1) >= 0 && seq1[i-1] == 'N' && (seq1[i+1] == 'T'||seq1[i+1] == 'S') ) {
-							buffer += "-LOSS"; gly = 1;
-						}
-					// [ST] && ~[ST]
-					} else if ( seq2[i] != 'S' && seq2[i] != 'T' && (seq1[i] == 'S' || seq1[i] == 'T') ) {
-						// CHECK: N[^P].
-						if ( (i-2) >= 0 && seq1[i-2] == 'N' && seq1[i-1] != 'P' ) {
-							buffer += "-LOSS"; gly = 1;
+							loss_gly = 1;
 						}
 					}
 
-					if ( gly ) {
+					// ~P <= P
+					if ( !loss_gly && seq2[i] == 'P' ) {
+						// CHECK: N.[ST]
+						if ( (i+1) < length && (i-1) >= 0 && seq1[i-1] == 'N' && (seq1[i+1] == 'T'||seq1[i+1] == 'S') ) {
+							loss_gly = 1;
+						}
+					}
+
+					// [ST] && ~[ST]
+					if ( !loss_gly && seq2[i] != 'S' && seq2[i] != 'T' && (seq1[i] == 'S' || seq1[i] == 'T') ) {
+						// CHECK: N[^P].
+						if ( (i-2) >= 0 && seq1[i-2] == 'N' && seq1[i-1] != 'P' ) {
+							loss_gly = 1;
+						}
+					}
+
+					if ( add_gly ) {
+						buffer += "-ADD";
+					}
+					if ( loss_gly ) {
+						buffer += "-LOSS";
+					}
+					if ( add_gly || loss_gly ) {
 						buffer += "-GLY";
 					}
 				}

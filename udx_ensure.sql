@@ -8,6 +8,7 @@ create function if not exists udx.reverse_complement(string) returns string loca
 create function if not exists udx.substr_range(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Substring_By_Range";
 create function if not exists udx.range_from_list(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Range_From_List";
 create function if not exists udx.mutation_list(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_Strict";
+create function if not exists udx.mutation_list_gly(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_Strict_GLY";
 create function if not exists udx.mutation_list(string,string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_Strict";
 create function if not exists udx.mutation_list_nt(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_No_Ambiguous";
 create function if not exists udx.hamming_distance(string,string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Hamming_Distance";
@@ -37,6 +38,7 @@ create function if not exists default.reverse_complement(string) returns string 
 create function if not exists default.substr_range(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Substring_By_Range";
 create function if not exists default.range_from_list(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Range_From_List";
 create function if not exists default.mutation_list(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_Strict";
+create function if not exists default.mutation_list_gly(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_Strict_GLY";
 create function if not exists default.mutation_list(string,string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_Strict";
 create function if not exists default.mutation_list_nt(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Mutation_List_No_Ambiguous";
 create function if not exists default.hamming_distance(string,string) returns int location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Hamming_Distance";

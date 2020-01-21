@@ -18,6 +18,8 @@ select "range_from_list (s,s):s" as udf, sum( outcome IS NOT DISTINCT FROM udx.r
 
 select "mutation_list (s,s):s" as udf, sum( outcome IS NOT DISTINCT FROM udx.mutation_list(arg1_seq,arg2_seq)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.mutation_list(arg1_seq,arg2_seq)) / count(*) * 100 as percent_correct from udx.udf__mutation_list__sss;
 
+select "mutation_list_gly (s,s):s" as udf, sum( outcome IS NOT DISTINCT FROM udx.mutation_list_gly(arg1_seq,arg2_seq)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.mutation_list_gly(arg1_seq,arg2_seq)) / count(*) * 100 as percent_correct from udx.udf__mutation_list_gly__sss;
+
 select "mutation_list (s,s,s):s" as udf, sum( outcome IS NOT DISTINCT FROM udx.mutation_list(arg1_seq,arg2_seq,arg3_range)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.mutation_list(arg1_seq,arg2_seq,arg3_range)) / count(*) * 100 as percent_correct from udx.udf__mutation_list__ssss;
 
 select "mutation_list_nt (s,s):s" as udf, sum( outcome IS NOT DISTINCT FROM udx.mutation_list_nt(arg1_seq,arg2_seq)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.mutation_list_nt(arg1_seq,arg2_seq)) / count(*) * 100 as percent_correct from udx.udf__mutation_list_nt__sss;

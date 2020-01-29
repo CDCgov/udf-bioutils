@@ -57,3 +57,12 @@ create function if not exists default.nt_std(string) returns string location "/u
 create function if not exists default.aa_std(string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="aa_std";
 create function if not exists default.pcd_list(string,string) returns string location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Physiochemical_Distance_List";
 create function if not exists default.pcd(string,string) returns double location "/user/vfn4/udx/libudfbioutils.so" SYMBOL="Physiochemical_Distance";
+
+CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.logfold_agreement(bigint) 
+RETURNS double INTERMEDIATE string
+LOCATION "/user/vfn4/udx/libudabioutils.so"
+    INIT_FN = "BoundedArrayInit"
+    UPDATE_FN = "BoundedArrayUpdate"
+    MERGE_FN = "BoundedArrayMerge"
+    SERIALIZE_FN = "StringStructSerialize"
+    FINALIZE_FN = "AgreementFinalize";

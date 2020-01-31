@@ -13,4 +13,11 @@ StringVal BoundedArrayPrintFinalize(FunctionContext* context, const StringVal& v
 BigIntVal BoundedArrayCountFinalize(FunctionContext* context, const StringVal& val);
 DoubleVal AgreementFinalize(FunctionContext* context, const StringVal& val);
 
+void RunningMomentInit(FunctionContext* context, StringVal* val);
+void RunningMomentUpdate(FunctionContext* ctx, const DoubleVal& B, StringVal* dst);
+void RunningMomentUpdate(FunctionContext* ctx, const BigIntVal& B, StringVal* dst);
+void RunningMomentMerge(FunctionContext* ctx, const StringVal& src, StringVal* dst);
+DoubleVal RunningMomentPopulationVarianceFinalize(FunctionContext* context, const StringVal& rms);
+DoubleVal RunningMomentSkewnessFinalize(FunctionContext* context, const StringVal& rms);
+DoubleVal RunningMomentKurtosisFinalize(FunctionContext* context, const StringVal& rms);
 #endif

@@ -83,9 +83,57 @@ bool TestAgreement() {
   return true;
 }
 
+bool TestVariance() {
+  // Setup the test UDAs.
+  // Note: reinterpret_cast is required because pre-2.9 UDF headers had a spurious "const"
+  // specifier in the return type for SerializeFn.
+  typedef UdaTestHarness<DoubleVal, StringVal, BigIntVal> TestHarness;
+  TestHarness variance(	RunningMomentInit, 
+			RunningMomentUpdate, 
+			RunningMomentMerge,
+			StringStructSerialize,
+			RunningMomentPopulationVarianceFinalize
+			);
+  variance.SetResultComparator(FuzzyCompare);
+
+  // Test empty input
+  vector<BigIntVal> vals;
+  if ( ! variance.Execute(vals, DoubleVal::null()) ) {
+    cerr << "Simple variance: " << variance.GetErrorMsg() << endl;
+    return false;
+  }
+
+  // Initialize the test values.
+  int sum = 0;
+  for (int i = 0; i < 1001; ++i) {
+    vals.push_back(BigIntVal(i));
+    sum += i;
+  }
+
+  double mean = sum / vals.size();
+  double expected_variance = 0;
+
+  for (int i = 0; i < vals.size(); ++i) {
+    double d = mean - vals[i].val;
+    expected_variance += d * d;
+  }
+
+  expected_variance /= static_cast<double>(vals.size());
+
+
+  // Run the tests
+  if (!variance.Execute(vals, expected_variance)) {
+    cerr << "Simple variance: " << variance.GetErrorMsg() << endl;
+    return false;
+  }
+
+  return true;
+}
+
 int main(int argc, char** argv) {
   bool passed = true;
   passed &= TestAgreement();
+  passed &= TestVariance();
   cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
   return 0;
 }

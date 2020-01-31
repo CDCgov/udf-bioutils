@@ -6,10 +6,10 @@
 #include <string>
 #include <limits>
 #include <memory>
-//#include <iostream>
-
+#include <cmath>
 #include "common.h"
 
+//#include <iostream>
 
 
 
@@ -22,6 +22,235 @@ inline StringVal to_StringVal(FunctionContext* context, const std::string& s) {
 	return result;
 }
 
+
+// May be used for Variance (M2), Skewness (M3), and Kurtosis (M4)
+struct RunningMomentStruct {
+	double mu;
+	double m2;
+	double m3;
+	double m4;
+  	int64_t n;
+};
+
+IMPALA_UDF_EXPORT
+void RunningMomentInit(FunctionContext* context, StringVal* val) {
+	val->ptr = context->Allocate(sizeof(RunningMomentStruct));
+
+	// Exit on failed allocation. Impala will fail the query after some time.
+	if (val->ptr == NULL) {
+		*val = StringVal::null();
+		return;
+	}
+
+	/// Initialize the string object containing our Struct
+	val->is_null = false;
+	val->len = sizeof(RunningMomentStruct);
+
+	// Set our Struct counts to zero
+	RunningMomentStruct* rms = reinterpret_cast<RunningMomentStruct*>(val->ptr);
+	memset(val->ptr, 0, val->len );
+}
+
+// Algorithm specified by Timothy B. Terriberry ("pairwise update" single-pass algorithm)
+// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Higher-order_statistics
+// https://people.xiph.org/~tterribe/notes/homs.html 
+// n	= nA + nB
+// ∆	= µB - µA
+// µ	= µA + ∆ * nB / n
+// m2	= m2_A + m2_B + ∆^2*nA*nB/n
+// m3	= m3_A + m3_B + ∆^3*nA*nB*(nA - nB)/n^2 + 3∆(nA*m2_B - nB*m2_A)/n
+// m4	= m4_A + m4_B + ∆^4*nA*nB*(nA^2 - nA*nB + nB^2)/n^3 + 6∆^2((nA^2*m2_B + nB^2*m2_A)/n^2 + 4∆( nA*m3_B - nB*m3_A)/n
+IMPALA_UDF_EXPORT
+void RunningMomentUpdate(FunctionContext* ctx, const DoubleVal& B, StringVal* dst) {
+	if ( B.is_null || dst->is_null) { return; }
+ 	RunningMomentStruct* A = reinterpret_cast<RunningMomentStruct*>(dst->ptr);
+
+	// µB	= B.val
+	// nB	= 1
+	// ∆	= µB - µA
+	double delta 	= B.val - A->mu;
+	double nA	= static_cast<double>(A->n);
+	
+	// Update n
+	// n	= nA + nB = nA + 1
+	A->n++;
+	double n	= static_cast<double>(A->n);
+	double delta_n	= delta / n;
+	double d2_n2	= std::pow(delta_n,2);
+	double d2nA_n 	= delta * delta_n * nA;
+
+	// µ	= µA + ∆ * nB / n
+	A->mu += delta_n;
+
+	// m4 + d^4 * nA (nA^2 - nA + 1) / n^3 + 6d^2*m2/n^2 - 4d*m3/n
+	A->m4 += d2nA_n * d2_n2 * (std::pow(nA,2) - nA + 1) + 6 * d2_n2 * A->m2 - 4 * delta_n * A->m3;
+
+	// m3 + d^3 * (nA - 1) / n^2 - 3 * delta * m2 / n
+	A->m3 += d2nA_n * delta_n * (nA-1) - 3 * delta_n * A->m2;
+
+	// m2 + d^2 * nA / n
+	A->m2 += d2nA_n;
+}
+
+IMPALA_UDF_EXPORT
+void RunningMomentUpdate(FunctionContext* ctx, const BigIntVal& B, StringVal* dst) {
+	if ( B.is_null || dst->is_null) { return; }
+ 	RunningMomentStruct* A = reinterpret_cast<RunningMomentStruct*>(dst->ptr);
+
+	// µB	= B.val
+	// nB	= 1
+	// ∆	= µB - µA
+	double delta 	= static_cast<double>(B.val) - A->mu;
+	double nA	= static_cast<double>(A->n);
+	
+	// Update n
+	// n	= nA + nB = nA + 1
+	A->n++;
+	double n	= static_cast<double>(A->n);
+	double delta_n	= delta / n;
+	double d2_n2	= std::pow(delta_n,2);
+	double d2nA_n 	= delta * delta_n * nA;
+
+	// µ	= µA + ∆ * nB / n
+	A->mu += delta_n;
+
+	// m4 + d^4 * nA (nA^2 - nA + 1) / n^3 + 6d^2*m2/n^2 - 4d*m3/n
+	A->m4 += d2nA_n*d2_n2*(std::pow(nA,2) - nA + 1) + 6*d2_n2*A->m2 - 4*delta_n*A->m3;
+
+	// m3 + d^3 * (nA - 1) / n^2 - 3 * delta * m2 / n
+	A->m3 += d2nA_n*delta_n*(nA-1) - 3*delta_n*A->m2;
+
+	// m2 + d^2 * nA / n
+	A->m2 += d2nA_n;
+}
+	
+// Algorithm specified by Timothy B. Terriberry ("pairwise update" single-pass algorithm)
+// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Higher-order_statistics
+// https://people.xiph.org/~tterribe/notes/homs.html 
+IMPALA_UDF_EXPORT
+void RunningMomentMerge(FunctionContext* ctx, const StringVal& src, StringVal* dst) {
+	if (src.is_null || dst->is_null) {
+		return;
+	}
+
+	RunningMomentStruct* B = reinterpret_cast<RunningMomentStruct*>(src.ptr);
+	RunningMomentStruct* A = reinterpret_cast<RunningMomentStruct*>(dst->ptr);
+	if (B->n == 0) {
+		return;
+	}
+
+	double nA 	= static_cast<double>(A->n);
+	double nB	= static_cast<double>(B->n);
+	double nA2	= std::pow(nA,2);
+	double nB2	= std::pow(nB,2);
+	double nAnB	= nA * nB;
+
+	// Update n
+	// n = nA + nB
+	A->n		+= B->n;
+	double n 	= static_cast<double>(A->n);
+
+	// ∆	= µB - µA
+	double delta	= B->mu - A->mu;
+	double delta_n	= delta / n;
+	double d2_n2	= std::pow(delta_n,2);
+	double d2nAnB_n	= delta * delta_n * nAnB;
+
+
+
+	// µ	= µA + ∆ * nB / n
+	A->mu	+= delta_n * nB;
+	// m4	= m4_A + m4_B + ∆^4*nA*nB*(nA^2 - nA*nB + nB^2)/n^3 + 6∆^2((nA^2*m2_B + nB^2*m2_A)/n^2 + 4∆( nA*m3_B - nB*m3_A)/n
+	A->m4	+= B->m4 + d2nAnB_n*d2_n2*(nA2 - nAnB + nB2) + 6*d2_n2*(nA2*B->m2 + nB2*A->m2) + 4*delta_n*(nA*B->m3 - nB*A->m3);	
+	// m3	= m3_A + m3_B + ∆^3*nA*nB*(nA - nB)/n^2 + 3∆(nA*m2_B - nB*m2_A)/n
+	A->m3	+= B->m3 + d2nAnB_n*delta_n*(nA - nB) + 3*delta_n*(nA*B->m2 - nB*A->m2);
+	// m2	= m2_A + m2_B + ∆^2*nA*nB/n
+	A->m2	+= B->m2 + d2nAnB_n;
+}
+
+// Use StringStructSerialize
+
+IMPALA_UDF_EXPORT
+DoubleVal RunningMomentSampleVarianceFinalize(FunctionContext* context, const StringVal& rms) {
+	RunningMomentStruct* A = reinterpret_cast<RunningMomentStruct*>(rms.ptr);
+	DoubleVal result;
+
+	if ( rms.is_null || A->n < 2 ) {
+		result = DoubleVal::null();
+	} else {
+		// Sample variance
+		result = DoubleVal(A->m2 / static_cast<double>(A->n - 1));
+	}
+
+	context->Free(rms.ptr);
+	return result;
+}
+
+IMPALA_UDF_EXPORT
+DoubleVal RunningMomentPopulationVarianceFinalize(FunctionContext* context, const StringVal& rms) {
+	RunningMomentStruct* A = reinterpret_cast<RunningMomentStruct*>(rms.ptr);
+	DoubleVal result;
+
+	if ( rms.is_null || A->n == 0 ) {
+		result = DoubleVal::null();
+	} else {
+		// Population variance
+		if (A->n == 1) {
+			result = DoubleVal(0.0);
+		} else {
+			result = DoubleVal(A->m2 / static_cast<double>(A->n));
+		}
+	}
+
+	context->Free(rms.ptr);
+	return result;
+}
+
+IMPALA_UDF_EXPORT
+DoubleVal RunningMomentSkewnessFinalize(FunctionContext* context, const StringVal& rms) {
+	RunningMomentStruct* A = reinterpret_cast<RunningMomentStruct*>(rms.ptr);
+	DoubleVal result;
+
+	if ( rms.is_null || A->n == 0 ) {
+		result = DoubleVal::null();
+	} else {
+		// Population variance
+		if (A->n == 1) {
+			result = DoubleVal(0.0);
+		} else {
+			double N = static_cast<double>(A->n);
+			result = DoubleVal( std::sqrt(N) * A->m3 / std::pow(A->m2,1.5) );
+		}
+	}
+
+	context->Free(rms.ptr);
+	return result;
+}
+
+IMPALA_UDF_EXPORT
+DoubleVal RunningMomentKurtosisFinalize(FunctionContext* context, const StringVal& rms) {
+	RunningMomentStruct* A = reinterpret_cast<RunningMomentStruct*>(rms.ptr);
+	DoubleVal result;
+
+	if ( rms.is_null || A->n == 0 ) {
+		result = DoubleVal::null();
+	} else {
+		// Population variance
+		if (A->n == 1) {
+			result = DoubleVal(0.0);
+		} else {
+			double N = static_cast<double>(A->n);
+			result = DoubleVal( (N*A->m4 / std::pow(A->m2,2)) - 3.0 );
+		}
+	}
+
+	context->Free(rms.ptr);
+	return result;
+}
+
+/****************************************************************/
+/****************************************************************/
+/****************************************************************/
 
 // Structure that takes values from -16 to +16. This makes it suitable for logfold which is generally ±12, but not as a general function.
 // One could try to follow a more complicated procedure that would store the data in a hash. This would involve more memory management and determination of the serialization state.

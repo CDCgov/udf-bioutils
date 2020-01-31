@@ -1,7 +1,7 @@
-// udf-bioutils.cc - Sam Shepard - 2018
+// udf-bioutils.cc - Sam Shepard - 2020
 // Impala user-defined functions for CDC biofinformatics.
 // Relies on Cloudera headers being installed.
-// Current version supports C++98
+// Current version supports C++11
 
 #include "udf-bioutils.h"
 #include "common.h"

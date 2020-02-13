@@ -211,7 +211,7 @@ DoubleVal RunningMomentSkewnessFinalize(FunctionContext* context, const StringVa
 	RunningMomentStruct* A = reinterpret_cast<RunningMomentStruct*>(rms.ptr);
 	DoubleVal result;
 
-	if ( rms.is_null || A->n == 0 ) {
+	if ( rms.is_null || A->n < 3 ) {
 		result = DoubleVal::null();
 	} else {
 		// Population variance
@@ -219,7 +219,9 @@ DoubleVal RunningMomentSkewnessFinalize(FunctionContext* context, const StringVa
 			result = DoubleVal(0.0);
 		} else {
 			double N = static_cast<double>(A->n);
-			result = DoubleVal( std::sqrt(N) * A->m3 / std::pow(A->m2,1.5) );
+			double g1 = std::sqrt(N) * A->m3 / std::pow(A->m2,1.5);
+			// type 2, similar to SAS
+			result = DoubleVal( g1 * std::sqrt( N * (N - 1.0) ) / (N - 2.0) );
 		}
 	}
 
@@ -232,7 +234,7 @@ DoubleVal RunningMomentKurtosisFinalize(FunctionContext* context, const StringVa
 	RunningMomentStruct* A = reinterpret_cast<RunningMomentStruct*>(rms.ptr);
 	DoubleVal result;
 
-	if ( rms.is_null || A->n == 0 ) {
+	if ( rms.is_null || A->n < 4 ) {
 		result = DoubleVal::null();
 	} else {
 		// Population variance
@@ -240,7 +242,9 @@ DoubleVal RunningMomentKurtosisFinalize(FunctionContext* context, const StringVa
 			result = DoubleVal(0.0);
 		} else {
 			double N = static_cast<double>(A->n);
-			result = DoubleVal( (N*A->m4 / std::pow(A->m2,2)) - 3.0 );
+			double g2 = (N*A->m4 / std::pow(A->m2,2)) - 3.0;
+			// type 2, similar to SAS
+			result = DoubleVal( ( (N + 1.0) * g2 + 6.0) * (N-1.0) / ((N-2.0) * (N-3.0))  );
 		}
 	}
 

@@ -54,7 +54,7 @@ bool TestAgreement() {
 
   // Initialize the test values.
   vector<BigIntVal> vals2 = {1,1,2,2,2,2,3,3};
-  double expected_agreement = 0.25;
+  double expected_agreement = 0.8333333;
 
   // Run the tests
   if (!logfold_agreement.Execute(vals2, expected_agreement)) {
@@ -62,7 +62,7 @@ bool TestAgreement() {
     return false;
   }
 
-  vals2 = {-2,1};
+  vals2 = {-100,100};
   expected_agreement = -1;
 
   // Run the tests
@@ -71,8 +71,27 @@ bool TestAgreement() {
     return false;
   }
 
+  vals2 = {-2,1};
+  expected_agreement = 0.4166667;
+
+  // Run the tests
+  if (!logfold_agreement.Execute(vals2, expected_agreement)) {
+    cerr << "Logfold agreement: " << logfold_agreement.GetErrorMsg() << endl;
+    return false;
+  }
+
+  vals2 = {1,1,12,13,14,16};
+  expected_agreement = -0.3611111;
+
+  // Run the tests
+  if (!logfold_agreement.Execute(vals2, expected_agreement)) {
+    cerr << "Logfold agreement: " << logfold_agreement.GetErrorMsg() << endl;
+    return false;
+  }
+
+
   vals2 = {1,1,1,1,1,2,2};
-  expected_agreement = 0.7142857;
+  expected_agreement = 0.9365079;
 
   // Run the tests
   if (!logfold_agreement.Execute(vals2, expected_agreement)) {

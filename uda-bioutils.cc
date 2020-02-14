@@ -5,8 +5,9 @@
 #include <assert.h>
 #include <string>
 #include <limits>
-#include <memory>
 #include <cmath>
+#include <algorithm>
+#include <iostream>
 #include "common.h"
 
 //#include <iostream>
@@ -401,6 +402,26 @@ BigIntVal BoundedArrayCountFinalize(FunctionContext* context, const StringVal& v
 	return result;
 }
 
+inline bool pick_side(int K, int s, int l, uint64_t C[]) {
+	uint64_t RHS = 0;
+	uint64_t LHS = 0;
+	
+	for(int i = s; i < s+10; i++ ) {
+		LHS += C[i];
+	}
+
+	for(int i = l - 10; i < l; i++ ) {
+		RHS += C[i];
+	}
+
+	// less weight, so fold RHS
+	if ( RHS != LHS ) {
+		return RHS < LHS;
+	} else {
+		return K % 2;
+	}
+}
+
 // Intended only for logfold, but could be modified for other ranges. 
 IMPALA_UDF_EXPORT
 DoubleVal AgreementFinalize(FunctionContext* context, const StringVal& val) {
@@ -422,24 +443,53 @@ DoubleVal AgreementFinalize(FunctionContext* context, const StringVal& val) {
 		double AA	= 0.0;					// average agreement
 		double U	= 0.0;					// unimodality coefficient
 		uint64_t minnz	= 0; 					// min non-zero value
-	
-		// If K < 3, agreement is undefined. Our data structure stretches to bounds. Thus:
-		// K = 0 => no data, so return null
-		// K = 1 => S = 1, we add the triplet for unimodality
-		// K = 2 => S = 2, so we must add the triplet remainder & calculate
-		if ( K == 2 ) {
-			// S = 2 <= K == 2
-			// If at upperbound, add element lower
-			if ( bda->upper == bda->CUTOFF ) {
-				start--;
-			// otherwise add one higher
-			} else {
-				limit++;
-			}
-			K++;
-		}
-		std::unique_ptr<bool[]> P(new bool[K]); // allocate pattern vector
+		bool P[10]	= {false};				// fixed pattern vector, size must be ≤ CUTOFF
 
+		// Singletons are unimodal, assume +/- 1 categories for a complete triplet
+		if ( K == 1 ) {
+			// K=1 => S=1
+			context->Free(val.ptr);
+			return DoubleVal(1.0);
+
+		// Fix categories to 10
+		} else if ( K > 10 ) {
+			// reduction of the range should infringe on bounds
+			while( K != 10 ) {
+				// true to fold in RHS
+				if ( pick_side(K, start, limit, bda->counts) ) {
+					// reduce limit, last element WAS limit - 1
+					limit--;
+					// add last element to its inside neighbor 
+					bda->counts[limit-1] += bda->counts[limit];
+					
+				// false to fold in LHS
+				} else {
+					// fold in to the inside, update start
+					bda->counts[start+1] += bda->counts[start];
+					start++;
+				}
+				K--;
+			}
+
+		// Adjust bounds to 10, data should already be zeroed
+		} else if ( K < 10 ) {
+			unsigned int array_bound = bda->CUTOFF * 2 + 1;
+			unsigned int left_over = 10 - K;
+			unsigned int inc = std::min( array_bound - limit, left_over );
+			
+			// add to limit, subtract from start, but not beyond what is needed or available
+			limit 		+= inc; 
+			left_over 	-= inc;
+			start 		-= left_over;
+			K 		= 10;
+
+			// this should never happen, but better than crashing the server
+			if ( start < 0 ) {
+				K 	+= start;
+				start 	= 0;
+			}
+		}
+	
 		// Initialize TC, P & S
 		for(int i = start; i < limit; i++ ) {
 			if ( bda->counts[i] > 0 ) {
@@ -451,13 +501,6 @@ DoubleVal AgreementFinalize(FunctionContext* context, const StringVal& val) {
 			} else {
 				P[i - start] = false;
 			}
-		}
-
-		// Singletons are unimodal, assume +/- 1 categories for a complete triplet
-		if ( S == 1 ) {
-			// S == 1 <= K == 1
-			context->Free(val.ptr);
-			return DoubleVal(1.0);
 		}
 
 		while( S > 0 ) {

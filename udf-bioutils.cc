@@ -622,7 +622,7 @@ StringVal Mutation_List_Strict_GLY(FunctionContext* context, const StringVal& se
 					// P => ~P
 					if ( !add_gly && seq1[i] == 'P' ) {
 						// CHECK: N.[ST]
-						if ( (i+1) < length && (i-1) >= 0 && seq2[i-1] == 'N' && (seq2[i+1] == 'T'||seq2[i+1] == 'S') ) {
+						if ( (i+1) < length && i >= 1 && seq2[i-1] == 'N' && (seq2[i+1] == 'T'||seq2[i+1] == 'S') ) {
 							add_gly = 1;
 						}
 					}
@@ -630,7 +630,7 @@ StringVal Mutation_List_Strict_GLY(FunctionContext* context, const StringVal& se
 					// ~[ST] && [ST]
 					if ( !add_gly && seq1[i] != 'S' && seq1[i] != 'T' && (seq2[i] == 'S' || seq2[i] == 'T') ) {
 						// CHECK: N[^P].
-						if ( (i-2) >= 0 && seq2[i-2] == 'N' && seq2[i-1] != 'P' ) {
+						if ( i >= 2 && seq2[i-2] == 'N' && seq2[i-1] != 'P' ) {
 							add_gly = 1;
 						}
 					}
@@ -650,7 +650,7 @@ StringVal Mutation_List_Strict_GLY(FunctionContext* context, const StringVal& se
 					// ~P <= P
 					if ( !loss_gly && seq2[i] == 'P' ) {
 						// CHECK: N.[ST]
-						if ( (i+1) < length && (i-1) >= 0 && seq1[i-1] == 'N' && (seq1[i+1] == 'T'||seq1[i+1] == 'S') ) {
+						if ( (i+1) < length && i >= 1 && seq1[i-1] == 'N' && (seq1[i+1] == 'T'||seq1[i+1] == 'S') ) {
 							loss_gly = 1;
 						}
 					}
@@ -658,7 +658,7 @@ StringVal Mutation_List_Strict_GLY(FunctionContext* context, const StringVal& se
 					// [ST] && ~[ST]
 					if ( !loss_gly && seq2[i] != 'S' && seq2[i] != 'T' && (seq1[i] == 'S' || seq1[i] == 'T') ) {
 						// CHECK: N[^P].
-						if ( (i-2) >= 0 && seq1[i-2] == 'N' && seq1[i-1] != 'P' ) {
+						if ( i >= 2 && seq1[i-2] == 'N' && seq1[i-1] != 'P' ) {
 							loss_gly = 1;
 						}
 					}
@@ -929,7 +929,7 @@ DoubleVal Physiochemical_Distance(FunctionContext* context, const StringVal& seq
 		pcd_distance /= (double) number_valid;
 		return DoubleVal(pcd_distance);
 	} else {
-		DoubleVal::null();
+		return DoubleVal::null();
 	}
 }
 

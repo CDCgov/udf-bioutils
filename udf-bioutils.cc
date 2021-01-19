@@ -483,6 +483,65 @@ StringVal Complete_String_Date(FunctionContext* context, const StringVal& dateSt
 	return to_StringVal(context,buffer);
 }
 
+/*
+input_date = sys.argv[1]
+def date_to_epiweek(strdt):
+    # Handle empty data:
+    if strdt is None:
+        return None
+
+    # Convert to date, then get the start date for the year.
+    dt = datetime.datetime.strptime(strdt, '%m/%d/%Y')
+    start_dt = datetime.date(dt.year,1,1)
+
+    # Get which day of year we're in and the weekday of both start and date,
+    #    converting 6 to 0 because US weeks start on Sunday, not Monday.
+    doy = dt.timetuple().tm_yday
+    day_st = start_dt.weekday()
+    day_st = 0 if day_st==6 else day_st+1
+    day_dt = dt.weekday()
+    day_dt = 0 if day_dt==6 else day_dt+1
+
+    # If Jan 1 is in the first 4 days of the week, then it is MMWR week 1, incrementing by 1.
+    if day_st in (0,1,2,3):
+        epiweek = (doy + (day_st-1)) // 7 + 1
+    else:
+        epiweek = (doy + (day_st-1)) // 7
+
+    # Check for exceptions. If epiweek is 0, look at last day of last year for epiweek.
+    #     If date is one of last 3 days of year and starting the week off, determine if it's a new year or not.
+    if dt.day in (29, 30, 31) and dt.month == 12 and (day_dt in (1,2,0)) and \
+      datetime.date(dt.year + 1, 1, 1).weekday() in (0,1,2,6):
+        epiweek = 1
+    elif epiweek <= 0:
+        epiweek = date_to_epiweek("12/31/" + str(dt.year - 1))
+
+    
+    return epiweek
+IMPALA_UDF_EXPORT
+StringVal Convert_String_To_EPI_Week(FunctionContext* context, const StringVal& dateStr ) {
+	if ( dateStr.is_null  || dateStr.len == 0 ) { return StringVal::null(); }
+	std::string date ((const char *)dateStr.ptr,dateStr.len);
+	std::vector<std::string> tokens;
+	boost::split(tokens, date, boost::is_any_of("-/."));
+	std::string buffer = "";
+
+	if ( tokens.size() >= 3 ) {
+		buffer = tokens[0] + "-" + tokens[1] + "-" + tokens[2];
+	} else if ( tokens.size() == 2 ) {
+		buffer = tokens[0] + "-" + tokens[1] + "-01";
+	} else if ( tokens.size() == 1 ) {
+		buffer = tokens[0] + "-01-01";
+	} else {
+		return StringVal::null(); 
+	}
+
+
+	// Buffer with full date
+	return to_StringVal(context,buffer);
+}
+*/
+
 IMPALA_UDF_EXPORT
 StringVal Substring_By_Range(FunctionContext* context, const StringVal& sequence, const StringVal& rangeMap ) {
 	if ( sequence.is_null  || sequence.len == 0 || rangeMap.is_null || rangeMap.len == 0 ) { return StringVal::null(); }
@@ -565,6 +624,131 @@ StringVal Mutation_List_Strict(FunctionContext* context, const StringVal& sequen
 						buffer += seq2[i];
 					} else {
 						buffer = seq1[i] + boost::lexical_cast<std::string>(i+1) + seq2[i];
+					}
+				}
+			}
+		}
+	}
+
+	return to_StringVal(context,buffer);
+}
+
+// Create a mutation list from two aligned strings
+IMPALA_UDF_EXPORT
+StringVal Mutation_List_PDS(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2, const StringVal& pairwise_delete_set ) {
+	if ( sequence1.is_null  || sequence2.is_null || pairwise_delete_set.is_null  ) { return StringVal::null(); }
+	if ( sequence1.len == 0 || sequence2.len == 0 ) { return StringVal::null(); };
+
+	std::size_t length = sequence1.len;
+	if ( sequence2.len < sequence1.len ) {
+		length = sequence2.len;
+	}
+
+	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
+	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
+	std::string buffer = "";
+	std::unordered_map<char,int> m;
+	if ( pairwise_delete_set.len > 0 ) {
+		std::string dset ((const char *)pairwise_delete_set.ptr,pairwise_delete_set.len);
+		for (std::size_t i = 0; i < pairwise_delete_set.len; i++) {
+			m[dset[i]] = 1;
+		}
+	}
+
+	for (std::size_t i = 0; i < length; i++) {
+		if ( seq1[i] != seq2[i] ) {
+			seq1[i] = toupper(seq1[i]);
+			seq2[i] = toupper(seq2[i]);
+			if ( seq1[i] != seq2[i] ) {
+				if ( m.count( seq1[i] ) == 0 && m.count( seq2[i] ) == 0 ) {
+					if ( buffer.length() > 0 ) {
+						buffer += ", ";
+						buffer += seq1[i];
+						buffer += boost::lexical_cast<std::string>(i+1);
+						buffer += seq2[i];
+					} else {
+						buffer = seq1[i] + boost::lexical_cast<std::string>(i+1) + seq2[i];
+					}
+				}
+			}
+		}
+	}
+
+	return to_StringVal(context,buffer);
+}
+
+IMPALA_UDF_EXPORT
+StringVal Mutation_List_Strict(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2, const StringVal& rangeMap ) {
+	if ( sequence1.is_null  || sequence2.is_null || rangeMap.is_null  ) { return StringVal::null(); }
+	if ( sequence1.len == 0 || sequence2.len == 0 || rangeMap.len == 0 ) { return StringVal::null(); };
+
+	std::size_t length = sequence1.len;
+	if ( sequence2.len < sequence1.len ) {
+		length = sequence2.len;
+	}
+
+	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
+	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
+	std::string map ((const char *)rangeMap.ptr,rangeMap.len);
+
+	int x,a,b;
+	int L = length;
+	std::vector<int> sites;
+	std::vector<std::string> tokens;
+	boost::split(tokens, map, boost::is_any_of(";,"));
+	for(int i = 0; i < tokens.size(); i++ ) {
+		if ( tokens[i].find("..") != std::string::npos ) {
+			std::vector<std::string> range = split_by_substr(tokens[i],"..");
+			if ( range.size() == 0 ) { return StringVal::null(); }	
+
+			try {
+				a = std::stoi(range[0]) - 1;
+				b = std::stoi(range[1]) - 1;
+			} catch(...) {
+				return StringVal::null();
+			}
+
+			if ( b >= L )	{ b = L - 1; }
+			if ( a >= L )	{ a = L - 1; }
+			if ( a < 0 )	{ a = 0; }
+			if ( b < 0 )	{ b = 0; }
+
+			if ( a <= b ) { 
+				for( int j = a; j <= b; j++ ) {
+					sites.push_back(j);
+				}
+			} else {
+				for( int j = a; j >= b; j-- ) {
+					sites.push_back(j);
+				}
+			}
+		} else {
+			try {
+				x = std::stoi(tokens[i]) - 1;
+			} catch (...) {
+				return StringVal::null();
+			}
+
+			if ( x < L && x >= 0 ) {
+				sites.push_back(x);
+				
+			}
+		}
+	}
+
+	int pos = 0;
+	std::string buffer = "";
+	for ( const auto& i : sites ) {
+		if ( i < length && i > -1 ) {
+			seq1[i] = toupper(seq1[i]);
+			seq2[i] = toupper(seq2[i]);
+			if ( seq1[i] != seq2[i] ) {
+				if ( seq1[i] != '.' && seq2[i] != '.' ) {
+					pos = i + 1;
+					if ( buffer.length() > 0 ) {
+						buffer += std::string(", ") + seq1[i] + std::to_string(pos) + seq2[i];
+					} else {
+						buffer += seq1[i] + std::to_string(pos) + seq2[i];
 					}
 				}
 			}
@@ -680,90 +864,10 @@ StringVal Mutation_List_Strict_GLY(FunctionContext* context, const StringVal& se
 	return to_StringVal(context,buffer);
 }
 
-IMPALA_UDF_EXPORT
-StringVal Mutation_List_Strict(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2, const StringVal& rangeMap ) {
-	if ( sequence1.is_null  || sequence2.is_null || rangeMap.is_null  ) { return StringVal::null(); }
-	if ( sequence1.len == 0 || sequence2.len == 0 || rangeMap.len == 0 ) { return StringVal::null(); };
-
-	std::size_t length = sequence1.len;
-	if ( sequence2.len < sequence1.len ) {
-		length = sequence2.len;
-	}
-
-	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
-	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
-	std::string map ((const char *)rangeMap.ptr,rangeMap.len);
-
-	int x,a,b;
-	int L = length;
-	std::vector<int> sites;
-	std::vector<std::string> tokens;
-	boost::split(tokens, map, boost::is_any_of(";,"));
-	for(int i = 0; i < tokens.size(); i++ ) {
-		if ( tokens[i].find("..") != std::string::npos ) {
-			std::vector<std::string> range = split_by_substr(tokens[i],"..");
-			if ( range.size() == 0 ) { return StringVal::null(); }	
-
-			try {
-				a = std::stoi(range[0]) - 1;
-				b = std::stoi(range[1]) - 1;
-			} catch(...) {
-				return StringVal::null();
-			}
-
-			if ( b >= L )	{ b = L - 1; }
-			if ( a >= L )	{ a = L - 1; }
-			if ( a < 0 )	{ a = 0; }
-			if ( b < 0 )	{ b = 0; }
-
-			if ( a <= b ) { 
-				for( int j = a; j <= b; j++ ) {
-					sites.push_back(j);
-				}
-			} else {
-				for( int j = a; j >= b; j-- ) {
-					sites.push_back(j);
-				}
-			}
-		} else {
-			try {
-				x = std::stoi(tokens[i]) - 1;
-			} catch (...) {
-				return StringVal::null();
-			}
-
-			if ( x < L && x >= 0 ) {
-				sites.push_back(x);
-				
-			}
-		}
-	}
-
-	int pos = 0;
-	std::string buffer = "";
-	for ( const auto& i : sites ) {
-		if ( i < length && i > -1 ) {
-			seq1[i] = toupper(seq1[i]);
-			seq2[i] = toupper(seq2[i]);
-			if ( seq1[i] != seq2[i] ) {
-				if ( seq1[i] != '.' && seq2[i] != '.' ) {
-					pos = i + 1;
-					if ( buffer.length() > 0 ) {
-						buffer += std::string(", ") + seq1[i] + std::to_string(pos) + seq2[i];
-					} else {
-						buffer += seq1[i] + std::to_string(pos) + seq2[i];
-					}
-				}
-			}
-		}
-	}
-
-	return to_StringVal(context,buffer);
-}
-
 
 // Create a mutation list from two aligned strings
 // Ignore resolvable ambiguations
+// NT_distance()
 IMPALA_UDF_EXPORT
 StringVal Mutation_List_No_Ambiguous(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
 	if ( sequence1.is_null  || sequence2.is_null  ) { return StringVal::null(); }

@@ -1139,7 +1139,7 @@ IMPALA_UDF_EXPORT
 StringVal nt_id(FunctionContext* context, const StringVal& sequence ) {
 	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
 	std::string seq ((const char *)sequence.ptr,sequence.len);
-	boost::remove_erase_if(seq, boost::is_any_of(" :.~-"));
+	boost::remove_erase_if(seq, boost::is_any_of("\n\r\t :.~-"));
 	boost::to_upper(seq);
 
 	unsigned char obuf[21];
@@ -1157,7 +1157,7 @@ IMPALA_UDF_EXPORT
 StringVal nt_std(FunctionContext* context, const StringVal& sequence ) {
 	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
 	std::string seq ((const char *)sequence.ptr,sequence.len);
-	boost::remove_erase_if(seq, boost::is_any_of(" :.~-"));
+	boost::remove_erase_if(seq, boost::is_any_of("\n\r\t :.~-"));
 	boost::to_upper(seq);
 
 	return to_StringVal(context, seq);
@@ -1167,7 +1167,7 @@ IMPALA_UDF_EXPORT
 StringVal aa_std(FunctionContext* context, const StringVal &sequence ) {
 	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
 	std::string seq ((const char *)sequence.ptr,sequence.len);
-	boost::remove_erase_if(seq, boost::is_any_of(" :.-"));
+	boost::remove_erase_if(seq, boost::is_any_of("\n\r\t :.-"));
 	boost::to_upper(seq);
 
 	return to_StringVal(context, seq);
@@ -1177,7 +1177,7 @@ IMPALA_UDF_EXPORT
 StringVal variant_hash(FunctionContext* context, const StringVal &sequence ) {
 	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
 	std::string seq ((const char *)sequence.ptr,sequence.len);
-	boost::remove_erase_if(seq, boost::is_any_of(" :.-"));
+	boost::remove_erase_if(seq, boost::is_any_of("\n\r\t :.-"));
 	boost::to_upper(seq);
 
 	unsigned char obuf[17];

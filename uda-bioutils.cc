@@ -9,7 +9,7 @@
 #include <algorithm>
 #include "common.h"
 
-//#include <iostream>
+#include <iostream>
 
 
 
@@ -555,4 +555,31 @@ DoubleVal AgreementFinalize(FunctionContext* context, const StringVal& val) {
 
 	context->Free(val.ptr);
 	return result;
+}
+
+
+// ---------------------------------------------------------------------------
+// Bitwise Or Aggregate Function
+// ---------------------------------------------------------------------------
+IMPALA_UDF_EXPORT
+void BitwiseOrInit(FunctionContext* context, BigIntVal* val) {
+	val->is_null = true;
+	val->val = 0;
+}
+
+IMPALA_UDF_EXPORT
+void BitwiseOrUpdateMerge(FunctionContext* context, const BigIntVal& src, BigIntVal* dst) {
+	if ( ! src.is_null ) {
+		if ( ! dst->is_null ) {
+			dst->val |= src.val;
+		} else {
+			dst->is_null = false;  
+			dst->val = src.val;
+		}
+	}
+}
+
+IMPALA_UDF_EXPORT
+BigIntVal BitwiseOrFinalize(FunctionContext* context, const BigIntVal& val) {
+  return val;
 }

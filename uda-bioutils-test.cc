@@ -37,6 +37,8 @@ bool FuzzyCompare(const DoubleVal& x, const DoubleVal& y) {
   return fabs(x.val - y.val) < 0.00001;
 }
 
+
+
 bool TestAgreement() {
   typedef UdaTestHarness<DoubleVal, StringVal, BigIntVal> TestHarness;
   TestHarness logfold_agreement(BoundedArrayInit, BoundedArrayUpdate, BoundedArrayMerge,
@@ -149,10 +151,50 @@ bool TestVariance() {
   return true;
 }
 
+bool TestBitwiseOr() {
+  UdaTestHarness<BigIntVal, BigIntVal, BigIntVal> bw_or(
+  			BitwiseOrInit, 
+			BitwiseOrUpdateMerge, 
+			BitwiseOrUpdateMerge,
+			NULL,
+			BitwiseOrFinalize
+			);
+
+  // Test empty input
+  vector<BigIntVal> vals;
+
+  if ( ! bw_or.Execute(vals, BigIntVal::null()) ) {
+//  if ( ! bw_or.Execute(vals, BigIntVal(0) ) ) {
+    cerr << "Empty set for bitwise or: " << bw_or.GetErrorMsg() << endl;
+    return false;
+  }
+
+  vals.push_back(BigIntVal(3));
+  vals.push_back(BigIntVal(3));
+  vals.push_back(BigIntVal(3));
+  vals.push_back(BigIntVal(9));
+
+  // Run the tests
+  if (!bw_or.Execute(vals, BigIntVal(11))) {
+    cerr << "Bitwise Or (3,3,3,9): " << bw_or.GetErrorMsg() << endl;
+    return false;
+  }
+
+  vals.push_back(BigIntVal(4));
+
+  // Run the tests
+  if (!bw_or.Execute(vals, BigIntVal(15))) {
+    cerr << "Bitwise Or (3,3,3,9,4): " << bw_or.GetErrorMsg() << endl;
+    return false;
+  }
+
+  return true;
+}
 int main(int argc, char** argv) {
   bool passed = true;
   passed &= TestAgreement();
   passed &= TestVariance();
+  passed &= TestBitwiseOr();
   cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
   return 0;
 }

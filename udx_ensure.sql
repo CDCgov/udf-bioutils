@@ -67,3 +67,12 @@ LOCATION "/udx/ncird_id/prod/libudabioutils.so"
     MERGE_FN = "BoundedArrayMerge"
     SERIALIZE_FN = "StringStructSerialize"
     FINALIZE_FN = "AgreementFinalize";
+
+
+CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.bitwise_sum(bigint) 
+RETURNS bigint
+LOCATION "/udx/ncird_id/prod/libudabioutils.so"
+    INIT_FN = "BitwiseOrInit"
+    UPDATE_FN = "BitwiseOrUpdateMerge"
+    MERGE_FN = "BitwiseOrUpdateMerge"
+    FINALIZE_FN = "BitwiseOrFinalize";

@@ -57,6 +57,7 @@ StringVal Range_From_List		(FunctionContext* context, const StringVal& listVal, 
 StringVal md5				(FunctionContext* context, int num_vars, const StringVal* args );
 StringVal nt_std			(FunctionContext* context, const StringVal& sequence );
 StringVal aa_std			(FunctionContext* context, const StringVal& sequence );
+BooleanVal Find_Set_In_String		(FunctionContext* context, const StringVal& haystackVal, const StringVal& needlesVal );
 
 IntVal Longest_Deletion			(FunctionContext* context, const StringVal& sequence );
 IntVal Number_Deletions			(FunctionContext* context, const StringVal& sequence );

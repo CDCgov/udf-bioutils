@@ -28,6 +28,7 @@ create function if not exists udx.nt_std(string) returns string location "/udx/n
 create function if not exists udx.aa_std(string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="aa_std";
 create function if not exists udx.pcd_list(string,string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Physiochemical_Distance_List";
 create function if not exists udx.pcd(string,string) returns double location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Physiochemical_Distance";
+create function if not exists udx.any_instr(string,string) returns boolean location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Find_Set_In_String";
 
 create function if not exists default.sort_list(string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Sort_List_By_Substring";
 create function if not exists default.sort_list_unique(string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Sort_List_By_Substring_Unique";

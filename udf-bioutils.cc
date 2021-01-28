@@ -341,6 +341,34 @@ StringVal Sort_Allele_List(FunctionContext* context, const StringVal& listVal, c
 	}
 }
 
+IMPALA_UDF_EXPORT
+BooleanVal Find_Set_In_String(FunctionContext* context, const StringVal& haystackVal, const StringVal& needlesVal ) {
+	// check for nulls
+	if ( haystackVal.is_null || needlesVal.is_null ) { 
+		return BooleanVal::null(); 
+	// haystack and needles not null
+	} else if ( haystackVal.len == 0 || needlesVal.len == 0 ) { 
+		// Can't find something in nothing or vice-versa
+		if ( haystackVal.len != needlesVal.len ) {
+			return BooleanVal(false);
+		// Special case that differs from instr
+		// letting empty set be found in an empty string
+		} else {
+			return BooleanVal(true);
+		}
+	// haystack and needles are non-trivial
+	} else {
+		std::string haystack ((const char *)haystackVal.ptr,haystackVal.len);
+		std::string needles  ((const char *)needlesVal.ptr,needlesVal.len);
+		if ( haystack.find_first_of(needles) != std::string::npos ) {
+			return BooleanVal(true);
+		} else {
+			return BooleanVal(false);
+		}
+	}
+}
+
+
 // We take codon(s) and translate it/them
 IMPALA_UDF_EXPORT
 StringVal To_AA(FunctionContext* context, const StringVal& ntsVal ) {

@@ -130,7 +130,7 @@ The functions return `null` if the sequence is null and they return 0 if the emp
 
 <br />
 
-<pre><b>to_epiweek(<i>string date</i>) [, <i>boolean year_format</i>])</b></pre>
+<pre><b>to_epiweek(<i>string date</i> [, <i>boolean year_format</i>])</b></pre>
 **Return type:** `int`<br />
 **Purpose:** Returns the [MMWR or EPI](https://wwwn.cdc.gov/nndss/document/MMWR_Week_overview.pdf) week of a formatted date string. If any argument is null then `null` is returned. Invalid dates, including the empty string, will also return `null`.  The `string_date` is in *YYYY-MM-DD* format but may also be delimited using `.` or `/`. If the month or day are missing they are set to January or the 1st day of the month, respectively. Normally the output is an integer ranging from 1 up to 52 or 53. The *optional* `year_format` (defaults to `false`) adds the padded week to the year so that the output can be graphed on a contiguous timeline. Some examples using the year format would be: *202102* and *199853*.
 <br />

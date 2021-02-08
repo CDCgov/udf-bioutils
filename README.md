@@ -128,3 +128,9 @@ Any null value in an argument or all empty strings returns `NULL`. Note: fields 
 In either function, a *deletion event* must have upstream and downstream alphabetic character to the deletion span (using `-` for deletion characters only). 
 The functions return `null` if the sequence is null and they return 0 if the empty string is used.
 <br />
+
+
+<pre><b>to_epiweek(<i>string date</i>) [. <i>boolean year_format sequence<i>])</b></pre>
+**Return type:** `int`<br />
+**Purpose:** Returns the [MMWR or EPI](https://wwwn.cdc.gov/nndss/document/MMWR_Week_overview.pdf) week of a formatted date string. If any argument is null `null` is returned. Invalid dates including the empty string will also return `null`.  The `string_date` is in *YYYY-MM-DD* format but may also be delimited using `.` or `/`. If month or day are missing they are set to January or the 1st day of the month, respectively. The second argument control the output format. Normally the output is an integer ranging from 1 up to 52 or 53. The `year_format` adds the padded week with year, using the integer format *202102* and *199853*.
+<br />

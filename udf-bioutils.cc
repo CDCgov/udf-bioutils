@@ -579,7 +579,7 @@ IntVal Convert_String_To_EPI_Week(FunctionContext* context, const StringVal& dat
 		boost::gregorian::date d(year,month,day);
 		int epiweek = date_to_epiweek(d);
 		if ( yearFormat.val ) { 
-			epiweek = epiweek * 100 + epiweek;
+			epiweek = year * 100 + epiweek;
 		}
 
 		return IntVal(epiweek);

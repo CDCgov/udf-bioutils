@@ -23,6 +23,9 @@
 #include <openssl/sha.h>
 #include <openssl/md5.h>
 
+#include "boost/date_time/gregorian/gregorian.hpp"
+#include <boost/exception/all.hpp>
+
 std::unordered_map<std::string,double> pcd = {
 	{"--",0.000000},{"-A",2.249089},{"-C",1.965731},{"-D",5.015307},{"-E",2.619198},{"-F",2.295300},{"-G",3.159415},{"-H",2.290895},{"-I",2.683561},
 	{"-K",2.596979},{"-L",2.596459},{"-M",3.187256},{"-N",2.043331},{"-P",3.021241},{"-Q",3.691869},{"-R",3.637142},{"-S",5.669383},{"-T",2.745560},
@@ -511,64 +514,79 @@ StringVal Complete_String_Date(FunctionContext* context, const StringVal& dateSt
 	return to_StringVal(context,buffer);
 }
 
-/*
-input_date = sys.argv[1]
-def date_to_epiweek(strdt):
-    # Handle empty data:
-    if strdt is None:
-        return None
+// Convert Grogorian Dates to the EPI (MMWR) Week
+// See: https://wwwn.cdc.gov/nndss/document/MMWR_Week_overview.pdf
+int date_to_epiweek( boost::gregorian::date d ) {
+	// Boost starts with Sunday.
+	int day_of_year 	= d.day_of_year();
+	int weekday		= d.day_of_week();
 
-    # Convert to date, then get the start date for the year.
-    dt = datetime.datetime.strptime(strdt, '%m/%d/%Y')
-    start_dt = datetime.date(dt.year,1,1)
+	boost::gregorian::date 	start_date(d.year(),1,1);
+	int start_weekday 	= start_date.day_of_week();
+	boost::gregorian::date 	next_year_date(d.year()+1,1,1);
+	int next_year_weekday 	= next_year_date.day_of_week();
 
-    # Get which day of year we're in and the weekday of both start and date,
-    #    converting 6 to 0 because US weeks start on Sunday, not Monday.
-    doy = dt.timetuple().tm_yday
-    day_st = start_dt.weekday()
-    day_st = 0 if day_st==6 else day_st+1
-    day_dt = dt.weekday()
-    day_dt = 0 if day_dt==6 else day_dt+1
+	// December & 29 - 31 &  Sun-Tues & Next year is Sun-Thu
+	if ( d.month() == 12 && d.day() > 28 && weekday < 3 && next_year_weekday < 4 ) {
+		return 1;
+	} 
 
-    # If Jan 1 is in the first 4 days of the week, then it is MMWR week 1, incrementing by 1.
-    if day_st in (0,1,2,3):
-        epiweek = (doy + (day_st-1)) // 7 + 1
-    else:
-        epiweek = (doy + (day_st-1)) // 7
+	int epiweek 	= ( day_of_year + (start_weekday - 1) ) / 7;
+	// Sunday, Monday, Tuesday, Wednesday
+	if ( start_weekday < 4 ) {
+		epiweek++;
+	}
 
-    # Check for exceptions. If epiweek is 0, look at last day of last year for epiweek.
-    #     If date is one of last 3 days of year and starting the week off, determine if it's a new year or not.
-    if dt.day in (29, 30, 31) and dt.month == 12 and (day_dt in (1,2,0)) and \
-      datetime.date(dt.year + 1, 1, 1).weekday() in (0,1,2,6):
-        epiweek = 1
-    elif epiweek <= 0:
-        epiweek = date_to_epiweek("12/31/" + str(dt.year - 1))
-
+	if ( epiweek > 0 ) {
+		return epiweek;
+	} else {
+		boost::gregorian::date 	last_year_date(d.year()-1,12,31);
+		return date_to_epiweek(last_year_date);	
+	}
+}
     
-    return epiweek
 IMPALA_UDF_EXPORT
-StringVal Convert_String_To_EPI_Week(FunctionContext* context, const StringVal& dateStr ) {
-	if ( dateStr.is_null  || dateStr.len == 0 ) { return StringVal::null(); }
+IntVal Convert_String_To_EPI_Week(FunctionContext* context, const StringVal& dateStr ) {
+	return Convert_String_To_EPI_Week(context,dateStr,BooleanVal(false));
+}
+
+
+IMPALA_UDF_EXPORT
+IntVal Convert_String_To_EPI_Week(FunctionContext* context, const StringVal& dateStr, const BooleanVal& yearFormat ) {
+	if ( dateStr.is_null  || dateStr.len == 0 || yearFormat.is_null ) { return IntVal::null(); }
 	std::string date ((const char *)dateStr.ptr,dateStr.len);
 	std::vector<std::string> tokens;
 	boost::split(tokens, date, boost::is_any_of("-/."));
-	std::string buffer = "";
 
-	if ( tokens.size() >= 3 ) {
-		buffer = tokens[0] + "-" + tokens[1] + "-" + tokens[2];
-	} else if ( tokens.size() == 2 ) {
-		buffer = tokens[0] + "-" + tokens[1] + "-01";
-	} else if ( tokens.size() == 1 ) {
-		buffer = tokens[0] + "-01-01";
-	} else {
-		return StringVal::null(); 
+	try {
+		int year, month, day;
+		if ( tokens.size() >= 3 ) {
+			year 	= std::stoi(tokens[0]);
+			month 	= std::stoi(tokens[1]);
+			day 	= std::stoi(tokens[2]);
+		} else if ( tokens.size() == 2 ) {
+			year 	= std::stoi(tokens[0]);
+			month 	= std::stoi(tokens[1]);
+			day 	= 1;
+		} else if ( tokens.size() == 1 ) {
+			year 	= std::stoi(tokens[0]);
+			month 	= 1;
+			day 	= 1;
+		} else {
+			return IntVal::null(); 
+		}
+
+		boost::gregorian::date d(year,month,day);
+		int epiweek = date_to_epiweek(d);
+		if ( yearFormat.val ) { 
+			epiweek = epiweek * 100 + epiweek;
+		}
+
+		return IntVal(epiweek);
+	} catch (const boost::exception& e) {
+		return IntVal::null();
 	}
-
-
-	// Buffer with full date
-	return to_StringVal(context,buffer);
 }
-*/
 
 IMPALA_UDF_EXPORT
 StringVal Substring_By_Range(FunctionContext* context, const StringVal& sequence, const StringVal& rangeMap ) {

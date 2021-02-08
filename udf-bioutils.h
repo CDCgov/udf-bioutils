@@ -21,6 +21,7 @@
 #include <impala_udf/udf.h>
 #include <string>
 #include <vector>
+#include "boost/date_time/gregorian/gregorian.hpp"
 
 using namespace impala_udf;
 
@@ -28,6 +29,7 @@ using namespace impala_udf;
 bool comp_allele				(std::string s1,std::string s2);
 inline std::vector<std::string> split_by_substr	(const std::string& str, const std::string& delim);
 inline StringVal to_StringVal			(FunctionContext* context, const std::string& str);
+int 						date_to_epiweek( boost::gregorian::date d );
 
 StringVal Sort_List_By_Substring	(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal );
 StringVal Sort_List_By_Substring_Unique	(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal );
@@ -59,6 +61,9 @@ StringVal nt_std			(FunctionContext* context, const StringVal& sequence );
 StringVal aa_std			(FunctionContext* context, const StringVal& sequence );
 BooleanVal Find_Set_In_String		(FunctionContext* context, const StringVal& haystackVal, const StringVal& needlesVal );
 
+
+IntVal Convert_String_To_EPI_Week	(FunctionContext* context, const StringVal& dateStr, const BooleanVal& yearFormat );
+IntVal Convert_String_To_EPI_Week	(FunctionContext* context, const StringVal& dateStr );
 IntVal Longest_Deletion			(FunctionContext* context, const StringVal& sequence );
 IntVal Number_Deletions			(FunctionContext* context, const StringVal& sequence );
 

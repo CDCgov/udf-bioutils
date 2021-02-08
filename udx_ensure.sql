@@ -60,6 +60,10 @@ create function if not exists default.aa_std(string) returns string location "/u
 create function if not exists default.pcd_list(string,string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Physiochemical_Distance_List";
 create function if not exists default.pcd(string,string) returns double location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Physiochemical_Distance";
 
+create function if not exists default.to_epiweek(string,boolean) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Convert_String_To_EPI_Week";
+create function if not exists default.to_epiweek(string) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Convert_String_To_EPI_Week";
+
+
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.logfold_agreement(bigint) 
 RETURNS double INTERMEDIATE string
 LOCATION "/udx/ncird_id/prod/libudabioutils.so"

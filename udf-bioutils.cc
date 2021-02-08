@@ -585,7 +585,13 @@ IntVal Convert_String_To_EPI_Week(FunctionContext* context, const StringVal& dat
 		return IntVal(epiweek);
 	} catch (const boost::exception& e) {
 		return IntVal::null();
-	}
+	} catch(std::invalid_argument& e) {
+		return IntVal::null();
+  	} catch(std::out_of_range& e) {
+		return IntVal::null();
+	} catch (...) {
+		return IntVal::null();
+	} 
 }
 
 IMPALA_UDF_EXPORT

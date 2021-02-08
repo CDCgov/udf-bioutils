@@ -64,6 +64,8 @@ BooleanVal Find_Set_In_String		(FunctionContext* context, const StringVal& hayst
 
 IntVal Convert_String_To_EPI_Week	(FunctionContext* context, const StringVal& dateStr, const BooleanVal& yearFormat );
 IntVal Convert_String_To_EPI_Week	(FunctionContext* context, const StringVal& dateStr );
+IntVal Convert_Timestamp_To_EPI_Week	(FunctionContext* context, const TimestampVal& tsVal );
+IntVal Convert_Timestamp_To_EPI_Week	(FunctionContext* context, const TimestampVal& tsVal, const BooleanVal& yearFormat );
 IntVal Longest_Deletion			(FunctionContext* context, const StringVal& sequence );
 IntVal Number_Deletions			(FunctionContext* context, const StringVal& sequence );
 

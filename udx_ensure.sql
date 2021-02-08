@@ -31,6 +31,8 @@ create function if not exists udx.pcd(string,string) returns double location "/u
 create function if not exists udx.any_instr(string,string) returns boolean location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Find_Set_In_String";
 create function if not exists udx.to_epiweek(string,boolean) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Convert_String_To_EPI_Week";
 create function if not exists udx.to_epiweek(string) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Convert_String_To_EPI_Week";
+create function if not exists udx.to_epiweek(timestamp,boolean) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Convert_Timestamp_To_EPI_Week";
+create function if not exists udx.to_epiweek(timestamp) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Convert_Timestamp_To_EPI_Week";
 
 
 create function if not exists default.sort_list(string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Sort_List_By_Substring";
@@ -65,6 +67,8 @@ create function if not exists default.pcd(string,string) returns double location
 
 create function if not exists default.to_epiweek(string,boolean) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Convert_String_To_EPI_Week";
 create function if not exists default.to_epiweek(string) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Convert_String_To_EPI_Week";
+create function if not exists default.to_epiweek(timestamp,boolean) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Convert_Timestamp_To_EPI_Week";
+create function if not exists default.to_epiweek(timestamp) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL="Convert_Timestamp_To_EPI_Week";
 
 
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.logfold_agreement(bigint) 

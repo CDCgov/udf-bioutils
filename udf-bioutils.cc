@@ -544,7 +544,33 @@ int date_to_epiweek( boost::gregorian::date d ) {
 		return date_to_epiweek(last_year_date);	
 	}
 }
+
+IMPALA_UDF_EXPORT
+IntVal Convert_Timestamp_To_EPI_Week(FunctionContext* context, const TimestampVal& tsVal ) {
+	return Convert_Timestamp_To_EPI_Week(context,tsVal,BooleanVal(false));
+}
     
+IMPALA_UDF_EXPORT
+IntVal Convert_Timestamp_To_EPI_Week(FunctionContext* context, const TimestampVal& tsVal, const BooleanVal& yearFormat ) {
+	if ( tsVal.is_null || yearFormat.is_null ) { return IntVal::null(); }
+
+	try {
+		boost::gregorian::date d( tsVal.date );
+		int year = d.year();
+		int epiweek = date_to_epiweek(d);
+
+		if ( yearFormat.val ) { 
+			epiweek = year * 100 + epiweek;
+		}
+
+		return IntVal(epiweek);
+	} catch (const boost::exception& e) {
+		return IntVal::null();
+	} catch (...) {
+		return IntVal::null();
+	} 
+}
+
 IMPALA_UDF_EXPORT
 IntVal Convert_String_To_EPI_Week(FunctionContext* context, const StringVal& dateStr ) {
 	return Convert_String_To_EPI_Week(context,dateStr,BooleanVal(false));

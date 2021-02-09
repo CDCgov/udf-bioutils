@@ -514,9 +514,10 @@ StringVal Complete_String_Date(FunctionContext* context, const StringVal& dateSt
 	return to_StringVal(context,buffer);
 }
 
+
 // Convert Grogorian Dates to the EPI (MMWR) Week
 // See: https://wwwn.cdc.gov/nndss/document/MMWR_Week_overview.pdf
-int date_to_epiweek( boost::gregorian::date d ) {
+struct epiweek_t date_to_epiweek( boost::gregorian::date d ) {
 	// Boost starts with Sunday.
 	int day_of_year 	= d.day_of_year();
 	int weekday		= d.day_of_week();
@@ -528,7 +529,8 @@ int date_to_epiweek( boost::gregorian::date d ) {
 
 	// December & 29 - 31 &  Sun-Tues & Next year is Sun-Thu
 	if ( d.month() == 12 && d.day() > 28 && weekday < 3 && next_year_weekday < 4 ) {
-		return 1;
+		struct epiweek_t result =  {d.year()+1, 1};
+		return result;
 	} 
 
 	int epiweek 	= ( day_of_year + (start_weekday - 1) ) / 7;
@@ -538,7 +540,8 @@ int date_to_epiweek( boost::gregorian::date d ) {
 	}
 
 	if ( epiweek > 0 ) {
-		return epiweek;
+		struct epiweek_t result = {d.year(), epiweek};
+		return result;
 	} else {
 		boost::gregorian::date 	last_year_date(d.year()-1,12,31);
 		return date_to_epiweek(last_year_date);	
@@ -556,14 +559,12 @@ IntVal Convert_Timestamp_To_EPI_Week(FunctionContext* context, const TimestampVa
 
 	try {
 		boost::gregorian::date d( tsVal.date );
-		int year = d.year();
-		int epiweek = date_to_epiweek(d);
-
+		struct epiweek_t epi = date_to_epiweek(d);
 		if ( yearFormat.val ) { 
-			epiweek = year * 100 + epiweek;
+			return IntVal( epi.year * 100 + epi.week );
+		} else {
+			return IntVal(epi.week);
 		}
-
-		return IntVal(epiweek);
 	} catch (const boost::exception& e) {
 		return IntVal::null();
 	} catch (...) {
@@ -603,12 +604,12 @@ IntVal Convert_String_To_EPI_Week(FunctionContext* context, const StringVal& dat
 		}
 
 		boost::gregorian::date d(year,month,day);
-		int epiweek = date_to_epiweek(d);
+		struct epiweek_t epi = date_to_epiweek(d);
 		if ( yearFormat.val ) { 
-			epiweek = year * 100 + epiweek;
+			return IntVal( epi.year * 100 + epi.week );
+		} else {
+			return IntVal( epi.week );
 		}
-
-		return IntVal(epiweek);
 	} catch (const boost::exception& e) {
 		return IntVal::null();
 	} catch(std::invalid_argument& e) {

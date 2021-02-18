@@ -190,9 +190,13 @@ inline std::vector<std::string> split_by_substr(const std::string& str, const st
 }
 
 inline StringVal to_StringVal(FunctionContext* context, const std::string& s) {
-	StringVal result(context, s.size());
-	memcpy(result.ptr, s.c_str(), s.size());
-	return result;
+	if ( s.size() > StringVal::MAX_LENGTH ) {
+		return StringVal::null();
+	} else  {
+		StringVal result(context, s.size());
+		memcpy(result.ptr, s.c_str(), s.size());
+		return result;
+	}
 }
 // Finished with inlines
 

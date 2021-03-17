@@ -126,5 +126,11 @@ Any null value in an argument or all empty strings returns `NULL`. Note: fields 
 **Return type:** `int`<br />
 **Purpose:** Returns the length of the longest deletion in the `sequence` or the number of deletion events respectively. 
 In either function, a *deletion event* must have upstream and downstream alphabetic character to the deletion span (using `-` for deletion characters only). 
-The functions return `null` if the sequence is null and they return 0 if the empty string is used.
+The functions return `null` if the sequence is null and they return 0 if the empty string is used.<br />
+
+<br />
+
+<pre><b>to_epiweek(<i>&lt;string|timestamp&gt; date</i> [, <i>boolean year_format</i>])</b></pre>
+**Return type:** `int`<br />
+**Purpose:** Returns the [MMWR or EPI](https://wwwn.cdc.gov/nndss/document/MMWR_Week_overview.pdf) week of a formatted date string or timestamp. If any argument is null then `null` is returned. Invalid dates, including the empty string, will also return `null`.  If the `date` is a string it must be in *YYYY-MM-DD* format but may also be delimited using `.` or `/`. If the month or day are missing they are set to January or the 1st day of the month, respectively. Normally the output is an integer ranging from 1 up to 52 or 53. The *optional* `year_format` (defaults to `false`) adds the padded week to the year so that the output can be graphed on a contiguous timeline. Some examples using the year format would be: *202102* and *199853*.
 <br />

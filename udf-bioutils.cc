@@ -23,6 +23,9 @@
 #include <openssl/sha.h>
 #include <openssl/md5.h>
 
+#include "boost/date_time/gregorian/gregorian.hpp"
+#include <boost/exception/all.hpp>
+
 std::unordered_map<std::string,double> pcd = {
 	{"--",0.000000},{"-A",2.249089},{"-C",1.965731},{"-D",5.015307},{"-E",2.619198},{"-F",2.295300},{"-G",3.159415},{"-H",2.290895},{"-I",2.683561},
 	{"-K",2.596979},{"-L",2.596459},{"-M",3.187256},{"-N",2.043331},{"-P",3.021241},{"-Q",3.691869},{"-R",3.637142},{"-S",5.669383},{"-T",2.745560},
@@ -187,9 +190,13 @@ inline std::vector<std::string> split_by_substr(const std::string& str, const st
 }
 
 inline StringVal to_StringVal(FunctionContext* context, const std::string& s) {
-	StringVal result(context, s.size());
-	memcpy(result.ptr, s.c_str(), s.size());
-	return result;
+	if ( s.size() > StringVal::MAX_LENGTH ) {
+		return StringVal::null();
+	} else  {
+		StringVal result(context, s.size());
+		memcpy(result.ptr, s.c_str(), s.size());
+		return result;
+	}
 }
 // Finished with inlines
 
@@ -341,6 +348,34 @@ StringVal Sort_Allele_List(FunctionContext* context, const StringVal& listVal, c
 	}
 }
 
+IMPALA_UDF_EXPORT
+BooleanVal Find_Set_In_String(FunctionContext* context, const StringVal& haystackVal, const StringVal& needlesVal ) {
+	// check for nulls
+	if ( haystackVal.is_null || needlesVal.is_null ) { 
+		return BooleanVal::null(); 
+	// haystack and needles not null
+	} else if ( haystackVal.len == 0 || needlesVal.len == 0 ) { 
+		// Can't find something in nothing or vice-versa
+		if ( haystackVal.len != needlesVal.len ) {
+			return BooleanVal(false);
+		// Special case that differs from instr
+		// letting empty set be found in an empty string
+		} else {
+			return BooleanVal(true);
+		}
+	// haystack and needles are non-trivial
+	} else {
+		std::string haystack ((const char *)haystackVal.ptr,haystackVal.len);
+		std::string needles  ((const char *)needlesVal.ptr,needlesVal.len);
+		if ( haystack.find_first_of(needles) != std::string::npos ) {
+			return BooleanVal(true);
+		} else {
+			return BooleanVal(false);
+		}
+	}
+}
+
+
 // We take codon(s) and translate it/them
 IMPALA_UDF_EXPORT
 StringVal To_AA(FunctionContext* context, const StringVal& ntsVal ) {
@@ -483,6 +518,113 @@ StringVal Complete_String_Date(FunctionContext* context, const StringVal& dateSt
 	return to_StringVal(context,buffer);
 }
 
+
+// Convert Grogorian Dates to the EPI (MMWR) Week
+// See: https://wwwn.cdc.gov/nndss/document/MMWR_Week_overview.pdf
+struct epiweek_t date_to_epiweek( boost::gregorian::date d ) {
+	// Boost starts with Sunday.
+	int day_of_year 	= d.day_of_year();
+	int weekday		= d.day_of_week();
+
+	boost::gregorian::date 	start_date(d.year(),1,1);
+	int start_weekday 	= start_date.day_of_week();
+	boost::gregorian::date 	next_year_date(d.year()+1,1,1);
+	int next_year_weekday 	= next_year_date.day_of_week();
+
+	// December & 29 - 31 &  Sun-Tues & Next year is Sun-Thu
+	if ( d.month() == 12 && d.day() > 28 && weekday < 3 && next_year_weekday < 4 ) {
+		struct epiweek_t result =  {d.year()+1, 1};
+		return result;
+	} 
+
+	int epiweek 	= ( day_of_year + (start_weekday - 1) ) / 7;
+	// Sunday, Monday, Tuesday, Wednesday
+	if ( start_weekday < 4 ) {
+		epiweek++;
+	}
+
+	if ( epiweek > 0 ) {
+		struct epiweek_t result = {d.year(), epiweek};
+		return result;
+	} else {
+		boost::gregorian::date 	last_year_date(d.year()-1,12,31);
+		return date_to_epiweek(last_year_date);	
+	}
+}
+
+IMPALA_UDF_EXPORT
+IntVal Convert_Timestamp_To_EPI_Week(FunctionContext* context, const TimestampVal& tsVal ) {
+	return Convert_Timestamp_To_EPI_Week(context,tsVal,BooleanVal(false));
+}
+    
+IMPALA_UDF_EXPORT
+IntVal Convert_Timestamp_To_EPI_Week(FunctionContext* context, const TimestampVal& tsVal, const BooleanVal& yearFormat ) {
+	if ( tsVal.is_null || yearFormat.is_null ) { return IntVal::null(); }
+
+	try {
+		boost::gregorian::date d( tsVal.date );
+		struct epiweek_t epi = date_to_epiweek(d);
+		if ( yearFormat.val ) { 
+			return IntVal( epi.year * 100 + epi.week );
+		} else {
+			return IntVal(epi.week);
+		}
+	} catch (const boost::exception& e) {
+		return IntVal::null();
+	} catch (...) {
+		return IntVal::null();
+	} 
+}
+
+IMPALA_UDF_EXPORT
+IntVal Convert_String_To_EPI_Week(FunctionContext* context, const StringVal& dateStr ) {
+	return Convert_String_To_EPI_Week(context,dateStr,BooleanVal(false));
+}
+
+
+IMPALA_UDF_EXPORT
+IntVal Convert_String_To_EPI_Week(FunctionContext* context, const StringVal& dateStr, const BooleanVal& yearFormat ) {
+	if ( dateStr.is_null  || dateStr.len == 0 || yearFormat.is_null ) { return IntVal::null(); }
+	std::string date ((const char *)dateStr.ptr,dateStr.len);
+	std::vector<std::string> tokens;
+	boost::split(tokens, date, boost::is_any_of("-/."));
+
+	try {
+		int year, month, day;
+		if ( tokens.size() >= 3 ) {
+			year 	= std::stoi(tokens[0]);
+			month 	= std::stoi(tokens[1]);
+			day 	= std::stoi(tokens[2]);
+		} else if ( tokens.size() == 2 ) {
+			year 	= std::stoi(tokens[0]);
+			month 	= std::stoi(tokens[1]);
+			day 	= 1;
+		} else if ( tokens.size() == 1 ) {
+			year 	= std::stoi(tokens[0]);
+			month 	= 1;
+			day 	= 1;
+		} else {
+			return IntVal::null(); 
+		}
+
+		boost::gregorian::date d(year,month,day);
+		struct epiweek_t epi = date_to_epiweek(d);
+		if ( yearFormat.val ) { 
+			return IntVal( epi.year * 100 + epi.week );
+		} else {
+			return IntVal( epi.week );
+		}
+	} catch (const boost::exception& e) {
+		return IntVal::null();
+	} catch(std::invalid_argument& e) {
+		return IntVal::null();
+  	} catch(std::out_of_range& e) {
+		return IntVal::null();
+	} catch (...) {
+		return IntVal::null();
+	} 
+}
+
 IMPALA_UDF_EXPORT
 StringVal Substring_By_Range(FunctionContext* context, const StringVal& sequence, const StringVal& rangeMap ) {
 	if ( sequence.is_null  || sequence.len == 0 || rangeMap.is_null || rangeMap.len == 0 ) { return StringVal::null(); }
@@ -575,10 +717,9 @@ StringVal Mutation_List_Strict(FunctionContext* context, const StringVal& sequen
 }
 
 // Create a mutation list from two aligned strings
-// Add Glycosylation detection
 IMPALA_UDF_EXPORT
-StringVal Mutation_List_Strict_GLY(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
-	if ( sequence1.is_null  || sequence2.is_null  ) { return StringVal::null(); }
+StringVal Mutation_List_PDS(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2, const StringVal& pairwise_delete_set ) {
+	if ( sequence1.is_null  || sequence2.is_null || pairwise_delete_set.is_null  ) { return StringVal::null(); }
 	if ( sequence1.len == 0 || sequence2.len == 0 ) { return StringVal::null(); };
 
 	std::size_t length = sequence1.len;
@@ -589,15 +730,20 @@ StringVal Mutation_List_Strict_GLY(FunctionContext* context, const StringVal& se
 	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
 	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
 	std::string buffer = "";
+	std::unordered_map<char,int> m;
+	if ( pairwise_delete_set.len > 0 ) {
+		std::string dset ((const char *)pairwise_delete_set.ptr,pairwise_delete_set.len);
+		for (std::size_t i = 0; i < pairwise_delete_set.len; i++) {
+			m[dset[i]] = 1;
+		}
+	}
 
-	int add_gly = 0;
-	int loss_gly = 0;
 	for (std::size_t i = 0; i < length; i++) {
 		if ( seq1[i] != seq2[i] ) {
 			seq1[i] = toupper(seq1[i]);
 			seq2[i] = toupper(seq2[i]);
 			if ( seq1[i] != seq2[i] ) {
-				if ( seq1[i] != '.' && seq2[i] != '.' ) {
+				if ( m.count( seq1[i] ) == 0 && m.count( seq2[i] ) == 0 ) {
 					if ( buffer.length() > 0 ) {
 						buffer += ", ";
 						buffer += seq1[i];
@@ -605,72 +751,6 @@ StringVal Mutation_List_Strict_GLY(FunctionContext* context, const StringVal& se
 						buffer += seq2[i];
 					} else {
 						buffer = seq1[i] + boost::lexical_cast<std::string>(i+1) + seq2[i];
-					}
-
-					
-					// GLYCOSYLATION ADD
-					add_gly = 0;
-
-					// ~N <= N
-					if ( seq2[i] == 'N' ) {
-						// CHECK: .[^P][ST]
-						if ( (i+2) < length && seq2[i+1] != 'P' && (seq2[i+2] == 'T'||seq2[i+2] == 'S') ) {
-							add_gly = 1;
-						}
-					}
-
-					// P => ~P
-					if ( !add_gly && seq1[i] == 'P' ) {
-						// CHECK: N.[ST]
-						if ( (i+1) < length && (i-1) >= 0 && seq2[i-1] == 'N' && (seq2[i+1] == 'T'||seq2[i+1] == 'S') ) {
-							add_gly = 1;
-						}
-					}
- 
-					// ~[ST] && [ST]
-					if ( !add_gly && seq1[i] != 'S' && seq1[i] != 'T' && (seq2[i] == 'S' || seq2[i] == 'T') ) {
-						// CHECK: N[^P].
-						if ( (i-2) >= 0 && seq2[i-2] == 'N' && seq2[i-1] != 'P' ) {
-							add_gly = 1;
-						}
-					}
-
-
-					// GLYCOSYLATION LOSS
-					loss_gly = 0;
-
-					// N => ~N
-					if ( seq1[i] == 'N' ) {
-						// CHECK: .[^P][ST]
-						if ( (i+2) < length && seq1[i+1] != 'P' && (seq1[i+2] == 'T'||seq1[i+2] == 'S') ) {
-							loss_gly = 1;
-						}
-					}
-
-					// ~P <= P
-					if ( !loss_gly && seq2[i] == 'P' ) {
-						// CHECK: N.[ST]
-						if ( (i+1) < length && (i-1) >= 0 && seq1[i-1] == 'N' && (seq1[i+1] == 'T'||seq1[i+1] == 'S') ) {
-							loss_gly = 1;
-						}
-					}
-
-					// [ST] && ~[ST]
-					if ( !loss_gly && seq2[i] != 'S' && seq2[i] != 'T' && (seq1[i] == 'S' || seq1[i] == 'T') ) {
-						// CHECK: N[^P].
-						if ( (i-2) >= 0 && seq1[i-2] == 'N' && seq1[i-1] != 'P' ) {
-							loss_gly = 1;
-						}
-					}
-
-					if ( add_gly ) {
-						buffer += "-ADD";
-					}
-					if ( loss_gly ) {
-						buffer += "-LOSS";
-					}
-					if ( add_gly || loss_gly ) {
-						buffer += "-GLY";
 					}
 				}
 			}
@@ -761,9 +841,116 @@ StringVal Mutation_List_Strict(FunctionContext* context, const StringVal& sequen
 	return to_StringVal(context,buffer);
 }
 
+// Create a mutation list from two aligned strings
+// Add Glycosylation detection
+IMPALA_UDF_EXPORT
+StringVal Mutation_List_Strict_GLY(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
+	if ( sequence1.is_null  || sequence2.is_null  ) { return StringVal::null(); }
+	if ( sequence1.len == 0 || sequence2.len == 0 ) { return StringVal::null(); };
+
+	std::size_t length = sequence1.len;
+	if ( sequence2.len < sequence1.len ) {
+		length = sequence2.len;
+	}
+
+	std::string seq1 ((const char *)sequence1.ptr,sequence1.len);
+	std::string seq2 ((const char *)sequence2.ptr,sequence2.len);
+	std::string buffer = "";
+
+	int add_gly = 0;
+	int loss_gly = 0;
+	for (std::size_t i = 0; i < length; i++) {
+		if ( seq1[i] != seq2[i] ) {
+			seq1[i] = toupper(seq1[i]);
+			seq2[i] = toupper(seq2[i]);
+			if ( seq1[i] != seq2[i] ) {
+				if ( seq1[i] != '.' && seq2[i] != '.' ) {
+					if ( buffer.length() > 0 ) {
+						buffer += ", ";
+						buffer += seq1[i];
+						buffer += boost::lexical_cast<std::string>(i+1);
+						buffer += seq2[i];
+					} else {
+						buffer = seq1[i] + boost::lexical_cast<std::string>(i+1) + seq2[i];
+					}
+
+					
+					// GLYCOSYLATION ADD
+					add_gly = 0;
+
+					// ~N <= N
+					if ( seq2[i] == 'N' ) {
+						// CHECK: .[^P][ST]
+						if ( (i+2) < length && seq2[i+1] != 'P' && (seq2[i+2] == 'T'||seq2[i+2] == 'S') ) {
+							add_gly = 1;
+						}
+					}
+
+					// P => ~P
+					if ( !add_gly && seq1[i] == 'P' ) {
+						// CHECK: N.[ST]
+						if ( (i+1) < length && i >= 1 && seq2[i-1] == 'N' && (seq2[i+1] == 'T'||seq2[i+1] == 'S') ) {
+							add_gly = 1;
+						}
+					}
+ 
+					// ~[ST] && [ST]
+					if ( !add_gly && seq1[i] != 'S' && seq1[i] != 'T' && (seq2[i] == 'S' || seq2[i] == 'T') ) {
+						// CHECK: N[^P].
+						if ( i >= 2 && seq2[i-2] == 'N' && seq2[i-1] != 'P' ) {
+							add_gly = 1;
+						}
+					}
+
+
+					// GLYCOSYLATION LOSS
+					loss_gly = 0;
+
+					// N => ~N
+					if ( seq1[i] == 'N' ) {
+						// CHECK: .[^P][ST]
+						if ( (i+2) < length && seq1[i+1] != 'P' && (seq1[i+2] == 'T'||seq1[i+2] == 'S') ) {
+							loss_gly = 1;
+						}
+					}
+
+					// ~P <= P
+					if ( !loss_gly && seq2[i] == 'P' ) {
+						// CHECK: N.[ST]
+						if ( (i+1) < length && i >= 1 && seq1[i-1] == 'N' && (seq1[i+1] == 'T'||seq1[i+1] == 'S') ) {
+							loss_gly = 1;
+						}
+					}
+
+					// [ST] && ~[ST]
+					if ( !loss_gly && seq2[i] != 'S' && seq2[i] != 'T' && (seq1[i] == 'S' || seq1[i] == 'T') ) {
+						// CHECK: N[^P].
+						if ( i >= 2 && seq1[i-2] == 'N' && seq1[i-1] != 'P' ) {
+							loss_gly = 1;
+						}
+					}
+
+					if ( add_gly ) {
+						buffer += "-ADD";
+					}
+					if ( loss_gly ) {
+						buffer += "-LOSS";
+					}
+					if ( add_gly || loss_gly ) {
+						buffer += "-GLY";
+					}
+				}
+			}
+		}
+	}
+
+	return to_StringVal(context,buffer);
+}
+
 
 // Create a mutation list from two aligned strings
 // Ignore resolvable ambiguations
+// NT_distance()
 IMPALA_UDF_EXPORT
 StringVal Mutation_List_No_Ambiguous(FunctionContext* context, const StringVal& sequence1, const StringVal& sequence2 ) {
 	if ( sequence1.is_null  || sequence2.is_null  ) { return StringVal::null(); }
@@ -929,7 +1116,7 @@ DoubleVal Physiochemical_Distance(FunctionContext* context, const StringVal& seq
 		pcd_distance /= (double) number_valid;
 		return DoubleVal(pcd_distance);
 	} else {
-		DoubleVal::null();
+		return DoubleVal::null();
 	}
 }
 
@@ -1035,7 +1222,7 @@ IMPALA_UDF_EXPORT
 StringVal nt_id(FunctionContext* context, const StringVal& sequence ) {
 	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
 	std::string seq ((const char *)sequence.ptr,sequence.len);
-	boost::remove_erase_if(seq, boost::is_any_of(" :.~-"));
+	boost::remove_erase_if(seq, boost::is_any_of("\n\r\t :.~-"));
 	boost::to_upper(seq);
 
 	unsigned char obuf[21];
@@ -1053,7 +1240,7 @@ IMPALA_UDF_EXPORT
 StringVal nt_std(FunctionContext* context, const StringVal& sequence ) {
 	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
 	std::string seq ((const char *)sequence.ptr,sequence.len);
-	boost::remove_erase_if(seq, boost::is_any_of(" :.~-"));
+	boost::remove_erase_if(seq, boost::is_any_of("\n\r\t :.~-"));
 	boost::to_upper(seq);
 
 	return to_StringVal(context, seq);
@@ -1063,7 +1250,7 @@ IMPALA_UDF_EXPORT
 StringVal aa_std(FunctionContext* context, const StringVal &sequence ) {
 	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
 	std::string seq ((const char *)sequence.ptr,sequence.len);
-	boost::remove_erase_if(seq, boost::is_any_of(" :.-"));
+	boost::remove_erase_if(seq, boost::is_any_of("\n\r\t :.-"));
 	boost::to_upper(seq);
 
 	return to_StringVal(context, seq);
@@ -1073,7 +1260,7 @@ IMPALA_UDF_EXPORT
 StringVal variant_hash(FunctionContext* context, const StringVal &sequence ) {
 	if ( sequence.is_null  || sequence.len == 0  ) { return StringVal::null(); }
 	std::string seq ((const char *)sequence.ptr,sequence.len);
-	boost::remove_erase_if(seq, boost::is_any_of(" :.-"));
+	boost::remove_erase_if(seq, boost::is_any_of("\n\r\t :.-"));
 	boost::to_upper(seq);
 
 	unsigned char obuf[17];

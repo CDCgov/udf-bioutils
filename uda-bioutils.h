@@ -20,4 +20,10 @@ void RunningMomentMerge(FunctionContext* ctx, const StringVal& src, StringVal* d
 DoubleVal RunningMomentPopulationVarianceFinalize(FunctionContext* context, const StringVal& rms);
 DoubleVal RunningMomentSkewnessFinalize(FunctionContext* context, const StringVal& rms);
 DoubleVal RunningMomentKurtosisFinalize(FunctionContext* context, const StringVal& rms);
+
+// Bitwise Or Aggregate Function
+void BitwiseOrInit(FunctionContext* context, BigIntVal* val);
+void BitwiseOrUpdateMerge(FunctionContext* context, const BigIntVal& src, BigIntVal* dst);
+BigIntVal BitwiseOrFinalize(FunctionContext* context, const BigIntVal& val);
+
 #endif

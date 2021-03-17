@@ -11,7 +11,7 @@ For further reading related to function development:
 * [Impala GitHub mirror](https://github.com/apache/impala)
 
 
-## Function Descriptions
+## Scalar Function Descriptions
 <pre><b>complete_date(<i>string date</i>)</b></pre>
 **Return type:** `string`<br />
 **Purpose:** Parses string dates with delimiters `.`,`/`, and `-`; adds missing month or day component when applicable (as the first of either). A `NULL` in the argument will return a null value.<br />
@@ -36,7 +36,8 @@ For further reading related to function development:
 
 <br />
 
-<pre><b>hamming_distance(<i>string sequence1, string sequence2[, string pairwise_deletion_set]</i>)</b>, <b>nt_distance(<i>string sequence1, string sequence2</i>)</b></pre>
+<pre><b>hamming_distance(<i>string sequence1, string sequence2[, string pairwise_deletion_set]</i>)</b>
+<b>nt_distance(<i>string sequence1, string sequence2</i>)</b></pre>
 **Return type:** `int`<br />
 **Purpose:** Counts the [number of differences](https://en.wikipedia.org/wiki/Hamming_distance) between two sequences (though any strings may be used). 
 If one sequence is longer than the other, the extra characters are discarded from the calculation. 
@@ -50,13 +51,16 @@ The `nt_distance` function is the same as the default version of `hamming_distan
 
 <br />
 
-<pre><b>mutation_list(<i>string sequence1, string sequence2 [, string range]</i>)</b>, <b>mutation_list_nt(<i>string sequence1, string sequence2</i>)</b></pre>
+<pre><b>mutation_list(<i>string sequence1, string sequence2 [, string range]</i>)</b> 
+<b>mutation_list_pds(<i>string sequence1, string sequence2, string pairwise_deletion_set</i>)</b>
+<b>mutation_list_nt(<i>string sequence1, string sequence2</i>)</b>
+</pre>
 **Return type:** `string`<br />
 **Purpose:** Returns a list of mutations from `sequence1` to `sequence2`, delimited by a comma and space. 
 If the `range` argument is included, only those sites will be compared (see the description of `range_coords` in `substr_range`).
 For example: `A2G, T160K, G340R`. If any argument is `NULL` or empty, a null value is returned. 
 The function `mutation_list` returns differences and may be used for nucleotide, amino acid, or any other sequence. 
-Alternatively, the function `mutation_list_nt` is *suitable only for nucleotide sequences* and ignores resolvable differences involving ambiguous nucleotides (e.g., "R2G" would not be listed).<br />
+Alternatively, the function `mutation_list_nt` is *suitable only for nucleotide sequences* and ignores resolvable differences involving ambiguous nucleotides (e.g., "R2G" would not be listed). The function `mutation_list_pds` also contains an explicit argument for a pairwise deletion character set. If any pair of characters contain any of the characters in the argument, that position is ignored from the calculation. <br />
 
 <br />
 
@@ -72,7 +76,8 @@ Alternatively, the function `mutation_list_nt` is *suitable only for nucleotide 
 
 <br />
 
-<pre><b>sort_list(<i>string list, string delim</i>)</b>, <b>sort_list_unique(<i>string L, string D</i>)</b>, <b>sort_list_set(<i>string list, string delim_set, string output_delim</i>)</b></pre>
+<pre><b>sort_list(<i>string list, string delim</i>)</b>, <b>sort_list_unique(<i>string L, string D</i>)</b>
+<b>sort_list_set(<i>string list, string delim_set, string output_delim</i>)</b></pre>
 **Return type:** `string`<br />
 **Purpose:** Returns an alphabetically sorted list of elements in the string `list` delimited by `delim` or `delim_set`. The function `sort_list` interprets multi-character delimiters as a whole string while the function `sort_list_set` treats each character in the argument `delim_set` as a single-character delimiter (all are applied). The input and output delimiter for `sort_list` are taken to be the same while the output delimiter for `sort_list_set` is specified by `output_delim`. If any argument is `NULL` a null value is returned. The function variant `sort_list_unique` behaves exactly like `sort_list` but removes redundant elements.<br />
 
@@ -133,4 +138,24 @@ The functions return `null` if the sequence is null and they return 0 if the emp
 <pre><b>to_epiweek(<i>&lt;string|timestamp&gt; date</i> [, <i>boolean year_format</i>])</b></pre>
 **Return type:** `int`<br />
 **Purpose:** Returns the [MMWR or EPI](https://wwwn.cdc.gov/nndss/document/MMWR_Week_overview.pdf) week of a formatted date string or timestamp. If any argument is null then `null` is returned. Invalid dates, including the empty string, will also return `null`.  If the `date` is a string it must be in *YYYY-MM-DD* format but may also be delimited using `.` or `/`. If the month or day are missing they are set to January or the 1st day of the month, respectively. Normally the output is an integer ranging from 1 up to 52 or 53. The *optional* `year_format` (defaults to `false`) adds the padded week to the year so that the output can be graphed on a contiguous timeline. Some examples using the year format would be: *202102* and *199853*.
-<br />
+
+## Aggregate Function Descriptions
+<pre><b>BITWISE_SUM(<i>bigint values</i>)</b></pre>
+**Return type:** `bigint`<br />
+**Purpose:** Returns the <a href="https://en.wikipedia.org/wiki/Bitwise_operation#OR">bitwise OR</a> of all values. <i>Available on the CDP cluster</i>
+<br /><br />
+
+<pre><b>KURTOSIS(<i>&lt;int|double&gt; values</i>)</b></pre>
+**Return type:** `double`<br />
+**Purpose:** Compute the <a href="https://en.wikipedia.org/wiki/Kurtosis">4th moment or kurtosis</a> using <a href="https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Higher-order_statistics">a one-pass formula</a>.
+<br /><br />
+
+<pre><b>LOGFOLD_AGREEMENT(<i>int values</i>)</b></pre>
+**Return type:** `double`<br />
+**Purpose:** Performs a test for modality called <a href="https://en.wikipedia.org/wiki/Multimodal_distribution#van_der_Eijk's_A">agreement</a> (uniform: 0, unimodal: +1, bimodal: -1). The logfold titer values are allowed to take -16 to 16 but the categories for the calculation will be bounded to 10 for the distribution.
+<br /><br />
+
+<pre><b>SKEWNESS(<i>&lt;int|double&gt; values</i>)</b></pre>
+**Return type:** `double`<br />
+**Purpose:** Compute the <a href="https://en.wikipedia.org/wiki/Skewness">3rd moment or skewness</a> using <a href="https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Higher-order_statistics">a one-pass formula</a>.
+<br /><br />

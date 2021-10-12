@@ -23,41 +23,18 @@ set(EXECUTABLE_OUTPUT_PATH "build")
 find_program(CLANG_EXECUTABLE clang++)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -ggdb -O2 -pedantic")
-SET(CMAKE_CXX_STANDARD 11)
+#SET(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Hide symbols in UDF code by default - UDF functions should be explicitly exported.
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 
-# Function to generate rule to cross compile a source file to an IR module.
-# This should be called with the .cc src file and it will generate a
-# src-file-ir target that can be built.
-# e.g. COMPILE_TO_IR(test.cc) generates the "test-ir" make target.
-# Disable compiler optimizations because generated IR is optimized at runtime
-# Added C++11 standard to the flags
-set(IR_COMPILE_FLAGS "-emit-llvm" "-c" "-std=c++11")
-function(COMPILE_TO_IR SRC_FILE)
-  get_filename_component(BASE_NAME ${SRC_FILE} NAME_WE)
-  set(OUTPUT_FILE "build/${BASE_NAME}.ll")
-  add_custom_command(
-    OUTPUT ${OUTPUT_FILE}
-    COMMAND ${CLANG_EXECUTABLE} ${IR_COMPILE_FLAGS} ${SRC_FILE} -o ${OUTPUT_FILE}
-    DEPENDS ${SRC_FILE})
-  add_custom_target(${BASE_NAME}-ir ALL DEPENDS ${OUTPUT_FILE})
-endfunction(COMPILE_TO_IR)
 
 # Build the UDA/UDFs into a shared library.
 add_library(udfbioutils SHARED udf-bioutils.cc )
 add_library(udfmathutils SHARED udf-mathutils.cc)
 add_library(udabioutils SHARED uda-bioutils.cc)
 add_library(udf-sero SHARED udf-sero.cc)
-
-# Custom targest to cross compile UDA/UDF to ir
-if (CLANG_EXECUTABLE)
-  COMPILE_TO_IR(udf-bioutils.cc )
-  COMPILE_TO_IR(udf-mathutils.cc )
-  COMPILE_TO_IR(uda-bioutils.cc )
-  COMPILE_TO_IR(udf-sero.cc )
-endif(CLANG_EXECUTABLE)
 
 # This is an example of how to use the test harness to help develop UDF and UDAs.
 target_link_libraries(udfbioutils ImpalaUdf)

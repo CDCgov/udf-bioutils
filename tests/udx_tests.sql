@@ -54,3 +54,7 @@ FROM (select outcome, udx.md5(arg1,arg2,arg3) as outcome2 from udx.udf__md5__s w
 select "deletion_events (s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.deletion_events(arg1_sequence)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.deletion_events(arg1_sequence)) / count(*) * 100 as percent_correct from udx.udf__deletion_events__si;
 
 select "longest_deletion (s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.longest_deletion(arg1_sequence)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.longest_deletion(arg1_sequence)) / count(*) * 100 as percent_correct from udx.udf__longest_deletion__si;
+
+select "pcd (s,s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.pcd(arg1_seq,arg2_seq)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.pcd(arg1_seq,arg2_seq)) / count(*) * 100 as percent_correct from udx.udf__pcd__ssd;
+
+select "DEV pcd (s,s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.dev_pcd(arg1_seq,arg2_seq)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.dev_pcd(arg1_seq,arg2_seq)) / count(*) * 100 as percent_correct from udx.udf__pcd__ssd;

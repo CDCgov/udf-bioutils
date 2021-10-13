@@ -293,6 +293,28 @@ std::unordered_set<std::string> ambig_equal = {
     "CY", "YC", "TY", "YT", "GK", "KG", "TK", "KT"
 };
 
+/*
+constexpr auto init_nt_dist() {
+    std::array<int, 65536> eq_table{ 0 };
+
+    constexpr char s1[42] = { 'M','M','V','V','V','N','N','N','N','H','H','H','R','R','D','D','D','W','W','S','S','B','B','B','Y','Y','K','K',
+                                'G','C','A','T','R','Y','K','M','B','V','D','H','U','-' };
+    constexpr char s2[42] = { 'A','C','A','C','G','A','C','G','T','A','C','T','A','G','A','G','T','A','T','C','G','C','G','T','C','T','G','T',
+                                'G','C','A','T','R','Y','K','M','B','V','D','H','U','-' };
+
+
+    uint16_t pair = 0;
+
+    for (int b = 0; b < 256; b++) {
+        pair = ((uint16_t) b << 8) | ((uint16_t) b);
+        eq_table[pair] = true;
+    }
+    return pcd;
+}
+constexpr auto ambig_equal = init_ambig_equal();
+*/
+
+
 // Utility functions
 // Compare alleles for two strings.
 bool comp_allele(std::string s1, std::string s2) {

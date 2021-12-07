@@ -16,6 +16,9 @@ SO=(
 	build/libudf-sero.so
 )
 
+SO=(
+	build/libudfbioutils.so
+)
 hdfs dfs -ls $output_path
 for s in "${SO[@]}";do
 	echo "Depositing $s"

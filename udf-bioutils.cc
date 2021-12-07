@@ -1,10 +1,7 @@
 // udf-bioutils.cc - Sam Shepard - 2020
 // Impala user-defined functions for CDC biofinformatics.
 // Relies on Cloudera headers being installed.
-// Current version supports C++11
-
-#include "udf-bioutils.h"
-#include "common.h"
+// Current version supports C++20
 
 #include <cctype>
 #include <cmath>
@@ -14,7 +11,7 @@
 #include <sstream>
 #include <locale>
 #include <unordered_map>
-#include <unordered_set>
+#include <set>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
@@ -24,60 +21,13 @@
 #include "boost/date_time/gregorian/gregorian.hpp"
 #include <boost/exception/all.hpp>
 
-// physio-chemical factors
-//  Atchley et al. 2008
-//  "Solving the protein sequence metric problem."
-//  Proc Natl Acad Sci U S A. 2005 May 3;102(18):6395-400. Epub 2005 Apr 25.
-//  NOTE: Old PCD did not include X as valid
-constexpr char aa[41] = { 'A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M',
-                          'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'a', 'c',
-                          'd', 'e', 'f', 'g', 'h', 'i', 'k', 'l', 'm', 'n', 'p',
-                          'q', 'r', 's', 't', 'v', 'w', 'y', '-' };
-constexpr double pcf[41][5] = { { -0.59, -1.3, -0.73, 1.57, -0.15 },
-                                { -1.34, 0.47, -0.86, -1.02, -0.26 },
-                                { 1.05, 0.3, -3.66, -0.26, -3.24 },
-                                { 1.36, -1.45, 1.48, 0.11, -0.84 },
-                                { -1.01, -0.59, 1.89, -0.4, 0.41 },
-                                { -0.38, 1.65, 1.33, 1.05, 2.06 },
-                                { 0.34, -0.42, -1.67, -1.47, -0.08 },
-                                { -1.24, -0.55, 2.13, 0.39, 0.82 },
-                                { 1.83, -0.56, 0.53, -0.28, 1.65 },
-                                { -1.02, -0.99, -1.51, 1.27, -0.91 },
-                                { -0.66, -1.52, 2.22, -1.01, 1.21 },
-                                { 0.95, 0.83, 1.3, -0.17, 0.93 },
-                                { 0.19, 2.08, -1.63, 0.42, -1.39 },
-                                { 0.93, -0.18, -3.01, -0.5, -1.85 },
-                                { 1.54, -0.06, 1.5, 0.44, 2.9 },
-                                { -0.23, 1.4, -4.76, 0.67, -2.65 },
-                                { -0.03, 0.33, 2.21, 0.91, 1.31 },
-                                { -1.34, -0.28, -0.54, 1.24, -1.26 },
-                                { -0.6, 0.01, 0.67, -2.13, -0.18 },
-                                { 0.26, 0.83, 3.1, -0.84, 1.51 },
-                                { -0.59, -1.3, -0.73, 1.57, -0.15 },
-                                { -1.34, 0.47, -0.86, -1.02, -0.26 },
-                                { 1.05, 0.3, -3.66, -0.26, -3.24 },
-                                { 1.36, -1.45, 1.48, 0.11, -0.84 },
-                                { -1.01, -0.59, 1.89, -0.4, 0.41 },
-                                { -0.38, 1.65, 1.33, 1.05, 2.06 },
-                                { 0.34, -0.42, -1.67, -1.47, -0.08 },
-                                { -1.24, -0.55, 2.13, 0.39, 0.82 },
-                                { 1.83, -0.56, 0.53, -0.28, 1.65 },
-                                { -1.02, -0.99, -1.51, 1.27, -0.91 },
-                                { -0.66, -1.52, 2.22, -1.01, 1.21 },
-                                { 0.95, 0.83, 1.3, -0.17, 0.93 },
-                                { 0.19, 2.08, -1.63, 0.42, -1.39 },
-                                { 0.93, -0.18, -3.01, -0.5, -1.85 },
-                                { 1.54, -0.06, 1.5, 0.44, 2.9 },
-                                { -0.23, 1.4, -4.76, 0.67, -2.65 },
-                                { -0.03, 0.33, 2.21, 0.91, 1.31 },
-                                { -1.34, -0.28, -0.54, 1.24, -1.26 },
-                                { -0.6, 0.01, 0.67, -2.13, -0.18 },
-                                { 0.26, 0.83, 3.1, -0.84, 1.51 },
-                                { 0, 0, 0, 0, 0 } };
+#include "udf-bioutils.h"
+#include "udx-inlines.h"
+#include "common.h"
 
 struct LookupEntry {
-    bool valid = false;
-    double value = 0.0;
+    bool valid      = false;
+    double value    = 0.0;
 };
 
 // courtesy:
@@ -88,6 +38,56 @@ constexpr double roundoff(double value, unsigned int prec) {
 }
 
 constexpr auto init_pcd() {
+    // physio-chemical factors
+    //  Atchley et al. 2008
+    //  "Solving the protein sequence metric problem."
+    //  Proc Natl Acad Sci U S A. 2005 May 3;102(18):6395-400. Epub 2005 Apr 25.
+    //  NOTE: Old PCD did not include X as valid
+    const char aa[41]     = { 'A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M',
+                              'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'a', 'c',
+                              'd', 'e', 'f', 'g', 'h', 'i', 'k', 'l', 'm', 'n', 'p',
+                              'q', 'r', 's', 't', 'v', 'w', 'y', '-' };
+    const double pcf[41][5]     = { { -0.59, -1.3, -0.73, 1.57, -0.15 },
+                                    { -1.34, 0.47, -0.86, -1.02, -0.26 },
+                                    { 1.05, 0.3, -3.66, -0.26, -3.24 },
+                                    { 1.36, -1.45, 1.48, 0.11, -0.84 },
+                                    { -1.01, -0.59, 1.89, -0.4, 0.41 },
+                                    { -0.38, 1.65, 1.33, 1.05, 2.06 },
+                                    { 0.34, -0.42, -1.67, -1.47, -0.08 },
+                                    { -1.24, -0.55, 2.13, 0.39, 0.82 },
+                                    { 1.83, -0.56, 0.53, -0.28, 1.65 },
+                                    { -1.02, -0.99, -1.51, 1.27, -0.91 },
+                                    { -0.66, -1.52, 2.22, -1.01, 1.21 },
+                                    { 0.95, 0.83, 1.3, -0.17, 0.93 },
+                                    { 0.19, 2.08, -1.63, 0.42, -1.39 },
+                                    { 0.93, -0.18, -3.01, -0.5, -1.85 },
+                                    { 1.54, -0.06, 1.5, 0.44, 2.9 },
+                                    { -0.23, 1.4, -4.76, 0.67, -2.65 },
+                                    { -0.03, 0.33, 2.21, 0.91, 1.31 },
+                                    { -1.34, -0.28, -0.54, 1.24, -1.26 },
+                                    { -0.6, 0.01, 0.67, -2.13, -0.18 },
+                                    { 0.26, 0.83, 3.1, -0.84, 1.51 },
+                                    { -0.59, -1.3, -0.73, 1.57, -0.15 },
+                                    { -1.34, 0.47, -0.86, -1.02, -0.26 },
+                                    { 1.05, 0.3, -3.66, -0.26, -3.24 },
+                                    { 1.36, -1.45, 1.48, 0.11, -0.84 },
+                                    { -1.01, -0.59, 1.89, -0.4, 0.41 },
+                                    { -0.38, 1.65, 1.33, 1.05, 2.06 },
+                                    { 0.34, -0.42, -1.67, -1.47, -0.08 },
+                                    { -1.24, -0.55, 2.13, 0.39, 0.82 },
+                                    { 1.83, -0.56, 0.53, -0.28, 1.65 },
+                                    { -1.02, -0.99, -1.51, 1.27, -0.91 },
+                                    { -0.66, -1.52, 2.22, -1.01, 1.21 },
+                                    { 0.95, 0.83, 1.3, -0.17, 0.93 },
+                                    { 0.19, 2.08, -1.63, 0.42, -1.39 },
+                                    { 0.93, -0.18, -3.01, -0.5, -1.85 },
+                                    { 1.54, -0.06, 1.5, 0.44, 2.9 },
+                                    { -0.23, 1.4, -4.76, 0.67, -2.65 },
+                                    { -0.03, 0.33, 2.21, 0.91, 1.31 },
+                                    { -1.34, -0.28, -0.54, 1.24, -1.26 },
+                                    { -0.6, 0.01, 0.67, -2.13, -0.18 },
+                                    { 0.26, 0.83, 3.1, -0.84, 1.51 },
+                                    { 0, 0, 0, 0, 0 } };
     // Old PCD did not count X as valid and used 6 fixed decimal places
     std::array<LookupEntry, 65536> pcd{};
     for (int aa1 = 0; aa1 < 41; aa1++) {
@@ -103,7 +103,7 @@ constexpr auto init_pcd() {
     }
     return pcd;
 }
-constexpr auto pcd = init_pcd();
+constexpr auto PCD = init_pcd();
 
 std::unordered_map<std::string, std::string> gc = { { "TAA", "*" },
                                                     { "TAG", "*" },
@@ -285,16 +285,84 @@ std::unordered_map<std::string, std::string> gc = { { "TAA", "*" },
                                                     { "...", "." },
                                                     { "~~~", "~" } };
 
-std::unordered_set<std::string> ambig_equal = {
-    "AM", "MA", "CM", "MC", "AV", "VA", "CV", "VC", "GV", "VG", "AN", "NA",
-    "CN", "NC", "GN", "NG", "TN", "NT", "AH", "HA", "CH", "HC", "TH", "HT",
-    "AR", "RA", "GR", "RG", "AD", "DA", "GD", "DG", "TD", "DT", "AW", "WA",
-    "TW", "WT", "CS", "SC", "GS", "SG", "CB", "BC", "GB", "BG", "TB", "BT",
-    "CY", "YC", "TY", "YT", "GK", "KG", "TK", "KT"
-};
+// courtesy SN
+constexpr auto to_const_upper(char c) {
+    return (c >= 'a' && c <= 'z' ? (c - 'a') + 'A' : c);
+}
+
+// Nucleotide distance matrix
+constexpr auto init_ntd() {
+    std::array< std::array<int, 256>, 256> ntd = {0};
+
+    // Comparable nucleotide codes
+    // Alpha includes null byte
+    const std::size_t A     = 33; 
+    const char alpha[A+1]   = "acgturyswkmbdhvn-ACGTURYSWKMBDHVN";
+
+    // Nuclotides that are resolvable as equal
+    // See: http://www.bioinformatics.org/sms/iupac.html
+    const std::size_t E             = 57;
+    const char equal_base1[E+1]     = "NNNNNNNNNNNNNNNBBBBBBBDDDDDDDHHHHHHHVVVVVVRRYYYSSWWWKKKMM";
+    const char equal_base2[E+1]     = "ACGTURYSWKMBDHVCGTUYSKAGTURWKACTUYWMACGRSMAGCTUCGATUGTUAC";
+
+    std:uint16_t equal_bases[E]     = {0};
+
+    for (int k = 0; k < E; k++ ) {
+        uint16_t index = ((uint16_t)  equal_base1[k] << 8) | ((uint16_t) equal_base2[k]);
+        equal_bases[k] = index;
+    }
+
+    for (int i = 0; i < A; i++) {
+        for (int j = 0; j < A; j++) {
+            char b1             = to_const_upper(alpha[i]);
+            char b2             = to_const_upper(alpha[j]);
+            if ( b1 != b2 ) {
+                bool ambig_equal_not_found  = true;
+                uint16_t key        = ((uint16_t)  b1 << 8) | ((uint16_t) b2);
+                uint16_t rev_key    = ((uint16_t)  b2 << 8) | ((uint16_t) b1);
+            
+                for(int k = 0; k < E; k++ ) {
+                    if ( equal_bases[k] == key || equal_bases[k] == rev_key ) {
+                        ambig_equal_not_found = false;
+                        break;
+                    }   
+                }
+
+                if ( ambig_equal_not_found ) {
+                    ntd[ alpha[i] ][ alpha[j] ] = 1;
+                }
+            }
+        }
+    }
+    return ntd;
+}
+// Nucleotide Distance Matrix
+constexpr auto NTD = init_ntd();
+
+constexpr auto init_rcm() {
+    std::array<char, 256> rcm = {0};
+    for( int i = 0; i < 256; i++ ) {
+        rcm[i] = i;
+    }
+
+    // Reverse complement
+    // Note: rc(WSNwsn-.) = WSNwsn-.
+    const std::size_t R    = 26;
+    const char fs[R+1]     = "gcatrykmbvdhuGCATRYKMBVDHU";
+    const char rs[R+1]     = "cgtayrmkvbhdaCGTAYRMKVBHDA";
+
+    for (int k = 0; k < R; k++ ) {
+        rcm[ fs[k] ] = rs[k];
+    }
+
+    return rcm;
+}
+// Reverse Complement Matrix
+constexpr auto RCM = init_rcm();
 
 // Utility functions
 // Compare alleles for two strings.
+// TO-DO: revisit, likely outdated
 bool comp_allele(std::string s1, std::string s2) {
     int x = 0;
     int y = 0;
@@ -329,81 +397,6 @@ bool comp_allele(std::string s1, std::string s2) {
     }
 }
 
-// Inline functions
-inline std::vector<int> split_set_by_substr(const std::string &str,
-                                            const std::string &delim) {
-    std::unordered_set<std::string> tokens;
-    std::size_t prev = 0;
-    std::size_t pos = 0;
-
-    if (delim.length() == 0) {
-        for (std::size_t k = 0; k < str.length(); k++) {
-            tokens.insert(str.substr(k, 1));
-        }
-    } else {
-        do {
-            pos = str.find(delim, prev);
-            if (pos == std::string::npos)
-                pos = str.length();
-            std::string token = str.substr(prev, pos - prev);
-            if (!token.empty()) {
-                tokens.insert(token);
-            }
-            prev = pos + delim.length();
-        } while (pos < str.length() && prev < str.length());
-    }
-
-    std::vector<int> v;
-    int num;
-    for (auto it = tokens.begin(); it != tokens.end(); ++it) {
-        try {
-            num = std::stoi(*it);
-        }
-        catch (...) {
-            continue;
-        }
-        v.push_back(num);
-    }
-    return v;
-}
-
-// Courtesy
-// https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
-inline std::vector<std::string> split_by_substr(const std::string &str,
-                                                const std::string &delim) {
-    std::vector<std::string> tokens;
-    std::size_t prev = 0;
-    std::size_t pos = 0;
-
-    if (delim.length() == 0) {
-        for (std::size_t k = 0; k < str.length(); k++) {
-            tokens.push_back(str.substr(k, 1));
-        }
-    } else {
-        do {
-            pos = str.find(delim, prev);
-            if (pos == std::string::npos)
-                pos = str.length();
-            std::string token = str.substr(prev, pos - prev);
-            if (!token.empty())
-                tokens.push_back(token);
-            prev = pos + delim.length();
-        } while (pos < str.length() && prev < str.length());
-    }
-    return tokens;
-}
-
-inline StringVal to_StringVal(FunctionContext *context, const std::string &s) {
-    if (s.size() > StringVal::MAX_LENGTH) {
-        return StringVal::null();
-    } else {
-        StringVal result(context, s.size());
-        memcpy(result.ptr, s.c_str(), s.size());
-        return result;
-    }
-}
-// Finished with inlines
-
 // We take a string of delimited values in a string and sort it in ascending
 // order
 IMPALA_UDF_EXPORT
@@ -415,23 +408,40 @@ StringVal Sort_List_By_Substring(FunctionContext *context,
     }
     if (listVal.len == 0 || delimVal.len == 0) {
         return listVal;
-    };
+    }
 
-    std::string list((const char *)listVal.ptr, listVal.len);
-    std::string delim((const char *)delimVal.ptr, delimVal.len);
-    std::vector<std::string> tokens = split_by_substr(list, delim);
+    std::string_view list((const char *)listVal.ptr, listVal.len);
+    std::string_view delim((const char *)delimVal.ptr, delimVal.len);
+    std::vector<std::string_view> tokens = split_by_substr(list, delim);
+    //std::map<std::string_view,int> tokens = split_ordered_map_by_substr(list, delim);
 
     if (tokens.size() == 0) {
         return listVal;
     } else {
+        
         // Use the usual ascending sort
         std::sort(tokens.begin(), tokens.end());
-        std::string s = tokens[0];
-        for (std::vector<std::string>::const_iterator i = tokens.begin() + 1;
-             i < tokens.end(); ++i) {
-            s += delim + *i;
+        std::string s = "";
+        
+        s += tokens[0];
+        for (auto i = tokens.begin() + 1; i < tokens.end(); ++i) {
+            s += delim;
+            s += *i;
+        }
+        
+        /*
+        std::string s = "";
+        for (auto const& [sv, count] : tokens) {
+            for (int i = 0; i < count; i++ ) {
+                s += delim;
+                s += sv;
+            }
         }
 
+        if ( s.length() > delim.length() ) {
+            s.erase(0,delim.length());
+        }
+        */
         return to_StringVal(context, s);
     }
 }
@@ -707,55 +717,19 @@ IMPALA_UDF_EXPORT
 StringVal Rev_Complement(FunctionContext *context, const StringVal &ntsVal) {
     if (ntsVal.is_null) {
         return StringVal::null();
-    }
-    if (ntsVal.len == 0) {
+    } else if (ntsVal.len == 0) {
         return ntsVal;
-    };
-
-    std::string seq((const char *)ntsVal.ptr, ntsVal.len);
-    reverse(seq.begin(), seq.end());
-    int was_lower = 0;
-    for (std::size_t i = 0; i < seq.length(); i++) {
-        if (islower(seq[i])) {
-            seq[i] -= 32;
-            was_lower = 1;
-        } else {
-            was_lower = 0;
-        }
-
-        if (seq[i] == 'G') {
-            seq[i] = 'C';
-        } else if (seq[i] == 'C') {
-            seq[i] = 'G';
-        } else if (seq[i] == 'A') {
-            seq[i] = 'T';
-        } else if (seq[i] == 'T') {
-            seq[i] = 'A';
-        } else if (seq[i] == 'R') {
-            seq[i] = 'Y';
-        } else if (seq[i] == 'Y') {
-            seq[i] = 'R';
-        } else if (seq[i] == 'K') {
-            seq[i] = 'M';
-        } else if (seq[i] == 'M') {
-            seq[i] = 'K';
-        } else if (seq[i] == 'B') {
-            seq[i] = 'V';
-        } else if (seq[i] == 'V') {
-            seq[i] = 'B';
-        } else if (seq[i] == 'D') {
-            seq[i] = 'H';
-        } else if (seq[i] == 'H') {
-            seq[i] = 'D';
-        } else if (seq[i] == 'U') {
-            seq[i] = 'A';
-        }
-
-        if (was_lower) {
-            seq[i] += 32;
-        }
     }
-    return to_StringVal(context, seq);
+
+    StringVal revcomp(context, ntsVal.len);
+
+    const int L     = ntsVal.len;
+    int r           = L - 1;
+    for(int f = 0; f < L; ++f, --r) {
+        revcomp.ptr[r] = RCM[ ntsVal.ptr[f] ];
+    }
+
+    return revcomp; 
 }
 
 IMPALA_UDF_EXPORT
@@ -764,17 +738,33 @@ StringVal Complete_String_Date(FunctionContext *context,
     if (dateStr.is_null || dateStr.len == 0) {
         return StringVal::null();
     }
+
     std::string date((const char *)dateStr.ptr, dateStr.len);
     std::vector<std::string> tokens;
     boost::split(tokens, date, boost::is_any_of("-/."));
-    std::string buffer = "";
 
+    std::string buffer = "";
     if (tokens.size() >= 3) {
         buffer = tokens[0] + "-" + tokens[1] + "-" + tokens[2];
     } else if (tokens.size() == 2) {
         buffer = tokens[0] + "-" + tokens[1] + "-01";
     } else if (tokens.size() == 1) {
-        buffer = tokens[0] + "-01-01";
+        if ( tokens[0].length() == 4 ) {
+            buffer = tokens[0];
+            buffer += "-01-01";
+        } else if ( tokens[0].length() == 6 ) {
+            buffer = "20";
+            buffer += tokens[0][0];
+            buffer += tokens[0][1];
+            buffer += "-";
+            buffer += tokens[0][2];
+            buffer += tokens[0][3];
+            buffer += "-";
+            buffer += tokens[0][4];
+            buffer += tokens[0][5];
+        } else {
+            return StringVal::null();
+        }
     } else {
         return StringVal::null();
     }
@@ -908,67 +898,51 @@ IMPALA_UDF_EXPORT
 StringVal Substring_By_Range(FunctionContext *context,
                              const StringVal &sequence,
                              const StringVal &rangeMap) {
-    if (sequence.is_null || sequence.len == 0 || rangeMap.is_null ||
-        rangeMap.len == 0) {
+    if (sequence.is_null || sequence.len == 0 || rangeMap.is_null || rangeMap.len == 0) {
         return StringVal::null();
     }
 
-    std::string seq((const char *)sequence.ptr, sequence.len);
-    std::string map((const char *)rangeMap.ptr, rangeMap.len);
+    std::string_view seq((const char *)sequence.ptr, sequence.len);
+    std::string_view map((const char *)rangeMap.ptr, rangeMap.len);
+
     std::string buffer = "";
-    std::vector<std::string> tokens;
-    int L = seq.length();
-    int x, a, b;
+    const int L = seq.length();
 
-    boost::split(tokens, map, boost::is_any_of(";,"));
-    for (int i = 0; i < tokens.size(); i++) {
-        if (tokens[i].find("..") != std::string::npos) {
-            std::vector<std::string> range = split_by_substr(tokens[i], "..");
-            if (range.size() == 0) {
-                return StringVal::null();
-            }
-
-            try {
-                a = std::stoi(range[0]) - 1;
-                b = std::stoi(range[1]) - 1;
-            }
-            catch (...) {
-                return StringVal::null();
-            }
-
-            if (b >= L) {
-                b = L - 1;
-            }
+    std::vector<std::string_view> tokens = split_by_delims(map,";,");
+    for (const auto &t : tokens) {
+        std::vector<int> range = split_int_by_substr(t,"..");
+        const int R = range.size();
+        if ( R > 1 ) {
+            int a = range[0] - 1;
             if (a >= L) {
                 a = L - 1;
-            }
-            if (a < 0) {
+            } else if (a < 0) {
                 a = 0;
             }
-            if (b < 0) {
+
+            int b = range[1] - 1;
+            if (b >= L) {
+                b = L - 1;
+            } else if (b < 0) {
                 b = 0;
             }
 
             if (a <= b) {
-                for (int j = a; j <= b; j++) {
-                    buffer += seq[j];
-                }
+                buffer += seq.substr(a, b - a + 1);
+            // b < a
             } else {
                 for (int j = a; j >= b; j--) {
                     buffer += seq[j];
                 }
             }
-        } else {
-            try {
-                x = std::stoi(tokens[i]) - 1;
-            }
-            catch (...) {
-                return StringVal::null();
-            }
-
+        } else if ( R == 1 ) {
+            const int x = range[0] - 1;
             if (x < L && x >= 0) {
                 buffer += seq[x];
             }
+        // R == 0
+        } else {
+            return StringVal::null();
         }
     }
 
@@ -980,41 +954,37 @@ IMPALA_UDF_EXPORT
 StringVal Mutation_List_Strict(FunctionContext *context,
                                const StringVal &sequence1,
                                const StringVal &sequence2) {
-    if (sequence1.is_null || sequence2.is_null) {
+    if (sequence1.is_null || sequence2.is_null || sequence1.len == 0 ||
+        sequence2.len == 0) {
         return StringVal::null();
     }
-    if (sequence1.len == 0 || sequence2.len == 0) {
-        return StringVal::null();
-    };
 
     std::size_t length = sequence1.len;
     if (sequence2.len < sequence1.len) {
         length = sequence2.len;
     }
 
-    std::string seq1((const char *)sequence1.ptr, sequence1.len);
-    std::string seq2((const char *)sequence2.ptr, sequence2.len);
+    const unsigned char *seq1 = sequence1.ptr;
+    const unsigned char *seq2 = sequence2.ptr;
     std::string buffer = "";
+    unsigned char s1 = ' ';
+    unsigned char s2 = ' ';
 
     for (std::size_t i = 0; i < length; i++) {
         if (seq1[i] != seq2[i]) {
-            seq1[i] = toupper(seq1[i]);
-            seq2[i] = toupper(seq2[i]);
-            if (seq1[i] != seq2[i]) {
-                if (seq1[i] != '.' && seq2[i] != '.') {
-                    if (buffer.length() > 0) {
-                        buffer += ", ";
-                        buffer += seq1[i];
-                        buffer += boost::lexical_cast<std::string>(i + 1);
-                        buffer += seq2[i];
-                    } else {
-                        buffer = seq1[i] +
-                                 boost::lexical_cast<std::string>(i + 1) +
-                                 seq2[i];
-                    }
-                }
+            s1 = toupper(seq1[i]);
+            s2 = toupper(seq2[i]);
+            if (s1 != s2 && s1 != '.' && s2 != '.') {
+                buffer += ", ";
+                buffer += s1;
+                append_int(buffer,(i+1));
+                buffer += s2;
             }
         }
+    }
+
+    if ( buffer.length() > 2 ) {
+        buffer.erase(0,2);
     }
 
     return to_StringVal(context, buffer);
@@ -1026,49 +996,45 @@ StringVal Mutation_List_PDS(FunctionContext *context,
                             const StringVal &sequence1,
                             const StringVal &sequence2,
                             const StringVal &pairwise_delete_set) {
-    if (sequence1.is_null || sequence2.is_null || pairwise_delete_set.is_null) {
+    if (sequence1.is_null || sequence2.is_null || pairwise_delete_set.is_null || sequence1.len == 0 || sequence2.len == 0) {
         return StringVal::null();
     }
-    if (sequence1.len == 0 || sequence2.len == 0) {
-        return StringVal::null();
-    };
 
     std::size_t length = sequence1.len;
     if (sequence2.len < sequence1.len) {
         length = sequence2.len;
     }
 
-    std::string seq1((const char *)sequence1.ptr, sequence1.len);
-    std::string seq2((const char *)sequence2.ptr, sequence2.len);
+    const unsigned char *seq1 = sequence1.ptr;
+    const unsigned char *seq2 = sequence2.ptr;
     std::string buffer = "";
-    std::unordered_map<char, int> m;
+    unsigned char s1 = ' ';
+    unsigned char s2 = ' ';
+
+    std::array<bool,256> valid; valid.fill(true);
     if (pairwise_delete_set.len > 0) {
-        std::string dset((const char *)pairwise_delete_set.ptr,
-                         pairwise_delete_set.len);
+        const unsigned char *dset = pairwise_delete_set.ptr;
         for (std::size_t i = 0; i < pairwise_delete_set.len; i++) {
-            m[dset[i]] = 1;
+            valid[dset[i]] = false;
         }
     }
+    
 
     for (std::size_t i = 0; i < length; i++) {
         if (seq1[i] != seq2[i]) {
-            seq1[i] = toupper(seq1[i]);
-            seq2[i] = toupper(seq2[i]);
-            if (seq1[i] != seq2[i]) {
-                if (m.count(seq1[i]) == 0 && m.count(seq2[i]) == 0) {
-                    if (buffer.length() > 0) {
-                        buffer += ", ";
-                        buffer += seq1[i];
-                        buffer += boost::lexical_cast<std::string>(i + 1);
-                        buffer += seq2[i];
-                    } else {
-                        buffer = seq1[i] +
-                                 boost::lexical_cast<std::string>(i + 1) +
-                                 seq2[i];
-                    }
-                }
+            s1 = to_const_upper(seq1[i]);
+            s2 = to_const_upper(seq2[i]);
+            if (s1 != s2 && valid[s1] && valid[s2] ) {
+                buffer += ", ";
+                buffer += s1;
+                append_int(buffer,(i+1));
+                buffer += s2;
             }
         }
+    }
+
+    if ( buffer.length() > 2 ) {
+        buffer.erase(0,2);
     }
 
     return to_StringVal(context, buffer);
@@ -1301,44 +1267,30 @@ IMPALA_UDF_EXPORT
 StringVal Mutation_List_No_Ambiguous(FunctionContext *context,
                                      const StringVal &sequence1,
                                      const StringVal &sequence2) {
-    if (sequence1.is_null || sequence2.is_null) {
+    if (sequence1.is_null || sequence2.is_null || sequence1.len == 0 || sequence2.len == 0) {
         return StringVal::null();
     }
-    if (sequence1.len == 0 || sequence2.len == 0) {
-        return StringVal::null();
-    };
 
     std::size_t length = sequence1.len;
     if (sequence2.len < sequence1.len) {
         length = sequence2.len;
     }
 
-    std::string seq1((const char *)sequence1.ptr, sequence1.len);
-    std::string seq2((const char *)sequence2.ptr, sequence2.len);
-    std::string buffer = "";
+    const unsigned char *seq1   = sequence1.ptr;
+    const unsigned char *seq2   = sequence2.ptr;
+    std::string buffer          = "";
 
     for (std::size_t i = 0; i < length; i++) {
-        if (seq1[i] != seq2[i]) {
-            seq1[i] = toupper(seq1[i]);
-            seq2[i] = toupper(seq2[i]);
-            if (seq1[i] != seq2[i]) {
-                if (seq1[i] != '.' && seq2[i] != '.') {
-                    if (ambig_equal.count(std::string() + seq1[i] + seq2[i]) ==
-                        0) {
-                        if (buffer.length() > 0) {
-                            buffer += ", ";
-                            buffer += seq1[i];
-                            buffer += boost::lexical_cast<std::string>(i + 1);
-                            buffer += seq2[i];
-                        } else {
-                            buffer = seq1[i] +
-                                     boost::lexical_cast<std::string>(i + 1) +
-                                     seq2[i];
-                        }
-                    }
-                }
-            }
+        if ( NTD[ seq1[i] ][ seq2[i] ] ) {
+            buffer += ", ";
+            buffer += to_const_upper(seq1[i]);
+            append_int(buffer,(i+1));
+            buffer += to_const_upper(seq2[i]);
         }
+    }
+
+    if ( buffer.length() > 2 ) {
+        buffer.erase(0,2);
     }
 
     return to_StringVal(context, buffer);
@@ -1426,50 +1378,34 @@ IntVal Hamming_Distance(FunctionContext *context, const StringVal &sequence1,
 IMPALA_UDF_EXPORT
 IntVal Nt_Distance(FunctionContext *context, const StringVal &sequence1,
                    const StringVal &sequence2) {
-    if (sequence1.is_null || sequence2.is_null) {
+    if (sequence1.is_null || sequence2.is_null || sequence1.len == 0 || sequence2.len == 0) {
         return IntVal::null();
     }
-    if (sequence1.len == 0 || sequence2.len == 0) {
-        return IntVal::null();
-    };
 
     std::size_t length = sequence1.len;
     if (sequence2.len < sequence1.len) {
         length = sequence2.len;
     }
 
-    std::string seq1((const char *)sequence1.ptr, sequence1.len);
-    std::string seq2((const char *)sequence2.ptr, sequence2.len);
+    const uint8_t *seq1 = sequence1.ptr;
+    const uint8_t *seq2 = sequence2.ptr;
 
-    int hamming_distance = 0;
+    int nt_distance = 0;
     for (std::size_t i = 0; i < length; i++) {
-        if (seq1[i] != seq2[i]) {
-            seq1[i] = toupper(seq1[i]);
-            seq2[i] = toupper(seq2[i]);
-            if (seq1[i] != seq2[i]) {
-                if (seq1[i] != '.' && seq2[i] != '.') {
-                    if (ambig_equal.count(std::string() + seq1[i] + seq2[i]) ==
-                        0) {
-                        hamming_distance++;
-                    }
-                }
-            }
-        }
+        nt_distance += NTD[ seq1[i] ][ seq2[i] ];
     }
 
-    return IntVal(hamming_distance);
+    return IntVal(nt_distance);
 }
 
 IMPALA_UDF_EXPORT
 DoubleVal Physiochemical_Distance(FunctionContext *context,
                                   const StringVal &sequence1,
                                   const StringVal &sequence2) {
-    if (sequence1.is_null || sequence2.is_null) {
+
+    if (sequence1.is_null || sequence2.is_null || sequence1.len == 0 || sequence2.len == 0) {
         return DoubleVal::null();
     }
-    if (sequence1.len == 0 || sequence2.len == 0) {
-        return DoubleVal::null();
-    };
 
     std::size_t length = sequence1.len;
     if (sequence2.len < sequence1.len) {
@@ -1484,8 +1420,8 @@ DoubleVal Physiochemical_Distance(FunctionContext *context,
     uint16_t buff = 0;
     for (std::size_t i = 0; i < length; i++) {
         buff = ((uint16_t)seq1[i] << 8) | ((uint16_t)seq2[i]);
-        if (pcd[buff].valid) {
-            pcd_distance += pcd[buff].value;
+        if (PCD[buff].valid) {
+            pcd_distance += PCD[buff].value;
             number_valid++;
         }
     }
@@ -1502,12 +1438,9 @@ IMPALA_UDF_EXPORT
 StringVal Physiochemical_Distance_List(FunctionContext *context,
                                        const StringVal &sequence1,
                                        const StringVal &sequence2) {
-    if (sequence1.is_null || sequence2.is_null) {
+    if (sequence1.is_null || sequence2.is_null || sequence1.len == 0 || sequence2.len == 0) {
         return StringVal::null();
     }
-    if (sequence1.len == 0 || sequence2.len == 0) {
-        return StringVal::null();
-    };
 
     std::size_t length = sequence1.len;
     if (sequence2.len < sequence1.len) {
@@ -1522,16 +1455,16 @@ StringVal Physiochemical_Distance_List(FunctionContext *context,
     std::size_t i = 0;
     uint16_t key = 0;
     key = ((uint16_t)seq1[i] << 8) | ((uint16_t)seq2[i]);
-    if (pcd[key].valid) {
-        result += std::to_string(pcd[key].value);
+    if (PCD[key].valid) {
+        result += std::to_string(PCD[key].value);
     } else {
         result += "NA";
     }
 
     for (i = 1; i < length; i++) {
         key = ((uint16_t)seq1[i] << 8) | ((uint16_t)seq2[i]);
-        if (pcd[key].valid) {
-            result += " " + std::to_string(pcd[key].value);
+        if (PCD[key].valid) {
+            result += " " + std::to_string(PCD[key].value);
         } else {
             result += " NA";
         }
@@ -1693,16 +1626,18 @@ StringVal md5(FunctionContext *context, int num_vars, const StringVal *args) {
     if (num_vars == 0 || args[0].is_null) {
         return StringVal::null();
     }
+
     std::string input((const char *)args[0].ptr, args[0].len);
-    std::string delim = "\a";
+    const char delim = '\a';
     for (int i = 1; i < num_vars; i++) {
         if (args[i].is_null) {
             return StringVal::null();
         } else if (args[i].len == 0) {
             input += delim;
         } else {
-            std::string next_var((const char *)args[i].ptr, args[i].len);
-            input += delim + next_var.c_str();
+            std::string_view next_var((const char *)args[i].ptr, args[i].len);
+            input += delim;
+            input += next_var;
         }
     }
     if (input.size() == 0) {
@@ -1712,13 +1647,16 @@ StringVal md5(FunctionContext *context, int num_vars, const StringVal *args) {
     unsigned char obuf[17];
     MD5((const unsigned char *)input.c_str(), input.size(), obuf);
 
-    char buffer[34 * sizeof(char)];
-    int j;
-    for (j = 0; j < 16; j++) {
-        sprintf(&buffer[2 * j * sizeof(char)], "%02x", obuf[j]);
+    StringVal hash(context, 32);
+    // Courtesy: https://stackoverflow.com/questions/6357031/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-in-c/17147874#17147874
+    constexpr unsigned char HEX[17] = "0123456789abcdef";
+    auto *p = hash.ptr;
+    for (int j = 0; j < 16; j++) {
+        hash.ptr[2*j    ] = HEX[(obuf[j] >> 4) & 0x0F];
+        hash.ptr[2*j + 1] = HEX[(obuf[j]     ) & 0x0F];
     }
 
-    return to_StringVal(context, buffer);
+    return hash;
 }
 
 IMPALA_UDF_EXPORT

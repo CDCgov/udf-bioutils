@@ -34,8 +34,6 @@ struct epiweek_t {
 
 // private functions
 bool comp_allele				(std::string s1,std::string s2);
-inline std::vector<std::string> split_by_substr	(const std::string& str, const std::string& delim);
-inline StringVal to_StringVal			(FunctionContext* context, const std::string& str);
 struct epiweek_t 				date_to_epiweek( boost::gregorian::date d );
 
 StringVal Sort_List_By_Substring	(FunctionContext* context, const StringVal& listVal, const StringVal& delimVal );

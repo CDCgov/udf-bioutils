@@ -25,8 +25,11 @@
 using namespace impala_udf;
 
 // private functions
-DoubleVal 	qt(FunctionContext* context, const DoubleVal& confidence, const BigIntVal& sample_size, const BooleanVal& two_tailed );
-DoubleVal	ci_t(FunctionContext* context, const DoubleVal& confidence, const BigIntVal& sample_size, const DoubleVal& sample_std, const BooleanVal& two_tailed );
-DoubleVal	ci_t_twoSided(FunctionContext* context, const DoubleVal& confidence, const BigIntVal& sample_size, const DoubleVal& sample_std );
+DoubleVal qt(FunctionContext *context, const DoubleVal &confidence, const BigIntVal &sample_size,
+             const BooleanVal &two_tailed);
+DoubleVal ci_t(FunctionContext *context, const DoubleVal &confidence, const BigIntVal &sample_size,
+               const DoubleVal &sample_std, const BooleanVal &two_tailed);
+DoubleVal ci_t_twoSided(FunctionContext *context, const DoubleVal &confidence,
+                        const BigIntVal &sample_size, const DoubleVal &sample_std);
 
 #endif

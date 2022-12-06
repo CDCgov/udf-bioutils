@@ -34,7 +34,7 @@
 
 ## Summary
 
-Functions may be created in a schema such as **udx**. To fhow persistent function one would then write: `use udx; show functions;`.
+Functions may be created in a schema such as **udx**. To show persistent function one would then write: `use udx; show functions;`.
 Tables in **udx** show function input arguments and expected return values (*outcome*).
 The provided table SQL code are named after the function, but with a prefix for user-defined functions (*udf*) or user-defined aggregate functions (*uda*) and with a suffix indicating argument/return types to help distinguish when the function has been [overloaded](https://en.wikipedia.org/wiki/Function_overloading). Some function creation code for SQL, like ([udx_ensure.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_ensure.sql), has been provided.
 
@@ -46,7 +46,7 @@ For further reading related to function development:
 
 ## License and Usage
 
-This repository follows Cloudera's licensing for Apache Impala and is licensed under Apache License, Version 2.0 (see: http://www.apache.org/licenses/LICENSE-2.0). All code is dedicated to the Public Domain with attributions appreciated (Samuel S. Shepard, CDC) except where Cloudera copyright is provided indicated in the file (e.g., `common.h`).
+This repository follows Cloudera's licensing for Apache Impala and is licensed under Apache License, Version 2.0 (see: http://www.apache.org/licenses/LICENSE-2.0). All code is dedicated to the Public Domain with attributions appreciated (Samuel S. Shepard, CDC) except where Cloudera copyright is provided or indicated in the file (e.g., `common.h`).
 
 ## Scalar Function Descriptions
 

@@ -1,6 +1,7 @@
 # Installation
 
 First we install necessary packages via `yum`:
+
 ```{bash}
 sudo yum install epel-release
 sudo yum install gcc-c++ clang-devel boost-devel cmake3
@@ -9,6 +10,7 @@ sudo yum install impala-udf-devel
 ```
 
 Starting with CDP 7.1.7 we need to use GCC 7. This provides the C++17 standard but carefully uses static linking to avoid linker errors at runtime:
+
 ```{bash}
 sudo yum install centos-release-scl
 sudo yum-config-manager --enable rhel-server-rhscl-7-rpms
@@ -19,6 +21,7 @@ scl enable devtoolset-7 bash
 For `impala-udf-devel`, a comparable major/minor version of CDH may be needed. In the past this repo was available publicly but Cloudera seems to no longer fully support it--despite its documentation--and yum packages are behind the paywall (not for every version, maybe just for patch builds). One can use the credentials in the Cloudera Manager yum repo to create a repo for `impala-udf-devel`. Client nodes may already have this installed.
 
 If one is on a client node and cannot get the yum repo working (or if there is a parity issue), one can try to link explicitly with *root*. Soft link the source files:
+
 ```{bash}
 /opt/cloudera/parcels/CDH/include/impala_udf/uda-test-harness.h
 /opt/cloudera/parcels/CDH/include/impala_udf/uda-test-harness-impl.h
@@ -30,6 +33,7 @@ If one is on a client node and cannot get the yum repo working (or if there is a
 ```
 
 To the system path destination files:
+
 ```{bash}
 /usr/include/impala_udf/uda-test-harness.h
 /usr/include/impala_udf/uda-test-harness-impl.h
@@ -42,9 +46,10 @@ To the system path destination files:
 
 If one does not have root access, then a user directory will have to be used and the compile options adjusted accordingly.
 
-# Compilation
+## Compilation
 
 I have altered the `CMakeLists.txt` file to require C++11 for both the c++ compiler (emits .so) and for clang (emits IR or .ll for llvm). To compile from scratch just use:
+
 ```{bash}
 cmake3 .
 make

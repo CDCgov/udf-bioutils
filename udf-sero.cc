@@ -1,4 +1,4 @@
-// udf-sero.cc - 2019
+// Samuel S. Shepard, CDC
 // UDFs for Sero. Definite overkill.
 // Relies on Cloudera headers being installed.
 // Current version supports C++11

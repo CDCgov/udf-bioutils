@@ -1,4 +1,4 @@
-// udf-bioutils.cc - Sam Shepard - 2020
+// Samuel S. Shepard, CDC
 // Impala user-defined functions for CDC biofinformatics.
 // Relies on Cloudera headers being installed.
 // Current version supports C++20

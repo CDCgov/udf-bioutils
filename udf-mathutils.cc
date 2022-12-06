@@ -1,4 +1,4 @@
-// udf-bioutils.cc - Sam Shepard - 2019
+// Samuel S. Shepard, CDC
 // Impala user-defined functions for mathematical utilities.
 
 #include "udf-mathutils.h"

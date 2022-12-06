@@ -1,6 +1,7 @@
-// uda-bioutils.cc - Sam Shepard - 2020
+// Samuel S. Shepard, CDC
 // Impala user-defined AGGREGATE functions for CDC biofinformatics.
 // Preferable to using Spark when applicable.
+
 #include "uda-bioutils.h"
 #include "common.h"
 #include <algorithm>
@@ -168,8 +169,9 @@ void RunningMomentMerge(FunctionContext *ctx, const StringVal &src, StringVal *d
 
     // µ	= µA + ∆ * nB / n
     A->mu += delta_n * nB;
-    // m4	= m4_A + m4_B + ∆^4*nA*nB*(nA^2 - nA*nB + nB^2)/n^3 + 6∆^2((nA^2*m2_B + nB^2*m2_A)/n^2 +
-    // 4∆( nA*m3_B - nB*m3_A)/n
+    // m4	= m4_A + m4_B + ∆^4*nA*nB*(nA^2 - nA*nB + nB^2)/n^3 + 6∆^2((nA^2*m2_B +
+    // nB^2*m2_A)/n^2
+    // + 4∆( nA*m3_B - nB*m3_A)/n
     A->m4 += B->m4 + d2nAnB_n * d2_n2 * (nA2 - nAnB + nB2) +
              6 * d2_n2 * (nA2 * B->m2 + nB2 * A->m2) + 4 * delta_n * (nA * B->m3 - nB * A->m3);
     // m3	= m3_A + m3_B + ∆^3*nA*nB*(nA - nB)/n^2 + 3∆(nA*m2_B - nB*m2_A)/n

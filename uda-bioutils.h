@@ -1,3 +1,5 @@
+// Samuel S. Shepard, CDC
+
 #ifndef UDA_BIOUTILS_H
 #define UDA_BIOUTILS_H
 

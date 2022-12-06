@@ -1,3 +1,5 @@
+// Samuel S. Shepard, CDC
+
 #include <charconv>
 #include <map>
 #include <set>

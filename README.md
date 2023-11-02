@@ -40,7 +40,7 @@ The provided table SQL code are named after the function, but with a prefix for 
 
 For further reading related to function development:
 
-- [Impala User-Defined Functions](https://www.cloudera.com/documentation/enterprise/6/6.0/topics/impala_udf.html)
+- [Impala User-Defined Functions](https://docs.cloudera.com/cdp-private-cloud-base/latest/impala-sql-reference/topics/impala-udf.html)
 - [Impala UDF Samples](https://github.com/cloudera/impala-udf-samples)
 - [Impala GitHub mirror](https://github.com/apache/impala)
 

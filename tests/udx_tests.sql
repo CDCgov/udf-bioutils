@@ -56,27 +56,3 @@ select "deletion_events (s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.dele
 select "longest_deletion (s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.longest_deletion(arg1_sequence)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.longest_deletion(arg1_sequence)) / count(*) * 100 as percent_correct from udx.udf__longest_deletion__si;
 
 select "pcd (s,s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.pcd(arg1_seq,arg2_seq)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.pcd(arg1_seq,arg2_seq)) / count(*) * 100 as percent_correct from udx.udf__pcd__ssd;
-
-
-select "DEV SECTION";
-
-select "mutation_list_nt (s,s):s" as udf, sum( outcome IS NOT DISTINCT FROM udx.dev_mutation_list_nt(arg1_seq,arg2_seq)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.dev_mutation_list_nt(arg1_seq,arg2_seq)) / count(*) * 100 as percent_correct from udx.udf__mutation_list_nt__sss;
-
-select "substr_range (s,s):s" as udf, sum( outcome IS NOT DISTINCT FROM udx.dev_substr_range(arg1_string,arg2_range_coords)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.dev_substr_range(arg1_string,arg2_range_coords)) / count(*) * 100 as percent_correct from udx.udf__substr_range__sss;
-
-select "reverse_complement (s):s" as udf, sum( outcome IS NOT DISTINCT FROM udx.dev_reverse_complement(arg1_nucleotides)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.dev_reverse_complement(arg1_nucleotides)) / count(*) * 100 as percent_correct from udx.udf__reverse_complement__ss;
-
-select "complete_date (s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.complete_date(arg1_date)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.complete_date(arg1_date)) / count(*) * 100 as percent_correct from udx.udf__complete_date__ss;
-
-select 	"md5 (s ...):s" as udf, 
-	sum( outcome IS NOT DISTINCT FROM outcome2 ) as correct, 
-	count(*) as total_tests,
-	sum( outcome IS NOT DISTINCT FROM outcome2 ) / count(*) * 100 as percent_correct
-FROM (select outcome, udx.dev_md5(arg1,arg2,arg3) as outcome2 from udx.udf__md5__s where args = "1,2,3" 
-	UNION select outcome, udx.dev_md5(arg1,arg2) as outcome2 from udx.udf__md5__s where args = "1,2" 
-	UNION select outcome, udx.dev_md5(arg1) as outcome2 from udx.udf__md5__s where args = "1" 
-) as Q;
-
-select "sort_list (s,s):s" as udf, sum( outcome IS NOT DISTINCT FROM udx.dev_sort_list(arg1_list,arg2_delim)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.dev_sort_list(arg1_list,arg2_delim)) / count(*) * 100 as percent_correct from udx.udf__sort_list__sss;
-
-select "complete_date (s):s" as udf, sum(outcome IS NOT DISTINCT FROM udx.dev_complete_date(arg1_date)) as correct, count(*) as total_tests, sum( outcome IS NOT DISTINCT FROM udx.dev_complete_date(arg1_date)) / count(*) * 100 as percent_correct from udx.udf__complete_date__ss;

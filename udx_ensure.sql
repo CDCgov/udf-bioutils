@@ -7,10 +7,10 @@ create function if not exists udx.to_aa(string, string, int) returns string loca
 create function if not exists udx.reverse_complement(string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Rev_Complement";
 create function if not exists udx.substr_range(string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Substring_By_Range";
 create function if not exists udx.range_from_list(string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Range_From_List";
-create function if not exists udx.mutation_list(string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Mutation_List_Strict";
 create function if not exists udx.mutation_list_pds(string, string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Mutation_List_PDS";
 create function if not exists udx.mutation_list_gly(string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Mutation_List_Strict_GLY";
-create function if not exists udx.mutation_list(string, string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Mutation_List_Strict";
+create function if not exists udx.mutation_list(string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Mutation_List_Strict";
+create function if not exists udx.mutation_list(string, string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Mutation_List_Strict_Range";
 create function if not exists udx.mutation_list_nt(string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Mutation_List_No_Ambiguous";
 create function if not exists udx.hamming_distance(string, string) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Hamming_Distance";
 create function if not exists udx.hamming_distance(string, string, string) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Hamming_Distance_Pairwise_Delete";

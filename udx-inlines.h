@@ -32,6 +32,17 @@ inline std::vector<std::string_view> split_by_substr(std::string_view str,
     return output;
 }
 
+inline BooleanVal character_in_string(const StringVal &needle, const StringVal &list_of_items)
+{
+    if (needle.len != 1) {
+        return BooleanVal(false);
+    }
+
+    const char query = *needle.ptr;
+    std::string items((const char *)list_of_items.ptr, list_of_items.len);
+    return BooleanVal(items.find(query) != std::string::npos);
+}
+
 inline std::vector<std::string> split_by_substr(const std::string &str,
                                                 const std::string &delim_str)
 {

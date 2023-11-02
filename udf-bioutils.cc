@@ -46,8 +46,8 @@ constexpr auto init_pcd()
     //  Proc Natl Acad Sci U S A. 2005 May 3;102(18):6395-400. Epub 2005 Apr 25.
     //  NOTE: Old PCD did not include X as valid
     const char aa[41]       = {'A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q',
-                         'R', 'S', 'T', 'V', 'W', 'Y', 'a', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
-                         'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'y', '-'};
+                               'R', 'S', 'T', 'V', 'W', 'Y', 'a', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
+                               'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'y', '-'};
     const double pcf[41][5] = {{-0.59, -1.3, -0.73, 1.57, -0.15},
                                {-1.34, 0.47, -0.86, -1.02, -0.26},
                                {1.05, 0.3, -3.66, -0.26, -3.24},
@@ -156,9 +156,7 @@ constexpr auto init_ntd()
     const std::size_t E           = 57;
     const char equal_base1[E + 1] = "NNNNNNNNNNNNNNNBBBBBBBDDDDDDDHHHHHHHVVVVVVRRYYYSSWWWKKKMM";
     const char equal_base2[E + 1] = "ACGTURYSWKMBDHVCGTUYSKAGTURWKACTUYWMACGRSMAGCTUCGATUGTUAC";
-
-std:
-    uint16_t equal_bases[E] = {0};
+    uint16_t equal_bases[E]       = {0};
 
     for (int k = 0; k < E; k++) {
         uint16_t index = ((uint16_t)equal_base1[k] << 8) | ((uint16_t)equal_base2[k]);
@@ -269,7 +267,6 @@ StringVal Sort_List_By_Substring(FunctionContext *context, const StringVal &list
     std::string_view list((const char *)listVal.ptr, listVal.len);
     std::string_view delim((const char *)delimVal.ptr, delimVal.len);
     std::vector<std::string_view> tokens = split_by_substr(list, delim);
-    // std::map<std::string_view,int> tokens = split_ordered_map_by_substr(list, delim);
 
     if (tokens.size() == 0) {
         return listVal;
@@ -285,19 +282,6 @@ StringVal Sort_List_By_Substring(FunctionContext *context, const StringVal &list
             s += *i;
         }
 
-        /*
-        std::string s = "";
-        for (auto const& [sv, count] : tokens) {
-            for (int i = 0; i < count; i++ ) {
-                s += delim;
-                s += sv;
-            }
-        }
-
-        if ( s.length() > delim.length() ) {
-            s.erase(0,delim.length());
-        }
-        */
         return to_StringVal(context, s);
     }
 }
@@ -482,11 +466,7 @@ BooleanVal Find_Set_In_String(FunctionContext *context, const StringVal &haystac
     } else {
         std::string haystack((const char *)haystackVal.ptr, haystackVal.len);
         std::string needles((const char *)needlesVal.ptr, needlesVal.len);
-        if (haystack.find_first_of(needles) != std::string::npos) {
-            return BooleanVal(true);
-        } else {
-            return BooleanVal(false);
-        }
+        return BooleanVal(haystack.find_first_of(needles) != std::string::npos);
     }
 }
 
@@ -894,8 +874,8 @@ StringVal Mutation_List_PDS(FunctionContext *context, const StringVal &sequence1
 }
 
 IMPALA_UDF_EXPORT
-StringVal Mutation_List_Strict(FunctionContext *context, const StringVal &sequence1,
-                               const StringVal &sequence2, const StringVal &rangeMap)
+StringVal Mutation_List_Strict_Range(FunctionContext *context, const StringVal &sequence1,
+                                     const StringVal &sequence2, const StringVal &rangeMap)
 {
     if (sequence1.is_null || sequence2.is_null || rangeMap.is_null) {
         return StringVal::null();
@@ -1319,18 +1299,22 @@ StringVal Physiochemical_Distance_List(FunctionContext *context, const StringVal
 }
 
 IMPALA_UDF_EXPORT
-BooleanVal Contains_An_Element(FunctionContext *context, const StringVal &string1,
-                               const StringVal &string2, const StringVal &delimVal)
+BooleanVal Contains_An_Element(FunctionContext *context, const StringVal &mystring,
+                               const StringVal &list_of_items, const StringVal &delimVal)
 {
-    if (string1.is_null || string2.is_null || delimVal.is_null) {
+    if (mystring.is_null || list_of_items.is_null || delimVal.is_null) {
         return BooleanVal::null();
     }
-    if (string1.len == 0 || string2.len == 0) {
+    if (mystring.len == 0 || list_of_items.len == 0) {
         return BooleanVal(false);
+    } else if (delimVal.len == 0) {
+        std::string haystack((const char *)mystring.ptr, mystring.len);
+        std::string needles((const char *)list_of_items.ptr, list_of_items.len);
+        return BooleanVal(haystack.find_first_of(needles) != std::string::npos);
     }
 
-    std::string s1((const char *)string1.ptr, string1.len);
-    std::string s2((const char *)string2.ptr, string2.len);
+    std::string s1((const char *)mystring.ptr, mystring.len);
+    std::string s2((const char *)list_of_items.ptr, list_of_items.len);
     std::string delim((const char *)delimVal.ptr, delimVal.len);
     std::vector<std::string> tokens = split_by_substr(s2, delim);
 
@@ -1351,18 +1335,20 @@ BooleanVal Contains_An_Element(FunctionContext *context, const StringVal &string
 }
 
 IMPALA_UDF_EXPORT
-BooleanVal Is_An_Element(FunctionContext *context, const StringVal &string1,
-                         const StringVal &string2, const StringVal &delimVal)
+BooleanVal Is_An_Element(FunctionContext *context, const StringVal &needle,
+                         const StringVal &list_of_items, const StringVal &delimVal)
 {
-    if (string1.is_null || string2.is_null || delimVal.is_null) {
+    if (needle.is_null || list_of_items.is_null || delimVal.is_null) {
         return BooleanVal::null();
     }
-    if (string1.len == 0 || string2.len == 0) {
+    if (needle.len == 0 || list_of_items.len == 0) {
         return BooleanVal(false);
+    } else if (delimVal.len == 0) {
+        return character_in_string(needle, list_of_items);
     }
 
-    std::string s1((const char *)string1.ptr, string1.len);
-    std::string s2((const char *)string2.ptr, string2.len);
+    std::string s1((const char *)needle.ptr, needle.len);
+    std::string s2((const char *)list_of_items.ptr, list_of_items.len);
     std::string delim((const char *)delimVal.ptr, delimVal.len);
     std::vector<std::string> tokens = split_by_substr(s2, delim);
 

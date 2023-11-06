@@ -10,6 +10,7 @@
     - [complete\_date(STRING date)](#complete_datestring-date)
     - [contains\_sym(STRING str1, STRING str2)](#contains_symstring-str1-string-str2)
     - [contains\_element(STRING str, STRING list, STRING delim)](#contains_elementstring-str-string-list-string-delim)
+    - [cut\_paste(STRING str, STRING delim, STRING fields \[, STRING output\_delim\])](#cut_pastestring-str-string-delim-string-fields--string-output_delim)
     - [is\_element(STRING str, STRING list, STRING delim)](#is_elementstring-str-string-list-string-delim)
     - [hamming\_distance(STRING sequence1, STRING sequence2\[, STRING pairwise\_deletion\_set\])nt\_distance(STRING sequence1, STRING sequence2)](#hamming_distancestring-sequence1-string-sequence2-string-pairwise_deletion_setnt_distancestring-sequence1-string-sequence2)
     - [longest\_deletion(STRING sequence), deletion\_events(STRING sequence)](#longest_deletionstring-sequence-deletion_eventsstring-sequence)
@@ -90,6 +91,17 @@ Scalar functions take any number of values from a **single** row and return a si
 
 **Return type:** `BOOLEAN`  
 **Purpose:** Return TRUE if `str` contains *any* element in `list` delimited by `delim` as a **substring**. The delimiter may be a sequence of characters, but if it is empty the list is split by character. A `NULL` in any argument will return a null value.
+<br /><br />
+
+### <pre>cut_paste(STRING str, STRING delim, STRING fields [, STRING output_delim])</pre>
+
+**Return type:** `STRING`  
+**Purpose:** For `str`, split the string using the `delim` and paste/concatenate back together based on the specified `fields` (similar to using Unix `cut` and/or `paste`). One can optionally specify the `output_delim` otherwise `delim` (or if `NULL`). The `fields` uses 1-based indexing which can be separated with `;` or `,` characters. Ranges are also allowed using `-` or `..` strings. The function will return `NULL` if either `str`, `delim`, or `fields` is `NULL`. Example:
+
+```sql
+select udx.cut_paste("The::fields::are::cut::pastable::!", "::", "1..3;6,6;4-3", " ") -- Return: "The fields are ! ! cut are"
+```
+
 <br /><br />
 
 ### <pre>is_element(STRING str, STRING list, STRING delim)</pre>

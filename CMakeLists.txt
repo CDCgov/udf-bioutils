@@ -35,7 +35,6 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=cascadelake")
 add_library(udfbioutils SHARED udf-bioutils.cc )
 add_library(udfmathutils SHARED udf-mathutils.cc)
 add_library(udabioutils SHARED uda-bioutils.cc)
-add_library(udf-sero SHARED udf-sero.cc)
 
 set_target_properties(udfmathutils
     PROPERTIES
@@ -52,10 +51,6 @@ add_executable(uda-bioutils-test uda-bioutils-test.cc)
 target_link_libraries(uda-bioutils-test udabioutils)
 
 target_link_libraries(udfmathutils ImpalaUdf)
-target_link_libraries(udf-sero ImpalaUdf)
-
-add_executable(udf-sero-test udf-sero-test.cc)
-target_link_libraries(udf-sero-test udf-sero)
 
 add_executable(udf-bioutils-test udf-bioutils-test.cc)
 target_link_libraries(udf-bioutils-test udfbioutils)

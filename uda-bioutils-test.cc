@@ -31,8 +31,7 @@ using namespace std;
 // passing a custom equality comparator. Here's an example of one that can
 // tolerate some small error. This is particularly true  for distributed
 // execution since the order the values are processed is variable.
-bool FuzzyCompare(const DoubleVal &x, const DoubleVal &y)
-{
+bool FuzzyCompare(const DoubleVal &x, const DoubleVal &y) {
     if (x.is_null && y.is_null)
         return true;
     if (x.is_null || y.is_null)
@@ -42,11 +41,12 @@ bool FuzzyCompare(const DoubleVal &x, const DoubleVal &y)
 }
 
 
-bool TestAgreement()
-{
+bool TestAgreement() {
     typedef UdaTestHarness<DoubleVal, StringVal, BigIntVal> TestHarness;
-    TestHarness logfold_agreement(BoundedArrayInit, BoundedArrayUpdate, BoundedArrayMerge,
-                                  StringStructSerialize, AgreementFinalize);
+    TestHarness logfold_agreement(
+        BoundedArrayInit, BoundedArrayUpdate, BoundedArrayMerge, StringStructSerialize,
+        AgreementFinalize
+    );
     logfold_agreement.SetResultComparator(FuzzyCompare);
 
 
@@ -108,14 +108,15 @@ bool TestAgreement()
     return true;
 }
 
-bool TestVariance()
-{
+bool TestVariance() {
     // Setup the test UDAs.
     // Note: reinterpret_cast is required because pre-2.9 UDF headers had a spurious "const"
     // specifier in the return type for SerializeFn.
     typedef UdaTestHarness<DoubleVal, StringVal, BigIntVal> TestHarness;
-    TestHarness variance(RunningMomentInit, RunningMomentUpdate, RunningMomentMerge,
-                         StringStructSerialize, RunningMomentPopulationVarianceFinalize);
+    TestHarness variance(
+        RunningMomentInit, RunningMomentUpdate, RunningMomentMerge, StringStructSerialize,
+        RunningMomentPopulationVarianceFinalize
+    );
     variance.SetResultComparator(FuzzyCompare);
 
     // Test empty input
@@ -152,10 +153,10 @@ bool TestVariance()
     return true;
 }
 
-bool TestBitwiseOr()
-{
+bool TestBitwiseOr() {
     UdaTestHarness<BigIntVal, BigIntVal, BigIntVal> bw_or(
-        BitwiseOrInit, BitwiseOrUpdateMerge, BitwiseOrUpdateMerge, NULL, BitwiseOrFinalize);
+        BitwiseOrInit, BitwiseOrUpdateMerge, BitwiseOrUpdateMerge, NULL, BitwiseOrFinalize
+    );
 
     // Test empty input
     vector<BigIntVal> vals;
@@ -187,8 +188,7 @@ bool TestBitwiseOr()
 
     return true;
 }
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     bool passed = true;
     passed &= TestAgreement();
     passed &= TestVariance();

@@ -4,10 +4,11 @@ IndentWidth: 4
 MaxEmptyLinesToKeep: 2
 ColumnLimit: 100
 AlignOperands: true
-AlignAfterOpenBracket: true
+AlignAfterOpenBracket: BlockIndent
 AlignConsecutiveAssignments: true
 BinPackArguments: true
 BinPackParameters: true
-BreakBeforeBraces: Linux
+BreakBeforeBraces: Attach
+PenaltyReturnTypeOnItsOwnLine: 1000000
 ---
 

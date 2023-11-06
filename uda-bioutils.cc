@@ -16,8 +16,7 @@
 using namespace impala_udf;
 using namespace std;
 
-inline StringVal to_StringVal(FunctionContext *context, const std::string &s)
-{
+inline StringVal to_StringVal(FunctionContext *context, const std::string &s) {
     StringVal result(context, s.size());
     memcpy(result.ptr, s.c_str(), s.size());
     return result;
@@ -34,8 +33,7 @@ struct RunningMomentStruct {
 };
 
 IMPALA_UDF_EXPORT
-void RunningMomentInit(FunctionContext *context, StringVal *val)
-{
+void RunningMomentInit(FunctionContext *context, StringVal *val) {
     val->ptr = context->Allocate(sizeof(RunningMomentStruct));
 
     // Exit on failed allocation. Impala will fail the query after some time.
@@ -64,8 +62,7 @@ void RunningMomentInit(FunctionContext *context, StringVal *val)
 // m4	= m4_A + m4_B + ∆^4*nA*nB*(nA^2 - nA*nB + nB^2)/n^3 + 6∆^2((nA^2*m2_B + nB^2*m2_A)/n^2 +
 // 4∆( nA*m3_B - nB*m3_A)/n
 IMPALA_UDF_EXPORT
-void RunningMomentUpdate(FunctionContext *ctx, const DoubleVal &B, StringVal *dst)
-{
+void RunningMomentUpdate(FunctionContext *ctx, const DoubleVal &B, StringVal *dst) {
     if (B.is_null || dst->is_null) {
         return;
     }
@@ -99,8 +96,7 @@ void RunningMomentUpdate(FunctionContext *ctx, const DoubleVal &B, StringVal *ds
 }
 
 IMPALA_UDF_EXPORT
-void RunningMomentUpdate(FunctionContext *ctx, const BigIntVal &B, StringVal *dst)
-{
+void RunningMomentUpdate(FunctionContext *ctx, const BigIntVal &B, StringVal *dst) {
     if (B.is_null || dst->is_null) {
         return;
     }
@@ -137,8 +133,7 @@ void RunningMomentUpdate(FunctionContext *ctx, const BigIntVal &B, StringVal *ds
 // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Higher-order_statistics
 // https://people.xiph.org/~tterribe/notes/homs.html
 IMPALA_UDF_EXPORT
-void RunningMomentMerge(FunctionContext *ctx, const StringVal &src, StringVal *dst)
-{
+void RunningMomentMerge(FunctionContext *ctx, const StringVal &src, StringVal *dst) {
     if (src.is_null || dst->is_null) {
         return;
     }
@@ -183,8 +178,7 @@ void RunningMomentMerge(FunctionContext *ctx, const StringVal &src, StringVal *d
 // Use StringStructSerialize
 
 IMPALA_UDF_EXPORT
-DoubleVal RunningMomentSampleVarianceFinalize(FunctionContext *context, const StringVal &rms)
-{
+DoubleVal RunningMomentSampleVarianceFinalize(FunctionContext *context, const StringVal &rms) {
     RunningMomentStruct *A = reinterpret_cast<RunningMomentStruct *>(rms.ptr);
     DoubleVal result;
 
@@ -200,8 +194,7 @@ DoubleVal RunningMomentSampleVarianceFinalize(FunctionContext *context, const St
 }
 
 IMPALA_UDF_EXPORT
-DoubleVal RunningMomentPopulationVarianceFinalize(FunctionContext *context, const StringVal &rms)
-{
+DoubleVal RunningMomentPopulationVarianceFinalize(FunctionContext *context, const StringVal &rms) {
     RunningMomentStruct *A = reinterpret_cast<RunningMomentStruct *>(rms.ptr);
     DoubleVal result;
 
@@ -221,8 +214,7 @@ DoubleVal RunningMomentPopulationVarianceFinalize(FunctionContext *context, cons
 }
 
 IMPALA_UDF_EXPORT
-DoubleVal RunningMomentSkewnessFinalize(FunctionContext *context, const StringVal &rms)
-{
+DoubleVal RunningMomentSkewnessFinalize(FunctionContext *context, const StringVal &rms) {
     RunningMomentStruct *A = reinterpret_cast<RunningMomentStruct *>(rms.ptr);
     DoubleVal result;
 
@@ -245,8 +237,7 @@ DoubleVal RunningMomentSkewnessFinalize(FunctionContext *context, const StringVa
 }
 
 IMPALA_UDF_EXPORT
-DoubleVal RunningMomentKurtosisFinalize(FunctionContext *context, const StringVal &rms)
-{
+DoubleVal RunningMomentKurtosisFinalize(FunctionContext *context, const StringVal &rms) {
     RunningMomentStruct *A = reinterpret_cast<RunningMomentStruct *>(rms.ptr);
     DoubleVal result;
 
@@ -286,8 +277,7 @@ struct BoundedArrayStruct {
 };
 
 IMPALA_UDF_EXPORT
-void BoundedArrayInit(FunctionContext *context, StringVal *val)
-{
+void BoundedArrayInit(FunctionContext *context, StringVal *val) {
     val->ptr = context->Allocate(sizeof(BoundedArrayStruct));
 
     // Exit on failed allocation. Impala will fail the query after some time.
@@ -308,8 +298,7 @@ void BoundedArrayInit(FunctionContext *context, StringVal *val)
 }
 
 IMPALA_UDF_EXPORT
-void BoundedArrayUpdate(FunctionContext *context, const BigIntVal &input, StringVal *val)
-{
+void BoundedArrayUpdate(FunctionContext *context, const BigIntVal &input, StringVal *val) {
     if (input.is_null || val->is_null) {
         return;
     }
@@ -344,8 +333,7 @@ void BoundedArrayUpdate(FunctionContext *context, const BigIntVal &input, String
 }
 
 IMPALA_UDF_EXPORT
-void BoundedArrayMerge(FunctionContext *context, const StringVal &src, StringVal *dst)
-{
+void BoundedArrayMerge(FunctionContext *context, const StringVal &src, StringVal *dst) {
     if (src.is_null || dst->is_null) {
         return;
     }
@@ -367,8 +355,7 @@ void BoundedArrayMerge(FunctionContext *context, const StringVal &src, StringVal
 }
 
 IMPALA_UDF_EXPORT
-StringVal StringStructSerialize(FunctionContext *context, const StringVal &val)
-{
+StringVal StringStructSerialize(FunctionContext *context, const StringVal &val) {
     if (val.is_null) {
         context->Free(val.ptr);
         return StringVal::null();
@@ -383,8 +370,7 @@ StringVal StringStructSerialize(FunctionContext *context, const StringVal &val)
 
 // Prints out the bounded array data for debugging purposes.
 IMPALA_UDF_EXPORT
-StringVal BoundedArrayPrintFinalize(FunctionContext *context, const StringVal &val)
-{
+StringVal BoundedArrayPrintFinalize(FunctionContext *context, const StringVal &val) {
     BoundedArrayStruct *bda = reinterpret_cast<BoundedArrayStruct *>(val.ptr);
     StringVal result;
 
@@ -409,8 +395,7 @@ StringVal BoundedArrayPrintFinalize(FunctionContext *context, const StringVal &v
 
 // Simply counts the counts in the array. Intended for debugging. COUNT() is preferred.
 IMPALA_UDF_EXPORT
-BigIntVal BoundedArrayCountFinalize(FunctionContext *context, const StringVal &val)
-{
+BigIntVal BoundedArrayCountFinalize(FunctionContext *context, const StringVal &val) {
     BoundedArrayStruct *bda = reinterpret_cast<BoundedArrayStruct *>(val.ptr);
     BigIntVal result;
 
@@ -429,8 +414,7 @@ BigIntVal BoundedArrayCountFinalize(FunctionContext *context, const StringVal &v
     return result;
 }
 
-inline bool pick_side(int K, int s, int l, uint64_t C[])
-{
+inline bool pick_side(int K, int s, int l, uint64_t C[]) {
     uint64_t RHS = 0;
     uint64_t LHS = 0;
 
@@ -452,8 +436,7 @@ inline bool pick_side(int K, int s, int l, uint64_t C[])
 
 // Intended only for logfold, but could be modified for other ranges.
 IMPALA_UDF_EXPORT
-DoubleVal AgreementFinalize(FunctionContext *context, const StringVal &val)
-{
+DoubleVal AgreementFinalize(FunctionContext *context, const StringVal &val) {
     BoundedArrayStruct *bda = reinterpret_cast<BoundedArrayStruct *>(val.ptr);
     DoubleVal result;
 
@@ -599,15 +582,13 @@ DoubleVal AgreementFinalize(FunctionContext *context, const StringVal &val)
 // Bitwise Or Aggregate Function
 // ---------------------------------------------------------------------------
 IMPALA_UDF_EXPORT
-void BitwiseOrInit(FunctionContext *context, BigIntVal *val)
-{
+void BitwiseOrInit(FunctionContext *context, BigIntVal *val) {
     val->is_null = true;
     val->val     = 0;
 }
 
 IMPALA_UDF_EXPORT
-void BitwiseOrUpdateMerge(FunctionContext *context, const BigIntVal &src, BigIntVal *dst)
-{
+void BitwiseOrUpdateMerge(FunctionContext *context, const BigIntVal &src, BigIntVal *dst) {
     if (!src.is_null) {
         if (!dst->is_null) {
             dst->val |= src.val;

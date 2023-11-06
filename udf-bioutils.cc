@@ -32,14 +32,12 @@ struct LookupEntry {
 
 // courtesy:
 // https://www.codegrepper.com/code-examples/cpp/round+double+to+n+decimal+places+c%2B%2B
-constexpr double roundoff(double value, unsigned int prec)
-{
+constexpr double roundoff(double value, unsigned int prec) {
     double pow_10 = pow(10.0f, (float)prec);
     return std::round(value * pow_10) / pow_10;
 }
 
-constexpr auto init_pcd()
-{
+constexpr auto init_pcd() {
     // physio-chemical factors
     //  Atchley et al. 2008
     //  "Solving the protein sequence metric problem."
@@ -48,47 +46,49 @@ constexpr auto init_pcd()
     const char aa[41]       = {'A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q',
                                'R', 'S', 'T', 'V', 'W', 'Y', 'a', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
                                'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'y', '-'};
-    const double pcf[41][5] = {{-0.59, -1.3, -0.73, 1.57, -0.15},
-                               {-1.34, 0.47, -0.86, -1.02, -0.26},
-                               {1.05, 0.3, -3.66, -0.26, -3.24},
-                               {1.36, -1.45, 1.48, 0.11, -0.84},
-                               {-1.01, -0.59, 1.89, -0.4, 0.41},
-                               {-0.38, 1.65, 1.33, 1.05, 2.06},
-                               {0.34, -0.42, -1.67, -1.47, -0.08},
-                               {-1.24, -0.55, 2.13, 0.39, 0.82},
-                               {1.83, -0.56, 0.53, -0.28, 1.65},
-                               {-1.02, -0.99, -1.51, 1.27, -0.91},
-                               {-0.66, -1.52, 2.22, -1.01, 1.21},
-                               {0.95, 0.83, 1.3, -0.17, 0.93},
-                               {0.19, 2.08, -1.63, 0.42, -1.39},
-                               {0.93, -0.18, -3.01, -0.5, -1.85},
-                               {1.54, -0.06, 1.5, 0.44, 2.9},
-                               {-0.23, 1.4, -4.76, 0.67, -2.65},
-                               {-0.03, 0.33, 2.21, 0.91, 1.31},
-                               {-1.34, -0.28, -0.54, 1.24, -1.26},
-                               {-0.6, 0.01, 0.67, -2.13, -0.18},
-                               {0.26, 0.83, 3.1, -0.84, 1.51},
-                               {-0.59, -1.3, -0.73, 1.57, -0.15},
-                               {-1.34, 0.47, -0.86, -1.02, -0.26},
-                               {1.05, 0.3, -3.66, -0.26, -3.24},
-                               {1.36, -1.45, 1.48, 0.11, -0.84},
-                               {-1.01, -0.59, 1.89, -0.4, 0.41},
-                               {-0.38, 1.65, 1.33, 1.05, 2.06},
-                               {0.34, -0.42, -1.67, -1.47, -0.08},
-                               {-1.24, -0.55, 2.13, 0.39, 0.82},
-                               {1.83, -0.56, 0.53, -0.28, 1.65},
-                               {-1.02, -0.99, -1.51, 1.27, -0.91},
-                               {-0.66, -1.52, 2.22, -1.01, 1.21},
-                               {0.95, 0.83, 1.3, -0.17, 0.93},
-                               {0.19, 2.08, -1.63, 0.42, -1.39},
-                               {0.93, -0.18, -3.01, -0.5, -1.85},
-                               {1.54, -0.06, 1.5, 0.44, 2.9},
-                               {-0.23, 1.4, -4.76, 0.67, -2.65},
-                               {-0.03, 0.33, 2.21, 0.91, 1.31},
-                               {-1.34, -0.28, -0.54, 1.24, -1.26},
-                               {-0.6, 0.01, 0.67, -2.13, -0.18},
-                               {0.26, 0.83, 3.1, -0.84, 1.51},
-                               {0, 0, 0, 0, 0}};
+    const double pcf[41][5] = {
+        {-0.59, -1.3, -0.73, 1.57, -0.15},
+        {-1.34, 0.47, -0.86, -1.02, -0.26},
+        {1.05, 0.3, -3.66, -0.26, -3.24},
+        {1.36, -1.45, 1.48, 0.11, -0.84},
+        {-1.01, -0.59, 1.89, -0.4, 0.41},
+        {-0.38, 1.65, 1.33, 1.05, 2.06},
+        {0.34, -0.42, -1.67, -1.47, -0.08},
+        {-1.24, -0.55, 2.13, 0.39, 0.82},
+        {1.83, -0.56, 0.53, -0.28, 1.65},
+        {-1.02, -0.99, -1.51, 1.27, -0.91},
+        {-0.66, -1.52, 2.22, -1.01, 1.21},
+        {0.95, 0.83, 1.3, -0.17, 0.93},
+        {0.19, 2.08, -1.63, 0.42, -1.39},
+        {0.93, -0.18, -3.01, -0.5, -1.85},
+        {1.54, -0.06, 1.5, 0.44, 2.9},
+        {-0.23, 1.4, -4.76, 0.67, -2.65},
+        {-0.03, 0.33, 2.21, 0.91, 1.31},
+        {-1.34, -0.28, -0.54, 1.24, -1.26},
+        {-0.6, 0.01, 0.67, -2.13, -0.18},
+        {0.26, 0.83, 3.1, -0.84, 1.51},
+        {-0.59, -1.3, -0.73, 1.57, -0.15},
+        {-1.34, 0.47, -0.86, -1.02, -0.26},
+        {1.05, 0.3, -3.66, -0.26, -3.24},
+        {1.36, -1.45, 1.48, 0.11, -0.84},
+        {-1.01, -0.59, 1.89, -0.4, 0.41},
+        {-0.38, 1.65, 1.33, 1.05, 2.06},
+        {0.34, -0.42, -1.67, -1.47, -0.08},
+        {-1.24, -0.55, 2.13, 0.39, 0.82},
+        {1.83, -0.56, 0.53, -0.28, 1.65},
+        {-1.02, -0.99, -1.51, 1.27, -0.91},
+        {-0.66, -1.52, 2.22, -1.01, 1.21},
+        {0.95, 0.83, 1.3, -0.17, 0.93},
+        {0.19, 2.08, -1.63, 0.42, -1.39},
+        {0.93, -0.18, -3.01, -0.5, -1.85},
+        {1.54, -0.06, 1.5, 0.44, 2.9},
+        {-0.23, 1.4, -4.76, 0.67, -2.65},
+        {-0.03, 0.33, 2.21, 0.91, 1.31},
+        {-1.34, -0.28, -0.54, 1.24, -1.26},
+        {-0.6, 0.01, 0.67, -2.13, -0.18},
+        {0.26, 0.83, 3.1, -0.84, 1.51},
+        {0, 0, 0, 0, 0}
+    };
     // Old PCD did not count X as valid and used 6 fixed decimal places
     std::array<LookupEntry, 65536> pcd{};
     for (int aa1 = 0; aa1 < 41; aa1++) {
@@ -136,14 +136,14 @@ std::unordered_map<std::string, std::string> gc = {
     {"ACY", "T"}, {"GTA", "V"}, {"GTB", "V"}, {"GTC", "V"}, {"GTD", "V"}, {"GTG", "V"},
     {"GTH", "V"}, {"GTK", "V"}, {"GTM", "V"}, {"GTN", "V"}, {"GTR", "V"}, {"GTS", "V"},
     {"GTT", "V"}, {"GTV", "V"}, {"GTW", "V"}, {"GTY", "V"}, {"TGG", "W"}, {"TAC", "Y"},
-    {"TAT", "Y"}, {"TAY", "Y"}, {"---", "-"}, {"...", "."}, {"~~~", "~"}};
+    {"TAT", "Y"}, {"TAY", "Y"}, {"---", "-"}, {"...", "."}, {"~~~", "~"}
+};
 
 // courtesy SN
 constexpr auto to_const_upper(char c) { return (c >= 'a' && c <= 'z' ? (c - 'a') + 'A' : c); }
 
 // Nucleotide distance matrix
-constexpr auto init_ntd()
-{
+constexpr auto init_ntd() {
     std::array<std::array<int, 256>, 256> ntd = {0};
 
     // Comparable nucleotide codes
@@ -190,8 +190,7 @@ constexpr auto init_ntd()
 // Nucleotide Distance Matrix
 constexpr auto NTD = init_ntd();
 
-constexpr auto init_rcm()
-{
+constexpr auto init_rcm() {
     std::array<char, 256> rcm = {0};
     for (int i = 0; i < 256; i++) {
         rcm[i] = i;
@@ -216,8 +215,7 @@ constexpr auto RCM = init_rcm();
 // Utility functions
 // Compare alleles for two strings.
 // TO-DO: revisit, likely outdated
-bool comp_allele(std::string s1, std::string s2)
-{
+bool comp_allele(std::string s1, std::string s2) {
     int x     = 0;
     int y     = 0;
     int index = 0;
@@ -254,9 +252,9 @@ bool comp_allele(std::string s1, std::string s2)
 // We take a string of delimited values in a string and sort it in ascending
 // order
 IMPALA_UDF_EXPORT
-StringVal Sort_List_By_Substring(FunctionContext *context, const StringVal &listVal,
-                                 const StringVal &delimVal)
-{
+StringVal Sort_List_By_Substring(
+    FunctionContext *context, const StringVal &listVal, const StringVal &delimVal
+) {
     if (listVal.is_null || delimVal.is_null) {
         return StringVal::null();
     }
@@ -289,9 +287,9 @@ StringVal Sort_List_By_Substring(FunctionContext *context, const StringVal &list
 // We take a string of delimited values in a string and sort it in ascending
 // order
 IMPALA_UDF_EXPORT
-StringVal Range_From_List(FunctionContext *context, const StringVal &listVal,
-                          const StringVal &delimVal)
-{
+StringVal Range_From_List(
+    FunctionContext *context, const StringVal &listVal, const StringVal &delimVal
+) {
     if (listVal.is_null || delimVal.is_null) {
         return StringVal::null();
     }
@@ -340,9 +338,9 @@ StringVal Range_From_List(FunctionContext *context, const StringVal &listVal,
 // We take a string of delimited values in a string and sort it in ascending
 // order
 IMPALA_UDF_EXPORT
-StringVal Sort_List_By_Substring_Unique(FunctionContext *context, const StringVal &listVal,
-                                        const StringVal &delimVal)
-{
+StringVal Sort_List_By_Substring_Unique(
+    FunctionContext *context, const StringVal &listVal, const StringVal &delimVal
+) {
     if (listVal.is_null || delimVal.is_null) {
         return StringVal::null();
     }
@@ -375,9 +373,10 @@ StringVal Sort_List_By_Substring_Unique(FunctionContext *context, const StringVa
 }
 
 IMPALA_UDF_EXPORT
-StringVal Sort_List_By_Set(FunctionContext *context, const StringVal &listVal,
-                           const StringVal &delimVal, const StringVal &outDelimVal)
-{
+StringVal Sort_List_By_Set(
+    FunctionContext *context, const StringVal &listVal, const StringVal &delimVal,
+    const StringVal &outDelimVal
+) {
     if (listVal.is_null || delimVal.is_null || outDelimVal.is_null) {
         return StringVal::null();
     }
@@ -416,9 +415,9 @@ StringVal Sort_List_By_Set(FunctionContext *context, const StringVal &listVal,
 // We take a string of delimited values in a string and sort it in ascending
 // order
 IMPALA_UDF_EXPORT
-StringVal Sort_Allele_List(FunctionContext *context, const StringVal &listVal,
-                           const StringVal &delimVal)
-{
+StringVal Sort_Allele_List(
+    FunctionContext *context, const StringVal &listVal, const StringVal &delimVal
+) {
     if (listVal.is_null || delimVal.is_null) {
         return StringVal::null();
     }
@@ -446,9 +445,9 @@ StringVal Sort_Allele_List(FunctionContext *context, const StringVal &listVal,
 }
 
 IMPALA_UDF_EXPORT
-BooleanVal Find_Set_In_String(FunctionContext *context, const StringVal &haystackVal,
-                              const StringVal &needlesVal)
-{
+BooleanVal Find_Set_In_String(
+    FunctionContext *context, const StringVal &haystackVal, const StringVal &needlesVal
+) {
     // check for nulls
     if (haystackVal.is_null || needlesVal.is_null) {
         return BooleanVal::null();
@@ -472,8 +471,7 @@ BooleanVal Find_Set_In_String(FunctionContext *context, const StringVal &haystac
 
 // We take codon(s) and translate it/them
 IMPALA_UDF_EXPORT
-StringVal To_AA(FunctionContext *context, const StringVal &ntsVal)
-{
+StringVal To_AA(FunctionContext *context, const StringVal &ntsVal) {
     if (ntsVal.is_null) {
         return StringVal::null();
     }
@@ -519,9 +517,9 @@ StringVal To_AA(FunctionContext *context, const StringVal &ntsVal)
 }
 
 IMPALA_UDF_EXPORT
-StringVal To_AA_Mutant(FunctionContext *context, const StringVal &ntsVal,
-                       const StringVal &alleleVal, const IntVal &pos)
-{
+StringVal To_AA_Mutant(
+    FunctionContext *context, const StringVal &ntsVal, const StringVal &alleleVal, const IntVal &pos
+) {
     if (ntsVal.is_null || alleleVal.is_null || pos.is_null) {
         return StringVal::null();
     }
@@ -552,8 +550,7 @@ StringVal To_AA_Mutant(FunctionContext *context, const StringVal &ntsVal,
 
 // Take the reverse complement of the nucleotide string
 IMPALA_UDF_EXPORT
-StringVal Rev_Complement(FunctionContext *context, const StringVal &ntsVal)
-{
+StringVal Rev_Complement(FunctionContext *context, const StringVal &ntsVal) {
     if (ntsVal.is_null) {
         return StringVal::null();
     } else if (ntsVal.len == 0) {
@@ -572,8 +569,7 @@ StringVal Rev_Complement(FunctionContext *context, const StringVal &ntsVal)
 }
 
 IMPALA_UDF_EXPORT
-StringVal Complete_String_Date(FunctionContext *context, const StringVal &dateStr)
-{
+StringVal Complete_String_Date(FunctionContext *context, const StringVal &dateStr) {
     if (dateStr.is_null || dateStr.len == 0) {
         return StringVal::null();
     }
@@ -613,8 +609,7 @@ StringVal Complete_String_Date(FunctionContext *context, const StringVal &dateSt
 
 // Convert Grogorian Dates to the EPI (MMWR) Week
 // See: https://wwwn.cdc.gov/nndss/document/MMWR_Week_overview.pdf
-struct epiweek_t date_to_epiweek(boost::gregorian::date d)
-{
+struct epiweek_t date_to_epiweek(boost::gregorian::date d) {
     // Boost starts with Sunday.
     int day_of_year = d.day_of_year();
     int weekday     = d.day_of_week();
@@ -646,15 +641,14 @@ struct epiweek_t date_to_epiweek(boost::gregorian::date d)
 }
 
 IMPALA_UDF_EXPORT
-IntVal Convert_Timestamp_To_EPI_Week(FunctionContext *context, const TimestampVal &tsVal)
-{
+IntVal Convert_Timestamp_To_EPI_Week(FunctionContext *context, const TimestampVal &tsVal) {
     return Convert_Timestamp_To_EPI_Week(context, tsVal, BooleanVal(false));
 }
 
 IMPALA_UDF_EXPORT
-IntVal Convert_Timestamp_To_EPI_Week(FunctionContext *context, const TimestampVal &tsVal,
-                                     const BooleanVal &yearFormat)
-{
+IntVal Convert_Timestamp_To_EPI_Week(
+    FunctionContext *context, const TimestampVal &tsVal, const BooleanVal &yearFormat
+) {
     if (tsVal.is_null || yearFormat.is_null) {
         return IntVal::null();
     }
@@ -675,15 +669,14 @@ IntVal Convert_Timestamp_To_EPI_Week(FunctionContext *context, const TimestampVa
 }
 
 IMPALA_UDF_EXPORT
-IntVal Convert_String_To_EPI_Week(FunctionContext *context, const StringVal &dateStr)
-{
+IntVal Convert_String_To_EPI_Week(FunctionContext *context, const StringVal &dateStr) {
     return Convert_String_To_EPI_Week(context, dateStr, BooleanVal(false));
 }
 
 IMPALA_UDF_EXPORT
-IntVal Convert_String_To_EPI_Week(FunctionContext *context, const StringVal &dateStr,
-                                  const BooleanVal &yearFormat)
-{
+IntVal Convert_String_To_EPI_Week(
+    FunctionContext *context, const StringVal &dateStr, const BooleanVal &yearFormat
+) {
     if (dateStr.is_null || dateStr.len == 0 || yearFormat.is_null) {
         return IntVal::null();
     }
@@ -728,9 +721,9 @@ IntVal Convert_String_To_EPI_Week(FunctionContext *context, const StringVal &dat
 }
 
 IMPALA_UDF_EXPORT
-StringVal Substring_By_Range(FunctionContext *context, const StringVal &sequence,
-                             const StringVal &rangeMap)
-{
+StringVal Substring_By_Range(
+    FunctionContext *context, const StringVal &sequence, const StringVal &rangeMap
+) {
     if (sequence.is_null || sequence.len == 0 || rangeMap.is_null || rangeMap.len == 0) {
         return StringVal::null();
     }
@@ -784,9 +777,9 @@ StringVal Substring_By_Range(FunctionContext *context, const StringVal &sequence
 
 // Create a mutation list from two aligned strings
 IMPALA_UDF_EXPORT
-StringVal Mutation_List_Strict(FunctionContext *context, const StringVal &sequence1,
-                               const StringVal &sequence2)
-{
+StringVal Mutation_List_Strict(
+    FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2
+) {
     if (sequence1.is_null || sequence2.is_null || sequence1.len == 0 || sequence2.len == 0) {
         return StringVal::null();
     }
@@ -824,9 +817,10 @@ StringVal Mutation_List_Strict(FunctionContext *context, const StringVal &sequen
 
 // Create a mutation list from two aligned strings
 IMPALA_UDF_EXPORT
-StringVal Mutation_List_PDS(FunctionContext *context, const StringVal &sequence1,
-                            const StringVal &sequence2, const StringVal &pairwise_delete_set)
-{
+StringVal Mutation_List_PDS(
+    FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2,
+    const StringVal &pairwise_delete_set
+) {
     if (sequence1.is_null || sequence2.is_null || pairwise_delete_set.is_null ||
         sequence1.len == 0 || sequence2.len == 0) {
         return StringVal::null();
@@ -874,9 +868,10 @@ StringVal Mutation_List_PDS(FunctionContext *context, const StringVal &sequence1
 }
 
 IMPALA_UDF_EXPORT
-StringVal Mutation_List_Strict_Range(FunctionContext *context, const StringVal &sequence1,
-                                     const StringVal &sequence2, const StringVal &rangeMap)
-{
+StringVal Mutation_List_Strict_Range(
+    FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2,
+    const StringVal &rangeMap
+) {
     if (sequence1.is_null || sequence2.is_null || rangeMap.is_null) {
         return StringVal::null();
     }
@@ -972,9 +967,9 @@ StringVal Mutation_List_Strict_Range(FunctionContext *context, const StringVal &
 // Create a mutation list from two aligned strings
 // Add Glycosylation detection
 IMPALA_UDF_EXPORT
-StringVal Mutation_List_Strict_GLY(FunctionContext *context, const StringVal &sequence1,
-                                   const StringVal &sequence2)
-{
+StringVal Mutation_List_Strict_GLY(
+    FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2
+) {
     if (sequence1.is_null || sequence2.is_null) {
         return StringVal::null();
     }
@@ -1089,9 +1084,9 @@ StringVal Mutation_List_Strict_GLY(FunctionContext *context, const StringVal &se
 // Ignore resolvable ambiguations
 // NT_distance()
 IMPALA_UDF_EXPORT
-StringVal Mutation_List_No_Ambiguous(FunctionContext *context, const StringVal &sequence1,
-                                     const StringVal &sequence2)
-{
+StringVal Mutation_List_No_Ambiguous(
+    FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2
+) {
     if (sequence1.is_null || sequence2.is_null || sequence1.len == 0 || sequence2.len == 0) {
         return StringVal::null();
     }
@@ -1122,10 +1117,10 @@ StringVal Mutation_List_No_Ambiguous(FunctionContext *context, const StringVal &
 }
 
 IMPALA_UDF_EXPORT
-IntVal Hamming_Distance_Pairwise_Delete(FunctionContext *context, const StringVal &sequence1,
-                                        const StringVal &sequence2,
-                                        const StringVal &pairwise_delete_set)
-{
+IntVal Hamming_Distance_Pairwise_Delete(
+    FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2,
+    const StringVal &pairwise_delete_set
+) {
     if (sequence1.is_null || sequence2.is_null || pairwise_delete_set.is_null) {
         return IntVal::null();
     }
@@ -1166,9 +1161,9 @@ IntVal Hamming_Distance_Pairwise_Delete(FunctionContext *context, const StringVa
 }
 
 IMPALA_UDF_EXPORT
-IntVal Hamming_Distance(FunctionContext *context, const StringVal &sequence1,
-                        const StringVal &sequence2)
-{
+IntVal Hamming_Distance(
+    FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2
+) {
     if (sequence1.is_null || sequence2.is_null) {
         return IntVal::null();
     }
@@ -1201,8 +1196,9 @@ IntVal Hamming_Distance(FunctionContext *context, const StringVal &sequence1,
 }
 
 IMPALA_UDF_EXPORT
-IntVal Nt_Distance(FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2)
-{
+IntVal Nt_Distance(
+    FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2
+) {
     if (sequence1.is_null || sequence2.is_null || sequence1.len == 0 || sequence2.len == 0) {
         return IntVal::null();
     }
@@ -1224,9 +1220,9 @@ IntVal Nt_Distance(FunctionContext *context, const StringVal &sequence1, const S
 }
 
 IMPALA_UDF_EXPORT
-DoubleVal Physiochemical_Distance(FunctionContext *context, const StringVal &sequence1,
-                                  const StringVal &sequence2)
-{
+DoubleVal Physiochemical_Distance(
+    FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2
+) {
 
     if (sequence1.is_null || sequence2.is_null || sequence1.len == 0 || sequence2.len == 0) {
         return DoubleVal::null();
@@ -1260,9 +1256,9 @@ DoubleVal Physiochemical_Distance(FunctionContext *context, const StringVal &seq
 }
 
 IMPALA_UDF_EXPORT
-StringVal Physiochemical_Distance_List(FunctionContext *context, const StringVal &sequence1,
-                                       const StringVal &sequence2)
-{
+StringVal Physiochemical_Distance_List(
+    FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2
+) {
     if (sequence1.is_null || sequence2.is_null || sequence1.len == 0 || sequence2.len == 0) {
         return StringVal::null();
     }
@@ -1299,9 +1295,10 @@ StringVal Physiochemical_Distance_List(FunctionContext *context, const StringVal
 }
 
 IMPALA_UDF_EXPORT
-BooleanVal Contains_An_Element(FunctionContext *context, const StringVal &mystring,
-                               const StringVal &list_of_items, const StringVal &delimVal)
-{
+BooleanVal Contains_An_Element(
+    FunctionContext *context, const StringVal &mystring, const StringVal &list_of_items,
+    const StringVal &delimVal
+) {
     if (mystring.is_null || list_of_items.is_null || delimVal.is_null) {
         return BooleanVal::null();
     }
@@ -1335,9 +1332,10 @@ BooleanVal Contains_An_Element(FunctionContext *context, const StringVal &mystri
 }
 
 IMPALA_UDF_EXPORT
-BooleanVal Is_An_Element(FunctionContext *context, const StringVal &needle,
-                         const StringVal &list_of_items, const StringVal &delimVal)
-{
+BooleanVal Is_An_Element(
+    FunctionContext *context, const StringVal &needle, const StringVal &list_of_items,
+    const StringVal &delimVal
+) {
     if (needle.is_null || list_of_items.is_null || delimVal.is_null) {
         return BooleanVal::null();
     }
@@ -1364,9 +1362,9 @@ BooleanVal Is_An_Element(FunctionContext *context, const StringVal &needle,
 }
 
 IMPALA_UDF_EXPORT
-BooleanVal Contains_Symmetric(FunctionContext *context, const StringVal &string1,
-                              const StringVal &string2)
-{
+BooleanVal Contains_Symmetric(
+    FunctionContext *context, const StringVal &string1, const StringVal &string2
+) {
     if (string1.is_null || string2.is_null) {
         return BooleanVal::null();
     }
@@ -1385,8 +1383,7 @@ BooleanVal Contains_Symmetric(FunctionContext *context, const StringVal &string1
 }
 
 IMPALA_UDF_EXPORT
-StringVal nt_id(FunctionContext *context, const StringVal &sequence)
-{
+StringVal nt_id(FunctionContext *context, const StringVal &sequence) {
     if (sequence.is_null || sequence.len == 0) {
         return StringVal::null();
     }
@@ -1407,8 +1404,7 @@ StringVal nt_id(FunctionContext *context, const StringVal &sequence)
 }
 
 IMPALA_UDF_EXPORT
-StringVal nt_std(FunctionContext *context, const StringVal &sequence)
-{
+StringVal nt_std(FunctionContext *context, const StringVal &sequence) {
     if (sequence.is_null || sequence.len == 0) {
         return StringVal::null();
     }
@@ -1420,8 +1416,7 @@ StringVal nt_std(FunctionContext *context, const StringVal &sequence)
 }
 
 IMPALA_UDF_EXPORT
-StringVal aa_std(FunctionContext *context, const StringVal &sequence)
-{
+StringVal aa_std(FunctionContext *context, const StringVal &sequence) {
     if (sequence.is_null || sequence.len == 0) {
         return StringVal::null();
     }
@@ -1433,8 +1428,7 @@ StringVal aa_std(FunctionContext *context, const StringVal &sequence)
 }
 
 IMPALA_UDF_EXPORT
-StringVal variant_hash(FunctionContext *context, const StringVal &sequence)
-{
+StringVal variant_hash(FunctionContext *context, const StringVal &sequence) {
     if (sequence.is_null || sequence.len == 0) {
         return StringVal::null();
     }
@@ -1455,8 +1449,7 @@ StringVal variant_hash(FunctionContext *context, const StringVal &sequence)
 }
 
 IMPALA_UDF_EXPORT
-StringVal md5(FunctionContext *context, int num_vars, const StringVal *args)
-{
+StringVal md5(FunctionContext *context, int num_vars, const StringVal *args) {
     if (num_vars == 0 || args[0].is_null) {
         return StringVal::null();
     }
@@ -1495,8 +1488,7 @@ StringVal md5(FunctionContext *context, int num_vars, const StringVal *args)
 }
 
 IMPALA_UDF_EXPORT
-IntVal Number_Deletions(FunctionContext *context, const StringVal &sequence)
-{
+IntVal Number_Deletions(FunctionContext *context, const StringVal &sequence) {
     if (sequence.is_null) {
         return IntVal::null();
     }
@@ -1525,8 +1517,7 @@ IntVal Number_Deletions(FunctionContext *context, const StringVal &sequence)
 }
 
 IMPALA_UDF_EXPORT
-IntVal Longest_Deletion(FunctionContext *context, const StringVal &sequence)
-{
+IntVal Longest_Deletion(FunctionContext *context, const StringVal &sequence) {
     if (sequence.is_null) {
         return IntVal::null();
     }

@@ -14,9 +14,9 @@
 // Modified from: https://github.com/fenbf/StringViewTests/blob/master/StringViewTest.cpp
 // The lifeime of the input 'str' must be greater than or equal to the lifetime of elements in the
 // output
-inline std::vector<std::string_view> split_by_substr(std::string_view str,
-                                                     std::string_view delim_str)
-{
+inline std::vector<std::string_view> split_by_substr(
+    std::string_view str, std::string_view delim_str
+) {
     const std::size_t LD = delim_str.size();
     std::vector<std::string_view> output;
     for (auto first = str.data(), second = str.data(), last = first + str.size();
@@ -32,8 +32,7 @@ inline std::vector<std::string_view> split_by_substr(std::string_view str,
     return output;
 }
 
-inline BooleanVal character_in_string(const StringVal &needle, const StringVal &list_of_items)
-{
+inline BooleanVal character_in_string(const StringVal &needle, const StringVal &list_of_items) {
     if (needle.len != 1) {
         return BooleanVal(false);
     }
@@ -43,9 +42,9 @@ inline BooleanVal character_in_string(const StringVal &needle, const StringVal &
     return BooleanVal(items.find(query) != std::string::npos);
 }
 
-inline std::vector<std::string> split_by_substr(const std::string &str,
-                                                const std::string &delim_str)
-{
+inline std::vector<std::string> split_by_substr(
+    const std::string &str, const std::string &delim_str
+) {
     const std::size_t LD = delim_str.size();
     std::vector<std::string> output;
     for (auto first = str.data(), second = str.data(), last = first + str.size();
@@ -65,8 +64,7 @@ inline std::vector<std::string> split_by_substr(const std::string &str,
 // Courtesy: https://github.com/fenbf/StringViewTests/blob/master/StringViewTest.cpp
 // The lifeime of the input 'str' must be greater than or equal to the lifetime of elements in the
 // output
-inline auto split_by_delims(std::string_view str, std::string_view delims)
-{
+inline auto split_by_delims(std::string_view str, std::string_view delims) {
     std::vector<std::string_view> output;
     for (auto first = str.data(), second = str.data(), last = first + str.size();
          second != last && first != last; first = second + 1) {
@@ -84,8 +82,7 @@ inline auto split_by_delims(std::string_view str, std::string_view delims)
 // SPLIT STRING/VIEW by substring (uses search)
 // Modified from:
 // https://stackoverflow.com/questions/56634507/safely-convert-stdstring-view-to-int-like-stoi-or-atoi
-inline std::vector<int> split_int_by_substr(std::string_view str, std::string_view delims)
-{
+inline std::vector<int> split_int_by_substr(std::string_view str, std::string_view delims) {
     const std::size_t ND = delims.size();
     std::vector<int> output;
 
@@ -110,8 +107,7 @@ inline std::vector<int> split_int_by_substr(std::string_view str, std::string_vi
 }
 
 // Legacy function to create an unordered set of integers from a delimited input string
-inline std::vector<int> split_set_by_substr(const std::string &str, const std::string &delim)
-{
+inline std::vector<int> split_set_by_substr(const std::string &str, const std::string &delim) {
     std::unordered_set<std::string> tokens;
     std::size_t prev = 0;
     std::size_t pos  = 0;
@@ -150,9 +146,9 @@ inline std::vector<int> split_set_by_substr(const std::string &str, const std::s
 
 // Returns an ordered set (unique elements) of ints as a vector
 // Faster than unordered for this purpose
-inline std::vector<int> split_unique_sequence_by_substr(std::string_view str,
-                                                        std::string_view delims)
-{
+inline std::vector<int> split_unique_sequence_by_substr(
+    std::string_view str, std::string_view delims
+) {
     const std::size_t ND = delims.size();
     std::vector<int> output;
     std::set<int> iset;
@@ -182,8 +178,7 @@ inline std::vector<int> split_unique_sequence_by_substr(std::string_view str,
 
 // Returns an ordered set (unique elements) of ints
 // Faster than unordered for this purpose
-inline std::set<int> split_ordered_set_by_substr(std::string_view str, std::string_view delims)
-{
+inline std::set<int> split_ordered_set_by_substr(std::string_view str, std::string_view delims) {
     const std::size_t ND = delims.size();
     std::set<int> iset;
 
@@ -208,9 +203,9 @@ inline std::set<int> split_ordered_set_by_substr(std::string_view str, std::stri
 }
 
 // Returns an ordered map of string_views
-inline std::map<std::string_view, int> split_ordered_map_by_substr(std::string_view str,
-                                                                   std::string_view delims)
-{
+inline std::map<std::string_view, int> split_ordered_map_by_substr(
+    std::string_view str, std::string_view delims
+) {
     const std::size_t ND = delims.size();
     std::map<std::string_view, int> svmap;
 
@@ -230,8 +225,7 @@ inline std::map<std::string_view, int> split_ordered_map_by_substr(std::string_v
 
 // Copies a std::string into a StringVal for Impala memory management
 // Is not preferred if you can only allocate the StringVal to begin with and operate on its pointer
-inline StringVal to_StringVal(FunctionContext *context, const std::string &s)
-{
+inline StringVal to_StringVal(FunctionContext *context, const std::string &s) {
     if (s.size() > StringVal::MAX_LENGTH) {
         return StringVal::null();
     } else {
@@ -243,7 +237,6 @@ inline StringVal to_StringVal(FunctionContext *context, const std::string &s)
 
 // Fast integer generation from a string
 // TO-DO: Should be compared with C++20 options
-inline bool append_int(std::string &s, std::size_t val)
-{
+inline bool append_int(std::string &s, std::size_t val) {
     return boost::spirit::karma::generate(std::back_inserter(s), val);
 }

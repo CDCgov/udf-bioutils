@@ -11,9 +11,10 @@ using namespace std;
 
 // Quantile function for t-statistic generation
 IMPALA_UDF_EXPORT
-DoubleVal qt(FunctionContext *context, const DoubleVal &confidence, const BigIntVal &sample_size,
-             const BooleanVal &two_tailed)
-{
+DoubleVal qt(
+    FunctionContext *context, const DoubleVal &confidence, const BigIntVal &sample_size,
+    const BooleanVal &two_tailed
+) {
     if (confidence.is_null || two_tailed.is_null || sample_size.is_null) {
         return DoubleVal::null();
     }
@@ -50,9 +51,10 @@ DoubleVal qt(FunctionContext *context, const DoubleVal &confidence, const BigInt
 // Confidence interval function. Normally we take alpha but I think backwards, so we take the
 // confidence level instead.
 IMPALA_UDF_EXPORT
-DoubleVal ci_t(FunctionContext *context, const DoubleVal &confidence, const BigIntVal &sample_size,
-               const DoubleVal &sample_std, const BooleanVal &two_tailed)
-{
+DoubleVal ci_t(
+    FunctionContext *context, const DoubleVal &confidence, const BigIntVal &sample_size,
+    const DoubleVal &sample_std, const BooleanVal &two_tailed
+) {
     if (confidence.is_null || two_tailed.is_null || sample_size.is_null || sample_std.is_null) {
         return DoubleVal::null();
     }
@@ -89,8 +91,9 @@ DoubleVal ci_t(FunctionContext *context, const DoubleVal &confidence, const BigI
 
 // COnfidence interval function, but we hard-code the two-sided case for function overloading.
 IMPALA_UDF_EXPORT
-DoubleVal ci_t_twoSided(FunctionContext *context, const DoubleVal &confidence,
-                        const BigIntVal &sample_size, const DoubleVal &sample_std)
-{
+DoubleVal ci_t_twoSided(
+    FunctionContext *context, const DoubleVal &confidence, const BigIntVal &sample_size,
+    const DoubleVal &sample_std
+) {
     return ci_t(context, confidence, sample_size, sample_std, BooleanVal(true));
 }

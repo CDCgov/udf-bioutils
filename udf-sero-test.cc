@@ -10,14 +10,14 @@ using namespace impala;
 using namespace impala_udf;
 using namespace std;
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     bool passed = true;
 
     try {
         passed &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
             Sort_Cohorts, StringVal("Adult, Adult 5-10, Pediatric, Elderly"), StringVal(", "),
-            StringVal("Pediatric, Adult, Adult 5-10 and Elderly"));
+            StringVal("Pediatric, Adult, Adult 5-10 and Elderly")
+        );
 
     } catch (const std::regex_error &e) {
         if (e.code() == std::regex_constants::error_escape) {

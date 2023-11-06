@@ -81,5 +81,13 @@
         "ControlStructures::ProhibitDeepNests",
         "BuiltinFunctions::ProhibitStringySplit",
         "ValuesAndExpressions::ProhibitNoisyQuotes"
-    ]
+    ],
+    "markdownlint.config": {
+        "no-inline-html": {
+            "allowed_elements": [
+                "pre",
+                "br"
+            ]
+        },
+    }
 }

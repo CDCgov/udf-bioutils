@@ -12,8 +12,7 @@ using namespace impala_udf;
 using namespace std;
 
 
-bool test__any_instr()
-{
+bool test__any_instr() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, BooleanVal> table[7] = {
@@ -23,13 +22,15 @@ bool test__any_instr()
         std::make_tuple("ABCDEFG", "", false),
         std::make_tuple("", "", true),
         std::make_tuple(StringVal::null(), "abcCxyz", BooleanVal::null()),
-        std::make_tuple("ABCDEFG", StringVal::null(), BooleanVal::null())};
+        std::make_tuple("ABCDEFG", StringVal::null(), BooleanVal::null())
+    };
 
 
     for (int i = 0; i < 7; i++) {
         auto [haystack, needles, expected] = table[i];
         if (!UdfTestHarness::ValidateUdf<BooleanVal, StringVal, StringVal>(
-                Find_Set_In_String, haystack, needles, expected)) {
+                Find_Set_In_String, haystack, needles, expected
+            )) {
             cout << "UDX any_instr(SS)->B failed:\n\t|" << haystack.ptr << "|\n\t|" << needles.ptr
                  << "|\n\t|" << expected.val << "|\n";
             passing = false;
@@ -40,8 +41,7 @@ bool test__any_instr()
 }
 
 
-bool test__complete_date()
-{
+bool test__complete_date() {
     int passing = true;
 
     std::tuple<StringVal, StringVal> table[10] = {
@@ -54,12 +54,14 @@ bool test__complete_date()
         std::make_tuple("2010.02", "2010-02-01"),
         std::make_tuple("1981.09.12", "1981-09-12"),
         std::make_tuple("2000/01", "2000-01-01"),
-        std::make_tuple("1", StringVal::null())};
+        std::make_tuple("1", StringVal::null())
+    };
     for (int i = 0; i < 10; i++) {
         auto [arg0_s, expected] = table[i];
 
-        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal>(Complete_String_Date, arg0_s,
-                                                               expected)) {
+        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal>(
+                Complete_String_Date, arg0_s, expected
+            )) {
             cout << "UDX complete_date(s)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|" << expected.ptr
                  << "|\n";
             passing = false;
@@ -70,8 +72,7 @@ bool test__complete_date()
 }
 
 
-bool test__contains_element()
-{
+bool test__contains_element() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, StringVal, BooleanVal> table[12] = {
@@ -86,12 +87,14 @@ bool test__contains_element()
         std::make_tuple("baby whales", "xyz", "", true),
         std::make_tuple("baby whales", "xYz", "", false),
         std::make_tuple("300028908", "28907::28906::28905", "::", false),
-        std::make_tuple("300028908", "28908::28907::28906::28905", "::", true)};
+        std::make_tuple("300028908", "28908::28907::28906::28905", "::", true)
+    };
 
     for (int i = 0; i < 12; i++) {
         auto [needle, list, delim, expected] = table[i];
         if (!UdfTestHarness::ValidateUdf<BooleanVal, StringVal, StringVal, StringVal>(
-                Contains_An_Element, needle, list, delim, expected)) {
+                Contains_An_Element, needle, list, delim, expected
+            )) {
             cout << "UDX contains_element(SSS)->B failed:\n\t|" << needle.ptr << "|\n\t|"
                  << list.ptr << "|\n\t|" << delim.ptr << "|\n\t|" << expected.val << "|\n";
             passing = false;
@@ -102,8 +105,7 @@ bool test__contains_element()
 }
 
 
-bool test__contains_sym()
-{
+bool test__contains_sym() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, BooleanVal> table[9] = {
@@ -115,12 +117,14 @@ bool test__contains_sym()
         std::make_tuple("sam", "", false),
         std::make_tuple("", "", true),
         std::make_tuple("sam", "sam", true),
-        std::make_tuple("SAM", "samuel", false)};
+        std::make_tuple("SAM", "samuel", false)
+    };
     for (int i = 0; i < 9; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<BooleanVal, StringVal, StringVal>(
-                Contains_Symmetric, arg0_s, arg1_s, expected)) {
+                Contains_Symmetric, arg0_s, arg1_s, expected
+            )) {
             cout << "UDX contains_sym(ss)->b failed:\n\t|" << arg0_s.ptr << "|\n\t|" << arg1_s.ptr
                  << "|\n\t|" << expected.val << "|\n";
             passing = false;
@@ -131,17 +135,18 @@ bool test__contains_sym()
 }
 
 
-bool test__deletion_events()
-{
+bool test__deletion_events() {
     int passing = true;
 
-    std::tuple<StringVal, IntVal> table[7] = {std::make_tuple("ATG---AGG---GGG--TAG", 3),
-                                              std::make_tuple("", 0),
-                                              std::make_tuple(StringVal::null(), IntVal::null()),
-                                              std::make_tuple("...ATG----TAG...", 1),
-                                              std::make_tuple("ATG---...", 0),
-                                              std::make_tuple("ATG------AGG---gac", 2),
-                                              std::make_tuple("Stark!", 0)};
+    std::tuple<StringVal, IntVal> table[7] = {
+        std::make_tuple("ATG---AGG---GGG--TAG", 3),
+        std::make_tuple("", 0),
+        std::make_tuple(StringVal::null(), IntVal::null()),
+        std::make_tuple("...ATG----TAG...", 1),
+        std::make_tuple("ATG---...", 0),
+        std::make_tuple("ATG------AGG---gac", 2),
+        std::make_tuple("Stark!", 0)
+    };
     for (int i = 0; i < 7; i++) {
         auto [arg0_s, expected] = table[i];
 
@@ -156,8 +161,7 @@ bool test__deletion_events()
 }
 
 
-bool test__hamming_distance()
-{
+bool test__hamming_distance() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, IntVal> table[8] = {
@@ -168,12 +172,14 @@ bool test__hamming_distance()
         std::make_tuple("ATGAGGCAG", "", IntVal::null()),
         std::make_tuple("ATGAGGCAG", "ATcAGGCrGnnn", 2),
         std::make_tuple("AGCT.", "AGCTN", 0),
-        std::make_tuple("AGCT-", "AGCTN", 1)};
+        std::make_tuple("AGCT-", "AGCTN", 1)
+    };
     for (int i = 0; i < 8; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
-        if (!UdfTestHarness::ValidateUdf<IntVal, StringVal, StringVal>(Hamming_Distance, arg0_s,
-                                                                       arg1_s, expected)) {
+        if (!UdfTestHarness::ValidateUdf<IntVal, StringVal, StringVal>(
+                Hamming_Distance, arg0_s, arg1_s, expected
+            )) {
             cout << "UDX hamming_distance(ss)->i failed:\n\t|" << arg0_s.ptr << "|\n\t|"
                  << arg1_s.ptr << "|\n\t|" << expected.val << "|\n";
             passing = false;
@@ -184,8 +190,7 @@ bool test__hamming_distance()
 }
 
 
-bool test__hamming_distance_pds()
-{
+bool test__hamming_distance_pds() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, StringVal, IntVal> table[11] = {
@@ -199,12 +204,14 @@ bool test__hamming_distance_pds()
         std::make_tuple("AGCTN", "AGCT-", "-", 0),
         std::make_tuple("AGCTNNN", "AGCT.-~", "-", 2),
         std::make_tuple("AGCTNNN", "AGCT.-~", "-.~", 0),
-        std::make_tuple("AGC", "AGX", "", 1)};
+        std::make_tuple("AGC", "AGX", "", 1)
+    };
     for (int i = 0; i < 11; i++) {
         auto [arg0_s, arg1_s, arg2_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<IntVal, StringVal, StringVal, StringVal>(
-                Hamming_Distance_Pairwise_Delete, arg0_s, arg1_s, arg2_s, expected)) {
+                Hamming_Distance_Pairwise_Delete, arg0_s, arg1_s, arg2_s, expected
+            )) {
             cout << "UDX hamming_distance_pds(sss)->i failed:\n\t|" << arg0_s.ptr << "|\n\t|"
                  << arg1_s.ptr << "|\n\t|" << arg2_s.ptr << "|\n\t|" << expected.val << "|\n";
             passing = false;
@@ -214,8 +221,7 @@ bool test__hamming_distance_pds()
     return passing;
 }
 
-bool test__is_element()
-{
+bool test__is_element() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, StringVal, BooleanVal> table[14] = {
@@ -232,12 +238,14 @@ bool test__is_element()
         std::make_tuple("y", "xYz", "", false),
         std::make_tuple("300028908", "28907::28906::28905", "::", false),
         std::make_tuple("300028908", "28908::28907::28906::28905", "::", false),
-        std::make_tuple("300028908", "300028908::300028907::300028906::300028905", "::", true)};
+        std::make_tuple("300028908", "300028908::300028907::300028906::300028905", "::", true)
+    };
 
     for (int i = 0; i < 14; i++) {
         auto [mystring, list, delim, expected] = table[i];
         if (!UdfTestHarness::ValidateUdf<BooleanVal, StringVal, StringVal, StringVal>(
-                Is_An_Element, mystring, list, delim, expected)) {
+                Is_An_Element, mystring, list, delim, expected
+            )) {
             cout << "UDX is_element(SSS)->B failed:\n\t|" << mystring.ptr << "|\n\t|" << list.ptr
                  << "|\n\t|" << delim.ptr << "|\n\t|" << expected.val << "|\n";
             passing = false;
@@ -247,17 +255,18 @@ bool test__is_element()
     return passing;
 }
 
-bool test__longest_deletion()
-{
+bool test__longest_deletion() {
     int passing = true;
 
-    std::tuple<StringVal, IntVal> table[7] = {std::make_tuple("ATG---AGG---GGG--TAG", 3),
-                                              std::make_tuple("", 0),
-                                              std::make_tuple(StringVal::null(), IntVal::null()),
-                                              std::make_tuple("...ATG----TAG...", 4),
-                                              std::make_tuple("ATG---...", 0),
-                                              std::make_tuple("ATG------AGG---gac", 6),
-                                              std::make_tuple("Stark!", 0)};
+    std::tuple<StringVal, IntVal> table[7] = {
+        std::make_tuple("ATG---AGG---GGG--TAG", 3),
+        std::make_tuple("", 0),
+        std::make_tuple(StringVal::null(), IntVal::null()),
+        std::make_tuple("...ATG----TAG...", 4),
+        std::make_tuple("ATG---...", 0),
+        std::make_tuple("ATG------AGG---gac", 6),
+        std::make_tuple("Stark!", 0)
+    };
     for (int i = 0; i < 7; i++) {
         auto [arg0_s, expected] = table[i];
 
@@ -273,8 +282,7 @@ bool test__longest_deletion()
 
 // test__md5()
 
-bool test__mutation_list()
-{
+bool test__mutation_list() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, StringVal> table[6] = {
@@ -283,13 +291,15 @@ bool test__mutation_list()
         std::make_tuple("ATGAGGCAG", StringVal::null(), StringVal::null()),
         std::make_tuple("", "ATcAGGCrG", StringVal::null()),
         std::make_tuple("ATGAGGCAG", "", StringVal::null()),
-        std::make_tuple("ATGAGGCAG", "ATcAGGCrGnnn", "G3C, A8R")};
+        std::make_tuple("ATGAGGCAG", "ATcAGGCrGnnn", "G3C, A8R")
+    };
 
     for (int i = 0; i < 6; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
-                Mutation_List_Strict, arg0_s, arg1_s, expected)) {
+                Mutation_List_Strict, arg0_s, arg1_s, expected
+            )) {
             cout << "UDX mutation_list_strict(ss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
                  << arg1_s.ptr << "|\n\t|" << expected.ptr << "|\n";
             passing = false;
@@ -299,8 +309,7 @@ bool test__mutation_list()
     return passing;
 }
 
-bool test__mutation_list_range()
-{
+bool test__mutation_list_range() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, StringVal, StringVal> table[12] = {
@@ -315,13 +324,15 @@ bool test__mutation_list_range()
         std::make_tuple("ATGAGGCAG", "ATcAGGCrG", "1..9", "G3C, A8R"),
         std::make_tuple("ATGAGGCAG", "ATcAGGCrG", "1..9,3,8", "G3C, A8R, G3C, A8R"),
         std::make_tuple("ATGAGGCAG", "ATcAGGCrG", "8,1..4", "A8R, G3C"),
-        std::make_tuple("ATGAGGCAG", "ATcAGGCrG", "1..4,Stark", StringVal::null())};
+        std::make_tuple("ATGAGGCAG", "ATcAGGCrG", "1..4,Stark", StringVal::null())
+    };
 
     for (int i = 0; i < 12; i++) {
         auto [arg0_s, arg1_s, arg2_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal>(
-                Mutation_List_Strict_Range, arg0_s, arg1_s, arg2_s, expected)) {
+                Mutation_List_Strict_Range, arg0_s, arg1_s, arg2_s, expected
+            )) {
             cout << "UDX mutation_list(sss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|" << arg1_s.ptr
                  << "|\n\t|" << arg2_s.ptr << "|\n\t|" << expected.ptr << "|\n";
             passing = false;
@@ -332,8 +343,7 @@ bool test__mutation_list_range()
 }
 
 
-bool test__mutation_list_gly()
-{
+bool test__mutation_list_gly() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, StringVal> table[19] = {
@@ -344,8 +354,9 @@ bool test__mutation_list_gly()
         std::make_tuple("NRMANHSSELL", "", StringVal::null()),
         std::make_tuple("NRMANHSSELL", "NRMAN", ""),
         std::make_tuple("NRMANHSSELL", "NRSANPSSELL", "M3S-ADD-GLY, H6P-LOSS-GLY"),
-        std::make_tuple("NRMANHSSELL", "NXTANHSSNAT",
-                        "R2X, M3T-ADD-GLY, E9N-ADD-GLY, L10A, L11T-ADD-GLY"),
+        std::make_tuple(
+            "NRMANHSSELL", "NXTANHSSNAT", "R2X, M3T-ADD-GLY, E9N-ADD-GLY, L10A, L11T-ADD-GLY"
+        ),
         std::make_tuple("NANHSSELL", "NATHSSELL", "N3T-ADD-LOSS-GLY"),
         std::make_tuple("AAA", "NIT", "A1N-ADD-GLY, A2I, A3T-ADD-GLY"),
         std::make_tuple("APA", "NIT", "A1N-ADD-GLY, P2I-ADD-GLY, A3T-ADD-GLY"),
@@ -356,13 +367,15 @@ bool test__mutation_list_gly()
         std::make_tuple("NAT", "NAP", "T3P-LOSS-GLY"),
         std::make_tuple("NSS", "NSP", "S3P-LOSS-GLY"),
         std::make_tuple("NPS", "NNS", "P2N-ADD-GLY"),
-        std::make_tuple("NNS", "NPS", "N2P-LOSS-GLY")};
+        std::make_tuple("NNS", "NPS", "N2P-LOSS-GLY")
+    };
 
     for (int i = 0; i < 19; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
-                Mutation_List_Strict_GLY, arg0_s, arg1_s, expected)) {
+                Mutation_List_Strict_GLY, arg0_s, arg1_s, expected
+            )) {
             cout << "UDX mutation_list_gly(ss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
                  << arg1_s.ptr << "|\n\t|" << expected.ptr << "|\n";
             passing = false;
@@ -372,8 +385,7 @@ bool test__mutation_list_gly()
     return passing;
 }
 
-bool test__mutation_list_nt()
-{
+bool test__mutation_list_nt() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, StringVal> table[7] = {
@@ -383,14 +395,18 @@ bool test__mutation_list_nt()
         std::make_tuple("", "ATcAGGCrG", StringVal::null()),
         std::make_tuple("ATGAGGCAG", "", StringVal::null()),
         std::make_tuple("ATGAGGCAG", "ATcAGGCrGnnn", "G3C"),
-        std::make_tuple("NNNNNNNNNNNNNNNBBBBBBBDDDDDDDHHHHHHHVVVVVVRRYYYSSWWWKKKMM",
-                        "acgturyswkmbdhvcgtuyskagturwkactuywmacgrsmagctucgatugtuac", "")};
+        std::make_tuple(
+            "NNNNNNNNNNNNNNNBBBBBBBDDDDDDDHHHHHHHVVVVVVRRYYYSSWWWKKKMM",
+            "acgturyswkmbdhvcgtuyskagturwkactuywmacgrsmagctucgatugtuac", ""
+        )
+    };
 
     for (int i = 0; i < 7; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
-                Mutation_List_No_Ambiguous, arg0_s, arg1_s, expected)) {
+                Mutation_List_No_Ambiguous, arg0_s, arg1_s, expected
+            )) {
             cout << "UDX mutation_list_nt(ss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
                  << arg1_s.ptr << "|\n\t|" << expected.ptr << "|\n";
             passing = false;
@@ -400,8 +416,7 @@ bool test__mutation_list_nt()
     return passing;
 }
 
-bool test__nt_distance()
-{
+bool test__nt_distance() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, IntVal> table[9] = {
@@ -413,13 +428,17 @@ bool test__nt_distance()
         std::make_tuple("ATGAGGCAG", "ATcAGGCrGnnn", 1),
         std::make_tuple("AGCT.", "AGCTN", 0),
         std::make_tuple("AGCT-", "AGCTN", 1),
-        std::make_tuple("NNNNNNNNNNNNNNNBBBBBBBDDDDDDDHHHHHHHVVVVVVRRYYYSSWWWKKKMM",
-                        "acgturyswkmbdhvcgtuyskagturwkactuywmacgrsmagctucgatugtuac", 0)};
+        std::make_tuple(
+            "NNNNNNNNNNNNNNNBBBBBBBDDDDDDDHHHHHHHVVVVVVRRYYYSSWWWKKKMM",
+            "acgturyswkmbdhvcgtuyskagturwkactuywmacgrsmagctucgatugtuac", 0
+        )
+    };
     for (int i = 0; i < 9; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
-        if (!UdfTestHarness::ValidateUdf<IntVal, StringVal, StringVal>(Nt_Distance, arg0_s, arg1_s,
-                                                                       expected)) {
+        if (!UdfTestHarness::ValidateUdf<IntVal, StringVal, StringVal>(
+                Nt_Distance, arg0_s, arg1_s, expected
+            )) {
             cout << "UDX nt_distance(ss)->i failed:\n\t|" << arg0_s.ptr << "|\n\t|" << arg1_s.ptr
                  << "|\n\t|" << expected.val << "|\n";
             passing = false;
@@ -429,23 +448,31 @@ bool test__nt_distance()
     return passing;
 }
 
-bool test__nt_id()
-{
+bool test__nt_id() {
     int passing = true;
 
     std::tuple<StringVal, StringVal> table[8] = {
         std::make_tuple("", StringVal::null()),
         std::make_tuple(StringVal::null(), StringVal::null()),
-        std::make_tuple("ATGAACACTCAAATCCTGGTATTCGCTCTGGTGGCGAGCATTCCGACAAATGCA",
-                        "198a9b787a7e856b54eea10948bfa6bda5882681"),
-        std::make_tuple("ATGAACACTCAAATCCTGGTATTCGCTCTGGTGGCGAGCATTCCGACAAATGCA...   ---~~~:::",
-                        "198a9b787a7e856b54eea10948bfa6bda5882681"),
-        std::make_tuple("atgaacactcaaatcctggtattcgctctggtggcgagcattccgacaaatgca",
-                        "198a9b787a7e856b54eea10948bfa6bda5882681"),
-        std::make_tuple("ATGAACACTCAAATCCTGGTATTCGCTCTGGTGGCGAGCATTCCGACAAATGCg",
-                        "6f8a94f328a6374ab9af217e0dd2ea85b00f176a"),
+        std::make_tuple(
+            "ATGAACACTCAAATCCTGGTATTCGCTCTGGTGGCGAGCATTCCGACAAATGCA",
+            "198a9b787a7e856b54eea10948bfa6bda5882681"
+        ),
+        std::make_tuple(
+            "ATGAACACTCAAATCCTGGTATTCGCTCTGGTGGCGAGCATTCCGACAAATGCA...   ---~~~:::",
+            "198a9b787a7e856b54eea10948bfa6bda5882681"
+        ),
+        std::make_tuple(
+            "atgaacactcaaatcctggtattcgctctggtggcgagcattccgacaaatgca",
+            "198a9b787a7e856b54eea10948bfa6bda5882681"
+        ),
+        std::make_tuple(
+            "ATGAACACTCAAATCCTGGTATTCGCTCTGGTGGCGAGCATTCCGACAAATGCg",
+            "6f8a94f328a6374ab9af217e0dd2ea85b00f176a"
+        ),
         std::make_tuple("1", "356a192b7913b04c54574d18c28d46e6395428ab"),
-        std::make_tuple("TCC ACC GCC CGG AAA", "a3505a17b5b0adf08a7d43667e0802a05beedc8c")};
+        std::make_tuple("TCC ACC GCC CGG AAA", "a3505a17b5b0adf08a7d43667e0802a05beedc8c")
+    };
     for (int i = 0; i < 8; i++) {
         auto [arg0_s, expected] = table[i];
 
@@ -459,8 +486,7 @@ bool test__nt_id()
     return passing;
 }
 
-bool test__pcd()
-{
+bool test__pcd() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, DoubleVal> table[473] = {
@@ -936,12 +962,14 @@ bool test__pcd()
         std::make_tuple("", "X", DoubleVal::null()),
         std::make_tuple("X", "", DoubleVal::null()),
         std::make_tuple("X", StringVal::null(), DoubleVal::null()),
-        std::make_tuple(StringVal::null(), "X", DoubleVal::null())};
+        std::make_tuple(StringVal::null(), "X", DoubleVal::null())
+    };
     for (int i = 0; i < 473; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<DoubleVal, StringVal, StringVal>(
-                Physiochemical_Distance, arg0_s, arg1_s, expected)) {
+                Physiochemical_Distance, arg0_s, arg1_s, expected
+            )) {
             cout << "UDX pcd(ss)->d failed:\n\t|" << arg0_s.ptr << "|\n\t|" << arg1_s.ptr
                  << "|\n\t|" << expected.val << "|\n";
             passing = false;
@@ -951,8 +979,7 @@ bool test__pcd()
     return passing;
 }
 
-bool test__range_from_list()
-{
+bool test__range_from_list() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, StringVal> table[9] = {
@@ -964,12 +991,14 @@ bool test__range_from_list()
         std::make_tuple("1,1,1,1,2,3,4,5,6", ",", "1..6"),
         std::make_tuple("1,2,Stark!", ",", "1..2"),
         std::make_tuple("1,2;3;4", ",;", "1"),
-        std::make_tuple("1stark2stark3stark5", "stark", "1..3stark5")};
+        std::make_tuple("1stark2stark3stark5", "stark", "1..3stark5")
+    };
     for (int i = 0; i < 9; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
-        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(Range_From_List, arg0_s,
-                                                                          arg1_s, expected)) {
+        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
+                Range_From_List, arg0_s, arg1_s, expected
+            )) {
             cout << "UDX range_from_list(ss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
                  << arg1_s.ptr << "|\n\t|" << expected.ptr << "|\n";
             passing = false;
@@ -979,15 +1008,15 @@ bool test__range_from_list()
     return passing;
 }
 
-bool test__reverse_complement()
-{
+bool test__reverse_complement() {
     int passing = true;
 
     std::tuple<StringVal, StringVal> table[5] = {
         std::make_tuple("ATGAGG---GGGTGGTAG", "CTACCACCC---CCTCAT"),
         std::make_tuple("ctaccaccc---cctcat", "atgagg---gggtggtag"), std::make_tuple("", ""),
         std::make_tuple(StringVal::null(), StringVal::null()),
-        std::make_tuple("gcatrykmbvdhuGCATRYKMBVDHU", "ADHBVKMRYATGCadhbvkmryatgc")};
+        std::make_tuple("gcatrykmbvdhuGCATRYKMBVDHU", "ADHBVKMRYATGCadhbvkmryatgc")
+    };
     for (int i = 0; i < 5; i++) {
         auto [arg0_s, expected] = table[i];
 
@@ -1001,8 +1030,7 @@ bool test__reverse_complement()
     return passing;
 }
 
-bool test__sort_alleles()
-{
+bool test__sort_alleles() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, StringVal> table[9] = {
@@ -1014,12 +1042,14 @@ bool test__sort_alleles()
         std::make_tuple("A160T;S53G;M140R", ";", "S53G;M140R;A160T"),
         std::make_tuple("A1starkC3starkA2", "stark", "A1starkA2starkC3"),
         std::make_tuple("89G, 56Y, 2S, 160T", "#", "89G, 56Y, 2S, 160T"),
-        std::make_tuple("A,C,B", ",", "A,B,C")};
+        std::make_tuple("A,C,B", ",", "A,B,C")
+    };
     for (int i = 0; i < 9; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
-        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(Sort_Allele_List, arg0_s,
-                                                                          arg1_s, expected)) {
+        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
+                Sort_Allele_List, arg0_s, arg1_s, expected
+            )) {
             cout << "UDX sort_alleles(ss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|" << arg1_s.ptr
                  << "|\n\t|" << expected.ptr << "|\n";
             passing = false;
@@ -1029,8 +1059,7 @@ bool test__sort_alleles()
     return passing;
 }
 
-bool test__sort_list()
-{
+bool test__sort_list() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, StringVal> table[8] = {
@@ -1041,12 +1070,14 @@ bool test__sort_list()
         std::make_tuple("BstarkCstarkA", "stark", "AstarkBstarkC"),
         std::make_tuple("Ok Bye;Hello, yes!", ";,", "Ok Bye;Hello, yes!"),
         std::make_tuple("Ok Bye;Hello, yes!", ";", "Hello, yes!;Ok Bye"),
-        std::make_tuple("A,B,A,C", ",", "A,A,B,C")};
+        std::make_tuple("A,B,A,C", ",", "A,A,B,C")
+    };
     for (int i = 0; i < 8; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
-                Sort_List_By_Substring, arg0_s, arg1_s, expected)) {
+                Sort_List_By_Substring, arg0_s, arg1_s, expected
+            )) {
             cout << "UDX sort_list(ss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|" << arg1_s.ptr
                  << "|\n\t|" << expected.ptr << "|\n";
             passing = false;
@@ -1056,8 +1087,7 @@ bool test__sort_list()
     return passing;
 }
 
-bool test__sort_list_set()
-{
+bool test__sort_list_set() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, StringVal, StringVal> table[9] = {
@@ -1069,12 +1099,14 @@ bool test__sort_list_set()
         std::make_tuple("B;C;A", "", ":", "B;C;A"),
         std::make_tuple("BstarkCstarkA", "stark", ":", "A:B:C"),
         std::make_tuple("Ok Bye;Hello, yes!", ";,", ":", " yes!:Hello:Ok Bye"),
-        std::make_tuple("Ok Bye;Hello, yes!", ";", ":", "Hello, yes!:Ok Bye")};
+        std::make_tuple("Ok Bye;Hello, yes!", ";", ":", "Hello, yes!:Ok Bye")
+    };
     for (int i = 0; i < 9; i++) {
         auto [arg0_s, arg1_s, arg2_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal>(
-                Sort_List_By_Set, arg0_s, arg1_s, arg2_s, expected)) {
+                Sort_List_By_Set, arg0_s, arg1_s, arg2_s, expected
+            )) {
             cout << "UDX sort_list_set(sss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|" << arg1_s.ptr
                  << "|\n\t|" << arg2_s.ptr << "|\n\t|" << expected.ptr << "|\n";
             passing = false;
@@ -1084,8 +1116,7 @@ bool test__sort_list_set()
     return passing;
 }
 
-bool test__sort_list_unique()
-{
+bool test__sort_list_unique() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, StringVal> table[8] = {
@@ -1096,12 +1127,14 @@ bool test__sort_list_unique()
         std::make_tuple("BstarkCstarkA", "stark", "AstarkBstarkC"),
         std::make_tuple("Ok Bye;Hello, yes!", ";,", "Ok Bye;Hello, yes!"),
         std::make_tuple("Ok Bye;Hello, yes!", ";", "Hello, yes!;Ok Bye"),
-        std::make_tuple("A,B,A,C", ",", "A,B,C")};
+        std::make_tuple("A,B,A,C", ",", "A,B,C")
+    };
     for (int i = 0; i < 8; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
-                Sort_List_By_Substring_Unique, arg0_s, arg1_s, expected)) {
+                Sort_List_By_Substring_Unique, arg0_s, arg1_s, expected
+            )) {
             cout << "UDX sort_list_unique(ss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
                  << arg1_s.ptr << "|\n\t|" << expected.ptr << "|\n";
             passing = false;
@@ -1111,8 +1144,7 @@ bool test__sort_list_unique()
     return passing;
 }
 
-bool test__substr_range()
-{
+bool test__substr_range() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, StringVal> table[9] = {
@@ -1124,12 +1156,14 @@ bool test__substr_range()
         std::make_tuple("SammySheep", "3..1;8..9;5", "maSeey"),
         std::make_tuple("123456789", "0..3", "123"),
         std::make_tuple("123456789", "7..12", "789"),
-        std::make_tuple("ABC456", "1..2,5", "AB5")};
+        std::make_tuple("ABC456", "1..2,5", "AB5")
+    };
     for (int i = 0; i < 9; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
-                Substring_By_Range, arg0_s, arg1_s, expected)) {
+                Substring_By_Range, arg0_s, arg1_s, expected
+            )) {
             cout << "UDX substr_range(ss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|" << arg1_s.ptr
                  << "|\n\t|" << expected.ptr << "|\n";
             passing = false;
@@ -1139,8 +1173,7 @@ bool test__substr_range()
     return passing;
 }
 
-bool test__to_aa()
-{
+bool test__to_aa() {
     int passing = true;
 
     std::tuple<StringVal, StringVal> table[7] = {
@@ -1150,7 +1183,8 @@ bool test__to_aa()
         std::make_tuple("ATGaggCC", "MR?"),
         std::make_tuple("...ATG.-~GGG", ".M~G"),
         std::make_tuple("AGGaagARG---GCGgcwGCRgcnzzz", "RKX-AAAA?"),
-        std::make_tuple("..ATG..", "~~?")};
+        std::make_tuple("..ATG..", "~~?")
+    };
     for (int i = 0; i < 7; i++) {
         auto [arg0_s, expected] = table[i];
 
@@ -1164,8 +1198,7 @@ bool test__to_aa()
     return passing;
 }
 
-bool test__to_aa_mutant()
-{
+bool test__to_aa_mutant() {
     int passing = true;
 
     std::tuple<StringVal, StringVal, IntVal, StringVal> table[12] = {
@@ -1180,12 +1213,14 @@ bool test__to_aa_mutant()
         std::make_tuple("ATGcagAGG", "GGG", 4, "MGR"),
         std::make_tuple("ATGcagAGG", "GGG", 0, "GMQR"),
         std::make_tuple("ATGcagAGG", "GGG", 10, "MQRG"),
-        std::make_tuple("ATG", "ggATG", 2, "RM")};
+        std::make_tuple("ATG", "ggATG", 2, "RM")
+    };
     for (int i = 0; i < 12; i++) {
         auto [arg0_s, arg1_s, arg2_i, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, IntVal>(
-                To_AA_Mutant, arg0_s, arg1_s, arg2_i, expected)) {
+                To_AA_Mutant, arg0_s, arg1_s, arg2_i, expected
+            )) {
             cout << "UDX to_aa_mutant(ssi)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|" << arg1_s.ptr
                  << "|\n\t|" << arg2_i.val << "|\n\t|" << expected.ptr << "|\n";
             passing = false;
@@ -1195,8 +1230,7 @@ bool test__to_aa_mutant()
     return passing;
 }
 
-bool test__variant_hash()
-{
+bool test__variant_hash() {
     int passing = true;
 
     std::tuple<StringVal, StringVal> table[9] = {
@@ -1208,7 +1242,8 @@ bool test__variant_hash()
         std::make_tuple("MNTQILVFALVASIPTNA~", "3476ea2853c1363c8da186016063ef78"),
         std::make_tuple("mntqilvfalvasiptna", "f59e28966a24d41af41cd55ed00c08a4"),
         std::make_tuple("1", "c4ca4238a0b923820dcc509a6f75849b"),
-        std::make_tuple("STARK", "a9106b6bc4ae581eb39418098a2891b4")};
+        std::make_tuple("STARK", "a9106b6bc4ae581eb39418098a2891b4")
+    };
     for (int i = 0; i < 9; i++) {
         auto [arg0_s, expected] = table[i];
 
@@ -1222,8 +1257,7 @@ bool test__variant_hash()
     return passing;
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     int passed = true;
 
     passed &= test__any_instr();

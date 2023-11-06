@@ -20,7 +20,7 @@
 // udf.h in some versions of Impala, but we can't assume that it
 // is present yet.
 #ifndef IMPALA_UDF_EXPORT
-#define IMPALA_UDF_EXPORT __attribute__ ((visibility ("default")))
+#define IMPALA_UDF_EXPORT __attribute__((visibility("default")))
 #endif
 
 #endif

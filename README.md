@@ -46,7 +46,7 @@ For further reading related to function development:
 
 ## License and Usage
 
-This repository follows Cloudera's licensing for Apache Impala and is licensed under Apache License, Version 2.0 (see: http://www.apache.org/licenses/LICENSE-2.0). All code is dedicated to the Public Domain with attributions appreciated (Samuel S. Shepard, CDC) except where Cloudera copyright is provided or indicated in the file (e.g., `common.h`).
+This repository follows Cloudera's licensing for Apache Impala and is licensed under Apache License, Version 2.0 (see: <http://www.apache.org/licenses/LICENSE-2.0>). All code is dedicated to the Public Domain with attributions appreciated (Samuel S. Shepard, CDC) except where Cloudera copyright is provided or indicated in the file (e.g., `common.h`).
 
 ## Scalar Function Descriptions
 
@@ -103,7 +103,7 @@ Scalar functions take any number of values from a **single** row and return a si
 ### <pre>hamming_distance(STRING sequence1, STRING sequence2[, STRING pairwise_deletion_set])<br />nt_distance(STRING sequence1, STRING sequence2)</pre>
 
 **Return type:** `INT`  
-**Purpose:** Counts the [number of differences](https://en.wikipedia.org/wiki/Hamming_distance) between two sequences (though any STRINGs may be used). 
+**Purpose:** Counts the [number of differences](https://en.wikipedia.org/wiki/Hamming_distance) between two sequences (though any STRINGs may be used).
 If one sequence is longer than the other, the extra characters are discarded from the calculation. By default, any pair of characters with a `.` as an element is ignored by the calculation. In *DAIS*, the `.` character is used for missing data. Optionally, one may explicitly add a pairwise deletion character set. If any pair of characters contain any of the characters in the argument, that position is ignored from the calculation. If any argument is `NULL` or either sequence argument is an empty STRING, a null value is returned. If the optional `pairwise_deletion_set` argument is an empty STRING, no pairwise deletion is performed. The `nt_distance` function is the same as the default version of `hamming_distance` but does not count ambiguated differences. For example, A ≠ T but A = R.  
 
 &rarr; *See also the Impala native function [JARO_DISTANCE](https://docs.cloudera.com/cdp-private-cloud-base/7.1.8/impala-sql-reference/topics/impala-string-functions.html?#string_functions__jaro_distance).*
@@ -179,8 +179,8 @@ Any null value in an argument or all empty STRINGs returns `NULL`. Note: fields 
 ### <pre>substr_range(STRING str, STRING range_coords)</pre>
 
 **Return type:** `STRING`  
-**Purpose:** Returns the characters in `str` specified by `range_coords`. 
-All characters are concatenated as specified by `range_coords`. Ranges may be listed in forward and reverse, which affects output order, and are denoted by `#..#`. 
+**Purpose:** Returns the characters in `str` specified by `range_coords`.
+All characters are concatenated as specified by `range_coords`. Ranges may be listed in forward and reverse, which affects output order, and are denoted by `#..#`.
 Multiple ranges or single characters may be separated using a semi-colon or comma. For example: `10..1;12;15;20..25`. If any argument is `NULL` or an empty STRING, a null value is returned.  
 
 &rarr; *See also the Impala native function [SUBSTR](https://docs.cloudera.com/cdp-private-cloud-base/7.1.8/impala-sql-reference/topics/impala-string-functions.html#string_functions__substr).*

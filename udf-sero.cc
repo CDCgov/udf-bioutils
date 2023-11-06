@@ -15,8 +15,7 @@
 
 // Courtesy
 // https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
-inline std::vector<std::string> split_by_substr(const std::string &str, const std::string &delim)
-{
+inline std::vector<std::string> split_by_substr(const std::string &str, const std::string &delim) {
     std::vector<std::string> tokens;
     std::size_t prev = 0;
     std::size_t pos  = 0;
@@ -39,29 +38,27 @@ inline std::vector<std::string> split_by_substr(const std::string &str, const st
     return tokens;
 }
 
-inline long get_number(const std::string &s)
-{
+inline long get_number(const std::string &s) {
     std::size_t const pos = s.find_first_of("0123456789");
     if (pos != std::string::npos) {
         std::size_t const not_digit = s.find_first_not_of("0123456789", pos);
         // if non-digit found, length = pos - not_digit
         // else, until the end of the string
         return std::stol(
-            s.substr(pos, not_digit != std::string::npos ? not_digit - pos : std::string::npos));
+            s.substr(pos, not_digit != std::string::npos ? not_digit - pos : std::string::npos)
+        );
     } else {
         return 0;
     }
 }
 
-inline StringVal to_StringVal(FunctionContext *context, const std::string &s)
-{
+inline StringVal to_StringVal(FunctionContext *context, const std::string &s) {
     StringVal result(context, s.size());
     memcpy(result.ptr, s.c_str(), s.size());
     return result;
 }
 
-bool compare_cohorts(std::string a, std::string b)
-{
+bool compare_cohorts(std::string a, std::string b) {
     long score_a;
     long score_b;
 
@@ -116,9 +113,9 @@ bool compare_cohorts(std::string a, std::string b)
 }
 
 IMPALA_UDF_EXPORT
-StringVal Sort_Cohorts(FunctionContext *context, const StringVal &listVal,
-                       const StringVal &delimVal)
-{
+StringVal Sort_Cohorts(
+    FunctionContext *context, const StringVal &listVal, const StringVal &delimVal
+) {
     if (listVal.is_null || delimVal.is_null) {
         return StringVal::null();
     }

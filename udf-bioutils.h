@@ -112,4 +112,14 @@ IntVal Convert_Timestamp_To_EPI_Week(
 IntVal Longest_Deletion(FunctionContext *context, const StringVal &sequence);
 IntVal Number_Deletions(FunctionContext *context, const StringVal &sequence);
 
+StringVal Cut_Paste(
+    FunctionContext *context, const StringVal &my_string, const StringVal &delim,
+    const StringVal &range_map
+);
+
+StringVal Cut_Paste_Output(
+    FunctionContext *context, const StringVal &my_string, const StringVal &delim,
+    const StringVal &range_map, const StringVal &out_delim
+);
+
 #endif

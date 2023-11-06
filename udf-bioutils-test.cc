@@ -44,7 +44,7 @@ bool test__any_instr() {
 bool test__complete_date() {
     int passing = true;
 
-    std::tuple<StringVal, StringVal> table[10] = {
+    std::tuple<StringVal, StringVal> table[11] = {
         std::make_tuple("2019", "2019-01-01"),
         std::make_tuple("2019-03", "2019-03-01"),
         std::make_tuple("2019-03-15", "2019-03-15"),
@@ -54,9 +54,10 @@ bool test__complete_date() {
         std::make_tuple("2010.02", "2010-02-01"),
         std::make_tuple("1981.09.12", "1981-09-12"),
         std::make_tuple("2000/01", "2000-01-01"),
-        std::make_tuple("1", StringVal::null())
+        std::make_tuple("1", StringVal::null()),
+        std::make_tuple("0000-01-01", "0000-01-01")
     };
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 11; i++) {
         auto [arg0_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal>(
@@ -134,6 +135,89 @@ bool test__contains_sym() {
     return passing;
 }
 
+bool test__cut_paste() {
+    int passing = true;
+
+    std::tuple<StringVal, StringVal, StringVal, StringVal> table[14] = {
+        std::make_tuple("Sam-The-Wham", "-", "1-2", "Sam-The"),
+        std::make_tuple("Sam-The-Wham", "-", "3-1", "Wham-The-Sam"),
+        std::make_tuple("Sam-The-Wham", "-", "3,2,1", "Wham-The-Sam"),
+        std::make_tuple(
+            "There is just one problem here", " ", "1,3;5-6", "There just problem here"
+        ),
+        std::make_tuple("", "-", "1-2", ""),
+        std::make_tuple("Sam-The-Wham", "", "1-2", "Sam-The-Wham"),
+        std::make_tuple("Sam-The-Wham", "-", "", "Sam-The-Wham"),
+        std::make_tuple(StringVal::null(), "-", "1-2", StringVal::null()),
+        std::make_tuple("Sam-The-Wham", StringVal::null(), "1-2", StringVal::null()),
+        std::make_tuple("Sam-The-Wham", "-", StringVal::null(), StringVal::null()),
+        std::make_tuple("Sam-The-Wham", "-", "A-B", StringVal::null()),
+        std::make_tuple("Sam-The-Wham", "@", "3,2,1", "Sam-The-Wham"),
+        std::make_tuple(
+            "The::fields::are::cut::pastable::!", "::", "1..3;6,6;4-3",
+            "The::fields::are::!::!::cut::are"
+        ),
+        std::make_tuple("Sam-The-Wham", "-", "A-B;a,b,c", StringVal::null())
+
+
+    };
+    for (int i = 0; i < 14; i++) {
+        auto [arg0_s, arg1_s, arg2_s, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal>(
+                Cut_Paste, arg0_s, arg1_s, arg2_s, expected
+            )) {
+            cout << "UDX cut_paste(sss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|" << arg1_s.ptr
+                 << "|\n\t|" << arg2_s.ptr << "|\n\t|" << expected.ptr << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
+
+bool test__cut_paste_out() {
+    int passing = true;
+
+    std::tuple<StringVal, StringVal, StringVal, StringVal, StringVal> table[16] = {
+        std::make_tuple("Sam-The-Wham", "-", "1-2", "/", "Sam/The"),
+        std::make_tuple("Sam-The-Wham", "-", "3-1", "/", "Wham/The/Sam"),
+        std::make_tuple("Sam-The-Wham", "-", "3,2,1", "//", "Wham//The//Sam"),
+        std::make_tuple(
+            "There is just one problem here", " ", "1,3;5-6", "", "Therejustproblemhere"
+        ),
+        std::make_tuple("", "-", "1-2", "/", ""),
+        std::make_tuple("Sam-The-Wham", "", "1-2", "/", "Sam-The-Wham"),
+        std::make_tuple("Sam-The-Wham", "-", "", "/", "Sam-The-Wham"),
+        std::make_tuple("Sam-The-Wham", "-", "1-2", "", "SamThe"),
+        std::make_tuple(StringVal::null(), "-", "1-2", "/", StringVal::null()),
+        std::make_tuple("Sam-The-Wham", StringVal::null(), "1-2", "/", StringVal::null()),
+        std::make_tuple("Sam-The-Wham", "-", StringVal::null(), "/", StringVal::null()),
+        std::make_tuple("Sam-The-Wham", "-", "A-B", ",", StringVal::null()),
+        std::make_tuple("Sam-The-Wham", "-", "1-2", StringVal::null(), "Sam-The"),
+        std::make_tuple("Sam-The-Wham", "@", "3,2,1", "/", "Sam-The-Wham"),
+        std::make_tuple(
+            "The::fields::are::cut::pastable::!", "::", "1..3;6,6;4-3", " ",
+            "The fields are ! ! cut are"
+        ),
+        std::make_tuple("Sam-The-Wham", "-", "A-B;a,b,c", "/", StringVal::null())
+    };
+
+    for (int i = 0; i < 16; i++) {
+        auto [arg0_s, arg1_s, arg2_s, arg3_s, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal, StringVal>(
+                Cut_Paste_Output, arg0_s, arg1_s, arg2_s, arg3_s, expected
+            )) {
+            cout << "UDX cut_paste(ssss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|" << arg1_s.ptr
+                 << "|\n\t|" << arg2_s.ptr << "|\n\t|" << arg3_s.ptr << "|\n\t|" << expected.ptr
+                 << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
 
 bool test__deletion_events() {
     int passing = true;
@@ -1264,6 +1348,8 @@ int main(int argc, char **argv) {
     passed &= test__complete_date();
     passed &= test__contains_element();
     passed &= test__contains_sym();
+    passed &= test__cut_paste();
+    passed &= test__cut_paste_out();
     passed &= test__deletion_events();
     passed &= test__hamming_distance();
     passed &= test__hamming_distance_pds();

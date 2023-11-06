@@ -33,3 +33,5 @@ create function if not exists udx.to_epiweek(string, boolean) returns int locati
 create function if not exists udx.to_epiweek(string) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Convert_String_To_EPI_Week";
 create function if not exists udx.to_epiweek(timestamp, boolean) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Convert_Timestamp_To_EPI_Week";
 create function if not exists udx.to_epiweek(timestamp) returns int location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Convert_Timestamp_To_EPI_Week";
+create function if not exists udx.cut_paste(string, string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Cut_Paste";
+create function if not exists udx.cut_paste(string, string, string, string) returns string location "/udx/ncird_id/prod/libudfbioutils.so" SYMBOL = "Cut_Paste_Output";

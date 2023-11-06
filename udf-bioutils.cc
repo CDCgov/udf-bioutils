@@ -775,6 +775,96 @@ StringVal Substring_By_Range(
     return to_StringVal(context, buffer);
 }
 
+IMPALA_UDF_EXPORT
+StringVal Cut_Paste(
+    FunctionContext *context, const StringVal &my_string, const StringVal &delim,
+    const StringVal &range_map
+) {
+    return Cut_Paste_Output(context, my_string, delim, range_map, StringVal::null());
+}
+
+IMPALA_UDF_EXPORT StringVal Cut_Paste_Output(
+    FunctionContext *context, const StringVal &my_string, const StringVal &delim,
+    const StringVal &range_map, const StringVal &out_delim
+) {
+    if (my_string.is_null || delim.is_null || range_map.is_null) {
+        return StringVal::null();
+    } else if (my_string.len == 0 || delim.len == 0 || range_map.len == 0) {
+        return my_string;
+    }
+
+
+    std::string_view s((const char *)my_string.ptr, my_string.len);
+    std::string_view d((const char *)delim.ptr, delim.len);
+    std::string_view map((const char *)range_map.ptr, range_map.len);
+
+    std::string_view od;
+    if (out_delim.is_null) {
+        od = d;
+    } else {
+        od = std::string_view((const char *)out_delim.ptr, out_delim.len);
+    }
+
+    // If we don't have the delimeter, return the whole string
+    if (s.find(d) == std::string::npos) {
+        return my_string;
+    }
+
+    std::vector<std::string_view> tokens = split_by_substr(s, d);
+    std::vector<std::string_view> ranges = split_by_delims(map, ",;");
+    std::string buffer                   = "";
+    const int L                          = tokens.size();
+
+    for (const auto &r : ranges) {
+        std::vector<int> range;
+        if (r.find("-") != std::string::npos) {
+            range = split_int_by_substr(r, "-");
+        } else {
+            range = split_int_by_substr(r, "..");
+        }
+        const int R = range.size();
+
+        // Multi-value range
+        if (R == 2) {
+            int a = range[0] - 1;
+            int b = range[1] - 1;
+            if (a >= L || a < 0 || b >= L || b < 0) {
+                continue;
+            }
+
+            if (a <= b) {
+                for (int i = a; i <= b; i++) {
+                    buffer += tokens[i];
+                    buffer += od;
+                }
+            } else {
+                // b < a
+                for (int j = a; j >= b; j--) {
+                    buffer += tokens[j];
+                    buffer += od;
+                }
+            }
+        } else if (R == 1) {
+            const int x = range[0] - 1;
+            if (x >= L || x < 0) {
+                continue;
+            }
+
+            buffer += tokens[x];
+            buffer += od;
+        } else {
+            // R == 0 OR R > 2
+            return StringVal::null();
+        }
+    }
+
+    if (buffer.length() > od.length()) {
+        buffer.erase(buffer.length() - od.length());
+    }
+
+    return to_StringVal(context, buffer);
+}
+
 // Create a mutation list from two aligned strings
 IMPALA_UDF_EXPORT
 StringVal Mutation_List_Strict(

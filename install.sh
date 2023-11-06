@@ -12,7 +12,6 @@ SO=(
     build/libudabioutils.so
     build/libudfbioutils.so
     build/libudfmathutils.so
-    build/libudf-sero.so
 )
 
 SO=(

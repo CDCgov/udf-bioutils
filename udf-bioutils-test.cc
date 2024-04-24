@@ -72,6 +72,106 @@ bool test__complete_date() {
     return passing;
 }
 
+DateVal to_dv(int yr, int mon, int day) {
+    boost::gregorian::date d(yr, mon, day);
+    return DateVal(d.day_number() - EPOCH_OFFSET);
+}
+
+bool test__ending_in_saturday_str() {
+    int passing = true;
+
+    std::tuple<StringVal, DateVal> table[11] = {
+        std::make_tuple("2019", DateVal::null()),
+        std::make_tuple("2019-03", DateVal::null()),
+        std::make_tuple("2019-03-15", to_dv(2019, 3, 16)),
+        std::make_tuple("STARK", DateVal::null()),
+        std::make_tuple("", DateVal::null()),
+        std::make_tuple(StringVal::null(), DateVal::null()),
+        std::make_tuple("2010.2.1", to_dv(2010, 2, 6)),
+        std::make_tuple("1981.09.12", to_dv(1981, 9, 12)),
+        std::make_tuple("2000/01/01", to_dv(2000, 1, 1)),
+        std::make_tuple("1", DateVal::null()),
+        std::make_tuple("0000-01-01", DateVal::null())
+    };
+    for (int i = 0; i < 11; i++) {
+        auto [arg0_s, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<DateVal, StringVal>(
+                Date_Ending_In_Saturday_STR, arg0_s, expected
+            )) {
+            cout << "UDX ending_in_saturday(s)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
+                 << expected.val << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
+
+bool test__ending_in_fornight_str() {
+    int passing = true;
+
+
+    std::tuple<StringVal, BooleanVal, DateVal> table[14] = {
+        std::make_tuple("2019", BooleanVal(true), DateVal::null()),
+        std::make_tuple("2019-03", BooleanVal(true), DateVal::null()),
+        std::make_tuple("2019-03-15", BooleanVal(true), to_dv(2019, 3, 23)),
+        std::make_tuple("STARK", BooleanVal(true), DateVal::null()),
+        std::make_tuple("", BooleanVal(true), DateVal::null()),
+        std::make_tuple("2010.2.1", BooleanVal(true), to_dv(2010, 2, 6)),
+        std::make_tuple("1981.09.12", BooleanVal(true), to_dv(1981, 9, 12)),
+        std::make_tuple("2000/01/01", BooleanVal(true), to_dv(2000, 1, 8)),
+        std::make_tuple("1", BooleanVal(true), DateVal::null()),
+        std::make_tuple("0000-01-01", BooleanVal(true), DateVal::null()),
+        std::make_tuple(StringVal::null(), BooleanVal(true), DateVal::null()),
+        std::make_tuple("2024-04-15", BooleanVal::null(), DateVal::null()),
+        std::make_tuple("2024-04-15", BooleanVal(true), to_dv(2024, 4, 27)),
+        std::make_tuple("2024-04-15", BooleanVal(false), to_dv(2024, 4, 20))
+    };
+    for (int i = 0; i < 14; i++) {
+        auto [arg0_s, arg1_b, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<DateVal, StringVal, BooleanVal>(
+                Fortnight_Date_Either_STR, arg0_s, arg1_b, expected
+            )) {
+            cout << "UDX ending_in_saturday(s)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
+                 << arg1_b.val << "|\n\t|" << expected.val << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
+
+bool test__ending_in_saturday_date() {
+    int passing = true;
+
+    std::tuple<DateVal, DateVal> table[9] = {
+        std::make_tuple(to_dv(2019, 1, 1), to_dv(2019, 1, 5)),
+        std::make_tuple(to_dv(2019, 3, 1), to_dv(2019, 3, 2)),
+        std::make_tuple(to_dv(2019, 3, 15), to_dv(2019, 3, 16)),
+        std::make_tuple(DateVal::null(), DateVal::null()),
+        std::make_tuple(to_dv(2010, 2, 1), to_dv(2010, 2, 6)),
+        std::make_tuple(to_dv(1981, 9, 12), to_dv(1981, 9, 12)),
+        std::make_tuple(to_dv(2000, 1, 1), to_dv(2000, 1, 1)),
+        std::make_tuple(to_dv(1, 0, 0), DateVal::null()),
+        std::make_tuple(to_dv(0, 1, 1), DateVal::null())
+    };
+    for (int i = 0; i < 0; i++) {
+        auto [arg0_s, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<DateVal, DateVal>(
+                Date_Ending_In_Saturday_DATE, arg0_s, expected
+            )) {
+            cout << "UDX ending_in_saturday(s)->s failed:\n\t|" << arg0_s.val << "|\n\t|"
+                 << expected.val << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
+
 
 bool test__contains_element() {
     int passing = true;
@@ -1257,6 +1357,267 @@ bool test__substr_range() {
     return passing;
 }
 
+bool test__nt_to_aa_position() {
+    int passing                                                   = true;
+    std::tuple<StringVal, StringVal, BigIntVal, IntVal> table[13] = {
+        // "XXXATG"
+        std::make_tuple("", "1..3", 3, IntVal::null()),
+        std::make_tuple("4..6", "", 3, IntVal::null()),
+        std::make_tuple("4..6", "1..3", 0, IntVal::null()),
+        std::make_tuple(StringVal::null(), "1..3", 3, IntVal::null()),
+        std::make_tuple("4..6", StringVal::null(), 3, IntVal::null()),
+        std::make_tuple("4..6", "1..3", BigIntVal::null(), IntVal::null()),
+        std::make_tuple("4..6", "1..3", 4, 1),
+        // "XXXATGXTAG"
+        std::make_tuple("4..6;8..10", "1..3;4..6", 7, IntVal::null()),
+        std::make_tuple("4..6;8..10", "1..3;4..6", 9, 2),
+        std::make_tuple("4..6;8..10", "1..3;4..6", 11, IntVal::null()),
+        // "XXXATGXTAGCATTYG"
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 11, 3),
+        // Insertions cannot be returned with this method
+        std::make_tuple("1..456;457..459;460..983", "31..486;486;487..1010", 458, IntVal::null()),
+        std::make_tuple("1..456;457..459;460..983", "31..486;486;487..1010", 460, 163)
+
+    };
+
+    for (int i = 0; i < 13; i++) {
+        auto [arg0_s, arg1_s, arg2_i, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<IntVal, StringVal, StringVal, BigIntVal>(
+                NT_To_AA_Position, arg0_s, arg1_s, arg2_i, expected
+            )) {
+            cout << "UDX nt_to_aa_position(ssi)->i failed:\n\t|" << arg0_s.ptr << "|\n\t|"
+                 << arg1_s.ptr << "|\n\t|" << arg2_i.val << "|\n\t|" << expected.val << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
+
+bool test__nt_to_cds_position() {
+    int passing                                                   = true;
+    std::tuple<StringVal, StringVal, BigIntVal, IntVal> table[13] = {
+        // "XXXATG"
+        std::make_tuple("", "1..3", 3, IntVal::null()),
+        std::make_tuple("4..6", "", 3, IntVal::null()),
+        std::make_tuple("4..6", "1..3", 0, IntVal::null()),
+        std::make_tuple(StringVal::null(), "1..3", 3, IntVal::null()),
+        std::make_tuple("4..6", StringVal::null(), 3, IntVal::null()),
+        std::make_tuple("4..6", "1..3", BigIntVal::null(), IntVal::null()),
+        std::make_tuple("4..6", "1..3", 4, 1),
+        // "XXXATGXTAG"
+        std::make_tuple("4..6;8..10", "1..3;4..6", 7, IntVal::null()),
+        std::make_tuple("4..6;8..10", "1..3;4..6", 9, 5),
+        std::make_tuple("4..6;8..10", "1..3;4..6", 11, IntVal::null()),
+        // "XXXATGXTAGCATTYG"
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 11, 7),
+        // Insertions cannot be returned with this method
+        std::make_tuple("1..456;457..459;460..983", "31..486;486;487..1010", 458, IntVal::null()),
+        std::make_tuple("1..456;457..459;460..983", "31..486;486;487..1010", 460, 487)
+
+    };
+
+    for (int i = 0; i < 13; i++) {
+        auto [arg0_s, arg1_s, arg2_i, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<IntVal, StringVal, StringVal, BigIntVal>(
+                NT_To_CDS_Position, arg0_s, arg1_s, arg2_i, expected
+            )) {
+            cout << "UDX nt_to_cds_position(ssi)->i failed:\n\t|" << arg0_s.ptr << "|\n\t|"
+                 << arg1_s.ptr << "|\n\t|" << arg2_i.val << "|\n\t|" << expected.val << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
+
+
+bool test__nt_position_to_codon() {
+    int passing = true;
+
+    std::tuple<StringVal, StringVal, StringVal, BigIntVal, StringVal> table[17] = {
+        // Empty
+        std::make_tuple("", "1..3", "ATG", 3, StringVal::null()),
+        std::make_tuple("4..6", "", "ATG", 3, StringVal::null()),
+        std::make_tuple("4..6", "1..3", "", 3, StringVal::null()),
+
+        // Null Args
+        std::make_tuple(StringVal::null(), "1..3", "ATG", 3, StringVal::null()),
+        std::make_tuple("4..6", StringVal::null(), "ATG", 3, StringVal::null()),
+        std::make_tuple("4..6", "1..3", "ATG", BigIntVal::null(), StringVal::null()),
+        std::make_tuple("4..6", "1..3", StringVal::null(), 3, StringVal::null()),
+
+        // Bounds
+        // ori: XXXATG
+        std::make_tuple("4..6", "1..3", "ATG", 0, StringVal::null()),
+        // ori: XXXATGXTAG
+        std::make_tuple("4..6;8..10", "1..3;4..6", "ATGTAG", 7, StringVal::null()),
+        std::make_tuple("2..11", "21..30", "....................ATTCATTGCT", 1, StringVal::null()),
+
+        // Codons
+        // ori: XXXATG
+        std::make_tuple("4..6", "1..3", "ATG", 4, "ATG"),
+        // ori: XXXATGXTAG
+        std::make_tuple("4..6;8..10", "1..3;4..6", "ATGTAG", 9, "TAG"),
+        // ori: XXXATGXTAGCATTYN
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", "ATGTAGCATTYN", 8, "TAG"),
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", "ATGTAGCATTYN", 12, "CAT"),
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", "ATGTAGCATTYN", 16, "TYN"),
+        // ori: tATTCATTGCT
+        std::make_tuple("2..11", "21..30", "....................ATTCATTGCT", 2, "..A"),
+        std::make_tuple("2..11", "21..30", "....................ATTCATTGCT", 3, "TTC"),
+    };
+
+    for (int i = 0; i < 17; i++) {
+        auto [arg0_s, arg1_s, arg2_s, arg3_i, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal, BigIntVal>(
+                NT_Position_To_CDS_Codon, arg0_s, arg1_s, arg2_s, arg3_i, expected
+            )) {
+            cout << "UDX nt_position_to_codon(ssis)->i failed:\n\t|" << arg0_s.ptr << "|\n\t|"
+                 << arg1_s.ptr << "|\n\t|" << arg2_s.ptr << "|\n\t|" << arg3_i.val << "|\n\t|"
+                 << expected.ptr << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
+
+bool test__nt_position_to_codon_mutant() {
+    int passing = true;
+
+    std::tuple<StringVal, StringVal, StringVal, BigIntVal, StringVal, StringVal> table[19] = {
+        // Empty
+        std::make_tuple("", "1..3", "ATG", 3, "A", StringVal::null()),
+        std::make_tuple("4..6", "", "ATG", 3, "A", StringVal::null()),
+        std::make_tuple("4..6", "1..3", "", 3, "A", StringVal::null()),
+        std::make_tuple("4..6", "1..3", "ATG", 3, "", StringVal::null()),
+
+        // Null Args
+        std::make_tuple(StringVal::null(), "1..3", "ATG", 3, "A", StringVal::null()),
+        std::make_tuple("4..6", StringVal::null(), "ATG", 3, "A", StringVal::null()),
+        std::make_tuple("4..6", "1..3", StringVal::null(), 3, "A", StringVal::null()),
+        std::make_tuple("4..6", "1..3", "ATG", BigIntVal::null(), "A", StringVal::null()),
+        std::make_tuple("4..6", "1..3", "ATG", 3, StringVal::null(), StringVal::null()),
+
+
+        // Bounds
+        // ori: XXXATG
+        std::make_tuple("4..6", "1..3", "ATG", 0, "A", StringVal::null()),
+        // ori: XXXATGXTAG
+        std::make_tuple("4..6;8..10", "1..3;4..6", "ATGTAG", 7, "A", StringVal::null()),
+        std::make_tuple(
+            "2..11", "21..30", "....................ATTCATTGCT", 1, "A", StringVal::null()
+        ),
+
+        // Codons
+        // ori: XXXATG
+        std::make_tuple("4..6", "1..3", "ATG", 4, "t", "tTG"),
+        // ori: XXXATGXTAG
+        std::make_tuple("4..6;8..10", "1..3;4..6", "ATGTAG", 9, "C", "TCG"),
+        // ori: XXXATGXTAGCATTYN
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", "ATGTAGCATTYN", 8, "G", "GAG"),
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", "ATGTAGCATTYN", 12, "N", "CNT"),
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", "ATGTAGCATTYN", 16, "a", "TYa"),
+        // ori: tATTCATTGCT
+        std::make_tuple("2..11", "21..30", "....................ATTCATTGCT", 2, "g", "..g"),
+        std::make_tuple("2..11", "21..30", "....................ATTCATTGCT", 3, "a", "aTC"),
+    };
+
+    for (int i = 0; i < 19; i++) {
+        auto [arg0_s, arg1_s, arg2_s, arg3_i, arg4_s, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<
+                StringVal, StringVal, StringVal, StringVal, BigIntVal, StringVal>(
+                NT_Position_To_CDS_Codon_Mutant, arg0_s, arg1_s, arg2_s, arg3_i, arg4_s, expected
+            )) {
+            cout << "UDX nt_position_to_codon(ssis)->i failed:\n\t|" << arg0_s.ptr << "|\n\t|"
+                 << arg1_s.ptr << "|\n\t|" << arg2_s.ptr << "|\n\t|" << arg3_i.val << "|\n\t|"
+                 << arg4_s.ptr << "|\n\t|" << expected.ptr << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
+
+
+bool test__nt_position_to_mutation_aa3() {
+    int passing = true;
+
+    std::tuple<StringVal, StringVal, StringVal, BigIntVal, StringVal, StringVal, StringVal>
+        table[21] = {
+            // Empty
+            std::make_tuple("", "1..3", "ATG", 3, "A", "C", StringVal::null()),
+            std::make_tuple("4..6", "", "ATG", 3, "A", "C", StringVal::null()),
+            std::make_tuple("4..6", "1..3", "", 3, "A", "C", StringVal::null()),
+            std::make_tuple("4..6", "1..3", "ATG", 3, "", "C", StringVal::null()),
+            std::make_tuple("4..6", "1..3", "ATG", 3, "A", "", StringVal::null()),
+
+            // Null Args
+            std::make_tuple(StringVal::null(), "1..3", "ATG", 3, "A", "C", StringVal::null()),
+            std::make_tuple("4..6", StringVal::null(), "ATG", 3, "A", "C", StringVal::null()),
+            std::make_tuple("4..6", "1..3", StringVal::null(), 3, "A", "C", StringVal::null()),
+            std::make_tuple("4..6", "1..3", "ATG", BigIntVal::null(), "A", "C", StringVal::null()),
+            std::make_tuple("4..6", "1..3", "ATG", 3, StringVal::null(), "C", StringVal::null()),
+            std::make_tuple("4..6", "1..3", "ATG", 3, "A", StringVal::null(), StringVal::null()),
+
+            // Bounds
+            // ori: XXXATG
+            std::make_tuple("4..6", "1..3", "ATG", 0, "A", "C", StringVal::null()),
+            // ori: XXXATGXTAG
+            std::make_tuple("4..6;8..10", "1..3;4..6", "ATGTAG", 7, "A", "C", StringVal::null()),
+            std::make_tuple(
+                "2..11", "21..30", "....................ATTCATTGCT", 1, "A", "C", StringVal::null()
+            ),
+
+            // Codons
+            // ori: XXXATG
+            std::make_tuple("4..6", "1..3", "ATR", 6, "G", "A", "M1I"),
+            // ori: XXXATGXTAG
+            std::make_tuple("4..6;8..10", "1..3;4..6", "ATGTYG", 9, "C", "T", "S2L"),
+            // ori: XXXATGXTAGCATTYN
+            std::make_tuple(
+                "4..6;8..10;11..16", "1..3;4..6;7..12", "ATGSCGCATTYN", 8, "C", "G", "P2A"
+            ),
+            std::make_tuple(
+                "4..6;8..10;11..16", "1..3;4..6;7..12", "ATGTAGCMWTYN", 12, "C", "A", "P3H/Q"
+            ),
+            std::make_tuple(
+                "4..6;8..10;11..16", "1..3;4..6;7..12", "ATGTAGCATTYK", 16, "g", "t", "L/S4F/S"
+            ),
+            // ori: tATTCATTGCT
+            std::make_tuple(
+                "2..11", "21..30", "....................ATTCATTGCT", 2, "g", ".", "~7."
+            ),
+            std::make_tuple(
+                "2..11", "21..30", "....................AWTCATTGCT", 3, "t", "a", "F8I"
+            ),
+        };
+
+    for (int i = 0; i < 21; i++) {
+        auto [arg0_s, arg1_s, arg2_s, arg3_i, arg4_s, arg5_s, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<
+                StringVal, StringVal, StringVal, StringVal, BigIntVal, StringVal, StringVal>(
+                NT_Position_To_Mutation_AA3, arg0_s, arg1_s, arg2_s, arg3_i, arg4_s, arg5_s,
+                expected
+            )) {
+            cout << "UDX og_position_to_mutation_aa3(ssiss)->i failed:\n\t|" << arg0_s.ptr
+                 << "|\n\t|" << arg1_s.ptr << "|\n\t|" << arg2_s.ptr << "|\n\t|" << arg3_i.val
+                 << "|\n\t|" << arg4_s.ptr << "|\n\t|" << arg5_s.ptr << "|\n\t|" << expected.ptr
+                 << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
+
+
 bool test__to_aa() {
     int passing = true;
 
@@ -1281,6 +1642,35 @@ bool test__to_aa() {
 
     return passing;
 }
+
+bool test__to_aa3() {
+    int passing = true;
+
+    std::tuple<StringVal, StringVal> table[10] = {
+        std::make_tuple("ATGAGG---GGGTGGTAG", "MR-GW*"),
+        std::make_tuple("", ""),
+        std::make_tuple(StringVal::null(), StringVal::null()),
+        std::make_tuple("ATGaggCC", "MR?"),
+        std::make_tuple("...ATG.-~GGG", ".M~G"),
+        std::make_tuple("AGGaagARG---GCGgcwGCRgcnzzz", "RK[K/R]-AAAA?"),
+        std::make_tuple("..ATG..", "~~?"),
+        std::make_tuple("ATGsCC", "M[A/P]"),
+        std::make_tuple("GrN", "D/E/G"),
+        std::make_tuple("GNy", "X")
+    };
+    for (int i = 0; i < 10; i++) {
+        auto [arg0_s, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal>(To_AA3, arg0_s, expected)) {
+            cout << "UDX to_aa3(s)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|" << expected.ptr
+                 << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
+
 
 bool test__to_aa_mutant() {
     int passing = true;
@@ -1363,6 +1753,16 @@ int main(int argc, char **argv) {
     passed &= test__nt_id();
     passed &= test__pcd();
     passed &= test__range_from_list();
+    passed &= test__to_aa();
+    passed &= test__to_aa_mutant();
+    passed &= test__to_aa3();
+    passed &= test__nt_to_cds_position();
+    passed &= test__nt_position_to_codon();
+    passed &= test__nt_position_to_codon_mutant();
+    passed &= test__ending_in_saturday_str();
+    passed &= test__ending_in_fornight_str();
+    passed &= test__nt_to_aa_position();
+    passed &= test__nt_position_to_mutation_aa3();
 
     cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
     return !passed;

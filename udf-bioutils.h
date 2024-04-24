@@ -10,12 +10,23 @@
 
 using namespace impala_udf;
 
-
 // Epi week structure
 struct epiweek_t {
     int year;
     int week;
 };
+
+int get_epoch_offset() {
+    boost::gregorian::date EPOCH(1970, 1, 1);
+    return EPOCH.day_number();
+}
+static int EPOCH_OFFSET = get_epoch_offset();
+
+int get_final_saturday() {
+    boost::gregorian::date EPOCH(9999, 12, 31);
+    return EPOCH.day_number() + 1;
+}
+static int FINAL_SATURDAY = get_final_saturday();
 
 // private functions
 bool comp_allele(std::string s1, std::string s2);
@@ -121,5 +132,52 @@ StringVal Cut_Paste_Output(
     FunctionContext *context, const StringVal &my_string, const StringVal &delim,
     const StringVal &range_map, const StringVal &out_delim
 );
+
+IntVal NT_To_CDS_Position(
+    FunctionContext *context, const StringVal &oriMap, const StringVal &cdsMap,
+    const BigIntVal &oriPos
+);
+
+IntVal NT_To_AA_Position(
+    FunctionContext *context, const StringVal &oriMap, const StringVal &cdsMap,
+    const BigIntVal &oriPos
+);
+
+StringVal NT_Position_To_CDS_Codon(
+    FunctionContext *context, const StringVal &oriMap, const StringVal &cdsMap,
+    const StringVal &cdsAlignment, const BigIntVal &oriPos
+);
+
+StringVal NT_Position_To_CDS_Codon_Mutant(
+    FunctionContext *context, const StringVal &oriMap, const StringVal &cdsMap,
+    const StringVal &cdsAlignment, const BigIntVal &oriPos, const StringVal &allele
+);
+
+StringVal NT_Position_To_Mutation_AA3(
+    FunctionContext *context, const StringVal &oriMap, const StringVal &cdsMap,
+    const StringVal &cdsAlignment, const BigIntVal &oriPos, const StringVal &major_allele,
+    const StringVal &minor_allele
+);
+
+StringVal To_AA3(FunctionContext *context, const StringVal &ntsVal);
+
+DateVal Date_Ending_In_Saturday_STR(FunctionContext *context, const StringVal &dateStr);
+DateVal Date_Ending_In_Saturday_TS(FunctionContext *context, const TimestampVal &tsVal);
+DateVal Date_Ending_In_Saturday_DATE(FunctionContext *context, const DateVal &dateVal);
+
+
+DateVal Fortnight_Date_Either_STR(
+    FunctionContext *context, const StringVal &dateStr, const BooleanVal &legacy_default_week
+);
+DateVal Fortnight_Date_Either_TS(
+    FunctionContext *context, const TimestampVal &tsVal, const BooleanVal &legacy_default_week
+);
+DateVal Fortnight_Date_Either(
+    FunctionContext *context, const DateVal &dateVal, const BooleanVal &legacy_default_week
+);
+
+DateVal Fortnight_Date_STR(FunctionContext *context, const StringVal &dateStr);
+DateVal Fortnight_Date_TS(FunctionContext *context, const TimestampVal &tsVal);
+DateVal Fortnight_Date(FunctionContext *context, const DateVal &dateVal);
 
 #endif

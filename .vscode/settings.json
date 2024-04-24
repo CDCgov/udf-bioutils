@@ -90,5 +90,6 @@
                 "br"
             ]
         },
-    }
+    },
+    "cmake.configureOnOpen": true
 }

@@ -20,6 +20,6 @@ SO=(
 hdfs dfs -ls $output_path
 for s in "${SO[@]}"; do
     echo "Depositing $s"
-    hdfs dfs -put -f $s $output_path/$(basename $s)
+    hdfs dfs -put -f "$s" "$output_path/$(basename "$s")"
 done
 hdfs dfs -ls $output_path

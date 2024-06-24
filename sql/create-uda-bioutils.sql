@@ -1,7 +1,7 @@
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.logfold_agreement(bigint)
     RETURNS double 
     INTERMEDIATE string 
-    LOCATION "/udx/ncird_id/prod/libudabioutils.so" 
+    LOCATION "$UDA_BIOUTILS" 
     INIT_FN = "BoundedArrayInit" 
     UPDATE_FN = "BoundedArrayUpdate" 
     MERGE_FN = "BoundedArrayMerge" 
@@ -10,7 +10,7 @@ CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.logfold_agreement(bigint)
 
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.bitwise_sum(bigint) 
     RETURNS bigint 
-    LOCATION "/udx/ncird_id/prod/libudabioutils.so" 
+    LOCATION "$UDA_BIOUTILS" 
     INIT_FN = "BitwiseOrInit" 
     UPDATE_FN = "BitwiseOrUpdateMerge" 
     MERGE_FN = "BitwiseOrUpdateMerge" 
@@ -19,7 +19,7 @@ CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.bitwise_sum(bigint)
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.skewness(BIGINT)
     RETURNS DOUBLE
     INTERMEDIATE STRING
-    LOCATION "/udx/ncird_id/prod/libudabioutils.so"
+    LOCATION "$UDA_BIOUTILS"
     UPDATE_FN="RunningMomentUpdate"
     INIT_FN="RunningMomentInit"
     MERGE_FN="RunningMomentMerge"
@@ -28,7 +28,7 @@ CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.skewness(BIGINT)
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.skewness(DOUBLE)
     RETURNS DOUBLE
     INTERMEDIATE STRING
-    LOCATION "/udx/ncird_id/prod/libudabioutils.so"
+    LOCATION "$UDA_BIOUTILS"
     UPDATE_FN="RunningMomentUpdate"
     INIT_FN="RunningMomentInit"
     MERGE_FN="RunningMomentMerge"
@@ -37,7 +37,7 @@ CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.skewness(DOUBLE)
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.kurtosis(BIGINT)
     RETURNS DOUBLE
     INTERMEDIATE STRING
-    LOCATION "/udx/ncird_id/prod/libudabioutils.so"
+    LOCATION "$UDA_BIOUTILS"
     UPDATE_FN="RunningMomentUpdate"
     INIT_FN="RunningMomentInit"
     MERGE_FN="RunningMomentMerge"
@@ -46,7 +46,7 @@ CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.kurtosis(BIGINT)
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.kurtosis(DOUBLE)
     RETURNS DOUBLE
     INTERMEDIATE STRING
-    LOCATION "/udx/ncird_id/prod/libudabioutils.so"
+    LOCATION "$UDA_BIOUTILS"
     UPDATE_FN="RunningMomentUpdate"
     INIT_FN="RunningMomentInit"
     MERGE_FN="RunningMomentMerge"
@@ -55,7 +55,7 @@ CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.kurtosis(DOUBLE)
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.logfold_agreement(BIGINT)
     RETURNS DOUBLE
     INTERMEDIATE STRING
-    LOCATION "/udx/ncird_id/prod/libudabioutils.so"
+    LOCATION "$UDA_BIOUTILS"
     UPDATE_FN="BoundedArrayUpdate"
     INIT_FN="BoundedArrayInit"
     MERGE_FN="BoundedArrayMerge"

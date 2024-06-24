@@ -1,3 +1,0 @@
-CREATE FUNCTION IF NOT EXISTS udx.ci_t(DOUBLE, BIGINT, DOUBLE) RETURNS DOUBLE LOCATION "/udx/ncird_id/prod/libudfmathutils.so" SYMBOL = "ci_t_twoSided";
-CREATE FUNCTION IF NOT EXISTS udx.ci_t(DOUBLE, BIGINT, DOUBLE, BOOLEAN) RETURNS DOUBLE LOCATION "/udx/ncird_id/prod/libudfmathutils.so" SYMBOL = "ci_t";
-CREATE FUNCTION IF NOT EXISTS udx.quantile_t(DOUBLE, BIGINT, BOOLEAN) RETURNS DOUBLE LOCATION "/udx/ncird_id/prod/libudfmathutils.so" SYMBOL = "qt";

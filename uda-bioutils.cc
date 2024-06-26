@@ -1,16 +1,14 @@
 // Samuel S. Shepard, CDC
 // Impala user-defined AGGREGATE functions for CDC biofinformatics.
-// Preferable to using Spark when applicable.
 
 #include "uda-bioutils.h"
-#include "common.h"
+
 #include <algorithm>
 #include <assert.h>
 #include <cmath>
+#include <iostream>
 #include <limits>
 #include <string>
-
-#include <iostream>
 
 
 using namespace impala_udf;

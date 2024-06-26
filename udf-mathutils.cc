@@ -2,7 +2,6 @@
 // Impala user-defined functions for mathematical utilities.
 
 #include "udf-mathutils.h"
-#include "common.h"
 
 #include <boost/math/distributions/normal.hpp>
 #include <boost/math/distributions/students_t.hpp>

@@ -11,33 +11,15 @@ using namespace impala;
 using namespace impala_udf;
 using namespace std;
 
-// FuzzyCompare
-// Copyright 2012 Cloudera Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License"); you may not
-// use this file except in compliance with the License. You may obtain a copy of
-// the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-// License for the specific language governing permissions and limitations under
-// the License.
-//
-// For algorithms that work on floating point values, the results might not
-// match exactly due to floating point inprecision. The test harness allows
-// passing a custom equality comparator. Here's an example of one that can
-// tolerate some small error. This is particularly true  for distributed
-// execution since the order the values are processed is variable.
+// A minor rewrite of the FuzzyCompare function from the Cloudera examples.
 bool FuzzyCompare(const DoubleVal &x, const DoubleVal &y) {
-    if (x.is_null && y.is_null)
-        return true;
-    if (x.is_null || y.is_null)
-        return false;
-    //  cerr << "Expected: " << y.val << ", Got: " << x.val << endl;
-    return fabs(x.val - y.val) < 0.00001;
+    const double precision = 1.0E-7;
+
+    if (!(x.is_null || y.is_null)) {
+        return std::fabs(x.val - y.val) <= precision;
+    } else {
+        return x.is_null == y.is_null;
+    }
 }
 
 
@@ -56,7 +38,6 @@ bool TestAgreement() {
         cerr << "LOGFOLD AGREEMENT: " << logfold_agreement.GetErrorMsg() << endl;
         return false;
     }
-
 
     // Initialize the test values.
     vector<BigIntVal> vals2   = {1, 1, 2, 2, 2, 2, 3, 3};

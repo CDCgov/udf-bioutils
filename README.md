@@ -21,6 +21,7 @@
       - [To Amino Acids with Degeneracy Up to 3](#to-amino-acids-with-degeneracy-up-to-3)
     - [Sequence Comparison](#sequence-comparison)
       - [Hamming and Nucleotide Distance](#hamming-and-nucleotide-distance)
+      - [Sequence Comparison Functions](#sequence-comparison-functions)
       - [Mutation List Family of Functions](#mutation-list-family-of-functions)
       - [Physiochemical Distance](#physiochemical-distance)
       - [Physiochemical Difference List](#physiochemical-difference-list)
@@ -62,7 +63,7 @@ For further reading related to function development:
 
 ## License and Usage
 
-This repository follows Cloudera's licensing for Apache Impala and is licensed under Apache License, Version 2.0 (see: <http://www.apache.org/licenses/LICENSE-2.0>). All code is dedicated to the Public Domain with attributions appreciated (Samuel S. Shepard, CDC) except where Cloudera copyright is provided or indicated in the file (e.g., `common.h`).
+This repository follows Cloudera's licensing for Apache Impala and is licensed under [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0>). All code copyright is dedicated to the Public Domain with attributions appreciated (Samuel S. Shepard, <vfn4@cdc.gov>, CDC).
 
 ## Scalar Function Descriptions
 
@@ -200,6 +201,18 @@ nt_distance(STRING seq1, STRING seq2)
 If one sequence is longer than the other, the extra characters are discarded from the calculation. By default, any pair of characters with a `.` as an element is ignored by the calculation. In *DAIS*, the `.` character is used for missing data. Optionally, one may explicitly add a pairwise deletion character set. If any pair of characters contain any of the characters in the argument, that position is ignored from the calculation. If any argument is `NULL` or either sequence argument is an empty STRING, a null value is returned. If the optional `pairwise_deletion_set` argument is an empty STRING, no pairwise deletion is performed. The `nt_distance` function is the same as the default version of `hamming_distance` but does not count ambiguated differences. For example, A ≠ T but A = R.  
 
 &rarr; *See also the Impala native function [JARO_DISTANCE](https://docs.cloudera.com/cdp-private-cloud-base/7.1.8/impala-sql-reference/topics/impala-string-functions.html?#string_functions__jaro_distance).*
+
+#### Sequence Comparison Functions
+
+```sql
+sequence_diff(STRING seq1, STRING seq2)
+sequence_diff_nt(STRING seq1, STRING seq2)
+```
+
+**Return type:** `STRING`  
+**Purpose:** Expects **aligned** biological sequences and returns a sequence that denotes the differences between `seq1` and `seq2` by returning the character from `seq2` in the differing positions. Otherwise, if the characters are the same at a given position, a `.` will be returned. For example, if `seq1` sequence is `AAAA-A` and `seq2` sequence is `AGA-AA`, the function will return `.G.-A.`.
+
+- The function `sequence_diff_nt` is similar to the vanilla `sequence_diff` function but will correctly account for degenerate nucleotides (e.g., Y for pyrimidine, R for purine).
 
 #### Mutation List Family of Functions
 

@@ -50,3 +50,5 @@ create function if not exists udx.saturday_date(date) returns date location "$UD
 create function if not exists udx.saturday_date(string) returns date location "$UDF_BIOUTILS" SYMBOL = "Date_Ending_In_Saturday_STR";
 create function if not exists udx.saturday_date(timestamp) returns date location "$UDF_BIOUTILS" SYMBOL = "Date_Ending_In_Saturday_TS";
 create function if not exists udx.to_aa3(string) returns string location "$UDF_BIOUTILS" SYMBOL = "To_AA3";
+create function if not exists udx.sequence_diff(string, string) returns string location "$UDF_BIOUTILS" SYMBOL = "Sequence_Diff";
+create function if not exists udx.sequence_diff_nt(string, string) returns string location "$UDF_BIOUTILS" SYMBOL = "Sequence_Diff_NT";

@@ -21,7 +21,7 @@
       - [To Amino Acids with Degeneracy Up to 3](#to-amino-acids-with-degeneracy-up-to-3)
     - [Sequence Comparison](#sequence-comparison)
       - [Hamming and Nucleotide Distance](#hamming-and-nucleotide-distance)
-      - [Sequence Comparison Functions](#sequence-comparison-functions)
+      - [Sequence Difference Functions](#sequence-difference-functions)
       - [Mutation List Family of Functions](#mutation-list-family-of-functions)
       - [Physiochemical Distance](#physiochemical-distance)
       - [Physiochemical Difference List](#physiochemical-difference-list)
@@ -202,7 +202,7 @@ If one sequence is longer than the other, the extra characters are discarded fro
 
 &rarr; *See also the Impala native function [JARO_DISTANCE](https://docs.cloudera.com/cdp-private-cloud-base/7.1.8/impala-sql-reference/topics/impala-string-functions.html?#string_functions__jaro_distance).*
 
-#### Sequence Comparison Functions
+#### Sequence Difference Functions
 
 ```sql
 sequence_diff(STRING seq1, STRING seq2)

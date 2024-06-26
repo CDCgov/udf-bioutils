@@ -81,6 +81,8 @@ IntVal Hamming_Distance_Pairwise_Delete(
 IntVal Nt_Distance(
     FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2
 );
+StringVal Sequence_Diff(FunctionContext *context, const StringVal &seq1, const StringVal &seq2);
+StringVal Sequence_Diff_NT(FunctionContext *context, const StringVal &seq1, const StringVal &seq2);
 DoubleVal Physiochemical_Distance(
     FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2
 );

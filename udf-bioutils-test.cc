@@ -1731,6 +1731,79 @@ bool test__variant_hash() {
     return passing;
 }
 
+bool test__sequence_diff() {
+    bool passing = true;
+
+    std::tuple<StringVal, StringVal, StringVal> table[10] = {
+        std::make_tuple(StringVal("AGAGA"), StringVal("AGAGA"), StringVal(".....")),
+        std::make_tuple(StringVal::null(), StringVal("AGAGA"), StringVal::null()),
+        std::make_tuple(StringVal("AGAGA"), StringVal::null(), StringVal::null()),
+        std::make_tuple(StringVal(""), StringVal("AGAGAGGGA"), StringVal::null()),
+        std::make_tuple(StringVal("AGAGA"), StringVal(""), StringVal::null()),
+        std::make_tuple(StringVal("AgAGA"), StringVal("AGAGA"), StringVal(".....")),
+        std::make_tuple(StringVal("AaAGA"), StringVal("AGAGA"), StringVal(".G...")),
+        std::make_tuple(StringVal("AGAGAG"), StringVal("AGAGA"), StringVal(".....")),
+        std::make_tuple(StringVal("AGAGAGGAGAG"), StringVal("AGAGA"), StringVal(".....")),
+        std::make_tuple(StringVal("AGAG"), StringVal("AGAGAGAGAA"), StringVal("...."))
+    };
+
+    for (int i = 0; i < 10; i++) {
+        auto [arg0_s, arg1_s, expected] = table[i];
+        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
+                Sequence_Diff, arg0_s, arg1_s, expected
+            )) {
+            cout << "UDX Sequence_Diff(s, s)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
+                 << arg1_s.ptr << "|\n\t|" << expected.ptr << "|\n";
+            passing = false;
+        }
+    }
+    return passing;
+}
+
+bool test__sequence_diff_nt() {
+    bool passing = true;
+
+    std::tuple<StringVal, StringVal, StringVal> table[18] = {
+        std::make_tuple(StringVal("AGCTN-@"), StringVal("AGCTN-@"), StringVal("......?")),
+        std::make_tuple(StringVal("AGAGA"), StringVal("AGAGA"), StringVal(".....")),
+        std::make_tuple(StringVal::null(), StringVal::null(), StringVal::null()),
+        std::make_tuple(StringVal::null(), StringVal("AGAGA"), StringVal::null()),
+        std::make_tuple(StringVal("AGAGA"), StringVal::null(), StringVal::null()),
+        std::make_tuple(StringVal(""), StringVal("AGAGAGGGA"), StringVal::null()),
+        std::make_tuple(StringVal("AGAGA"), StringVal(""), StringVal::null()),
+        std::make_tuple(StringVal("AgAGA"), StringVal("AGAGA"), StringVal(".....")),
+        std::make_tuple(StringVal("AaAGA"), StringVal("AGAGA"), StringVal(".G...")),
+        std::make_tuple(StringVal("AGAGAG"), StringVal("AGAGA"), StringVal(".....")),
+        std::make_tuple(StringVal("AGAGAGGAGAG"), StringVal("AGAGA"), StringVal(".....")),
+        std::make_tuple(StringVal("AGAG"), StringVal("AGAGAGAGAA"), StringVal("....")),
+        std::make_tuple(
+            StringVal("AAAAAAAAAAA"), StringVal("WMRDHVNSKYB"), StringVal(".......SKYB")
+        ),
+        std::make_tuple(
+            StringVal("CCCCCCCCCCC"), StringVal("SMYBHVNWKRD"), StringVal(".......WKRD")
+        ),
+        std::make_tuple(
+            StringVal("GGGGGGGGGGG"), StringVal("SKRBDVNWMYH"), StringVal(".......WMYH")
+        ),
+        std::make_tuple(
+            StringVal("TTTTTTTTTTT"), StringVal("WKYBDHNSMRV"), StringVal(".......SMRV")
+        ),
+        std::make_tuple(StringVal("TTTTTTT"), StringVal("UKRBVHN"), StringVal("..R.V..")),
+        std::make_tuple(StringVal("AAAA-A"), StringVal("AGA-AA"), StringVal(".G.-A."))
+    };
+    for (int i = 0; i < 18; i++) {
+        auto [arg0_s, arg1_s, expected] = table[i];
+        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
+                Sequence_Diff_NT, arg0_s, arg1_s, expected
+            )) {
+            cout << "UDX Sequence_Diff_NT(s, s)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
+                 << arg1_s.ptr << "|\n\t|" << expected.ptr << "|\n";
+            passing = false;
+        }
+    }
+    return passing;
+}
+
 int main(int argc, char **argv) {
     int passed = true;
 
@@ -1763,6 +1836,8 @@ int main(int argc, char **argv) {
     passed &= test__ending_in_fornight_str();
     passed &= test__nt_to_aa_position();
     passed &= test__nt_position_to_mutation_aa3();
+    passed &= test__sequence_diff();
+    passed &= test__sequence_diff_nt();
 
     cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
     return !passed;

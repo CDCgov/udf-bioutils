@@ -1470,6 +1470,75 @@ IntVal Nt_Distance(
     return IntVal(nt_distance);
 }
 
+
+/* Sequence comparison functions */
+IMPALA_UDF_EXPORT
+StringVal Sequence_Diff(FunctionContext *context, const StringVal &seq1, const StringVal &seq2) {
+
+    const StringVal null_stringval = StringVal::null();
+
+    // Check if either StringVal is NULL
+    if (seq1 == null_stringval || seq2 == null_stringval)
+        return StringVal::null();
+
+    // Check if either StringVal is empty.
+    if (seq1.len == 0 || seq2.len == 0)
+        return StringVal::null();
+
+    // Declare variables
+    std::string_view seq_ref((const char *)seq1.ptr, seq1.len);
+    std::string_view seq((const char *)seq2.ptr, seq2.len);
+    std::string_view::iterator it_ref, it;
+    std::string diff_seq; // will store difference from ref
+
+    // Iterate through both strings
+    it_ref = seq_ref.begin();
+    it     = seq.begin();
+
+    while (it_ref != seq_ref.end() && it != seq.end()) {
+
+        // Compare characters
+        if (toupper(*it_ref) == toupper(*it))
+            diff_seq.push_back('.');
+        else
+            diff_seq.push_back(toupper(*it));
+        it_ref++;
+        it++;
+    }
+    return StringVal::CopyFrom(context, (const uint8_t *)diff_seq.c_str(), diff_seq.size());
+}
+
+IMPALA_UDF_EXPORT
+StringVal Sequence_Diff_NT(FunctionContext *context, const StringVal &seq1, const StringVal &seq2) {
+
+    const StringVal null_stringval = StringVal::null();
+
+    // Check if either StringVal is NULL
+    if (seq1 == null_stringval || seq2 == null_stringval)
+        return StringVal::null();
+
+    // Check if either StringVal is empty.
+    if (seq1.len == 0 || seq2.len == 0)
+        return StringVal::null();
+
+    // Declare variables
+    std::string_view seq_ref((const char *)seq1.ptr, seq1.len);
+    std::string_view seq((const char *)seq2.ptr, seq2.len);
+    std::string_view::iterator it_ref, it;
+    std::string diff_seq; // will store difference from ref
+
+    // Iterate through both strings
+    it_ref = seq_ref.begin();
+    it     = seq.begin();
+
+    while (it_ref != seq_ref.end() && it != seq.end()) {
+        diff_seq.push_back(NT_DIFF[*it_ref][*it]);
+        it_ref++;
+        it++;
+    }
+    return StringVal::CopyFrom(context, (const uint8_t *)diff_seq.c_str(), diff_seq.size());
+}
+
 IMPALA_UDF_EXPORT
 DoubleVal Physiochemical_Distance(
     FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2

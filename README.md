@@ -1,6 +1,4 @@
-**General disclaimer** This repository was created for use by CDC programs to collaborate on public health related projects in support of the [CDC mission](https://www.cdc.gov/about/cdc/index.html).  GitHub is not hosted by the CDC, but is a third party website used by CDC and its partners to share information and collaborate on software. CDC use of GitHub does not imply an endorsement of any one particular service, product, or enterprise.  
-
-# Repository Summary
+# Overview
 
 The udf-bioutils is an actively maintained code repository, containing C++ code for a number of bioinformatics-related functions used internally by CDC's Influenza Bioinformatics group. These functions are intended to be imported into [Apache Impala](https://impala.apache.org) and extends native functionality by allowing users to carry out custom bioinformatics analyses of column values directly in Impala. Functionalities include but not limited to the ability to translate nucleotide sequences into amino acid sequences and identify biologically relevant features in nucleotide or amino acid sequences. Specific instructions and system requirements (including dependencies) for building and installing the library are found in [INSTALL](INSTALL.md). 
 
@@ -53,13 +51,14 @@ Maintainer: Samuel S. Shepard (<vfn4@cdc.gov>)
     - [Kurtosis](#kurtosis)
     - [LogFold Titer Distribution Agreement](#logfold-titer-distribution-agreement)
     - [Skewness](#skewness)
+- [Acknowledgments](#acknowledgments)
 - [Notices](#notices)
-  - [Public Domain Standard Notice](#public-domain)
-  - [License Standard Notice](#license)
-  - [Privacy Standard Notice](#privacy)
-  - [Contributing Standard Notice](#contributing)
-  - [Records Management Standard Notice](#records-management)
-  - [Additional Standard Notice](#additional-notice)
+  - [Public Domain Standard Notice](#public-domain-standard-notice)
+  - [License Standard Notice](#license-standard-notice)
+  - [Privacy Standard Notice](#privacy-standard-notice)
+  - [Contributing Standard Notice](#contributing-standard-notice)
+  - [Records Management Standard Notice](#records-management-standard-notice)
+  - [Additional Standard Notice](#additional-standard-notice)
 
 # User-defined bioinformatics utilities for Impala SQL
 
@@ -485,12 +484,21 @@ skewness(<INT or DOUBLE> values) -> DOUBLE
 
 **Purpose:** Compute the [3rd moment or skewness](https://en.wikipedia.org/wiki/Skewness) using [a one-pass formula](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Higher-order_statistics).
 
+# Acknowledgments
+We'd like to thank contributors (in alphabetical order) who have suggested features, identified bugs, or submitted merge requests:
+- Norman Hassell (CDC)
+- Kristine Lacek (CDC)
+- Clint Paden (CDC)
+
 # Notices
+
+**General disclaimer** This repository was created for use by CDC programs to collaborate on public health related projects in support of the [CDC mission](https://www.cdc.gov/about/cdc/index.html).  GitHub is not hosted by the CDC, but is a third party website used by CDC and its partners to share information and collaborate on software. CDC use of GitHub does not imply an endorsement of any one particular service, product, or enterprise.  
+
 
 ## Public Domain Standard Notice
 This repository constitutes a work of the United States Government and is not subject to domestic copyright protection under 17 USC § 105. This repository is in the public domain within the United States, and copyright and related rights in the work worldwide are waived through the [CC0 1.0 Universal public domain dedication](https://creativecommons.org/publicdomain/zero/1.0/).  All contributions to this repository will be released under the CC0 dedication.  By submitting a pull request you are agreeing to comply with this waiver of copyright interest.
 
-## Licensee Standard Notice
+## License Standard Notice
 The repository utilizes code licensed under the terms of the Apache Software License and therefore is licensed under ASL v2 or later.
 
 This source code in this repository is free: you can redistribute it and/or modify it under the terms of the Apache Software License version 2, or (at your option) any later version.

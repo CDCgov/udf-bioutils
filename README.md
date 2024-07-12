@@ -1,3 +1,7 @@
+As a first step, this document is under governance review. When the review
+completes as appropriate per local and agency processes, the project team will
+be allowed to remove this notice. This material is draft.
+
 # Overview
 
 The udf-bioutils is an actively maintained code repository, containing C++ code for a number of bioinformatics-related functions used internally by CDC's Influenza Bioinformatics group. These functions are intended to be imported into [Apache Impala](https://impala.apache.org) and extends native functionality by allowing users to carry out custom bioinformatics analyses of column values directly in Impala. Functionalities include but not limited to the ability to translate nucleotide sequences into amino acid sequences and identify biologically relevant features in nucleotide or amino acid sequences. Specific instructions and system requirements (including dependencies) for building and installing the library are found in [INSTALL](INSTALL.md). 

@@ -1,8 +1,13 @@
-# User-defined bioinformatics utilities for Impala SQL
+**General disclaimer** This repository was created for use by CDC programs to collaborate on public health related projects in support of the [CDC mission](https://www.cdc.gov/about/cdc/index.html).  GitHub is not hosted by the CDC, but is a third party website used by CDC and its partners to share information and collaborate on software. CDC use of GitHub does not imply an endorsement of any one particular service, product, or enterprise.  
 
+# Repository Summary
+
+The udf-bioutils is an actively maintained code repository, containing C++ code for a number of bioinformatics-related functions used internally by CDC's Influenza Bioinformatics group. These functions are intended to be imported into [Apache Impala](https://impala.apache.org) and extends native functionality by allowing users to carry out custom bioinformatics analyses of column values directly in Impala. Functionalities include but not limited to the ability to translate nucleotide sequences into amino acid sequences and identify biologically relevant features in nucleotide or amino acid sequences. Specific instructions and system requirements (including dependencies) for building and installing the library are found in [INSTALL](INSTALL.md). 
+
+Maintainer: Samuel S. Shepard (<vfn4@cdc.gov>)
+
+# User-defined bioinformatics utilities for Impala SQL
 - [User-defined bioinformatics utilities for Impala SQL](#user-defined-bioinformatics-utilities-for-impala-sql)
-  - [Summary](#summary)
-  - [License and Usage](#license-and-usage)
   - [Scalar Function Descriptions](#scalar-function-descriptions)
     - [Date Functions](#date-functions)
       - [Complete Date](#complete-date)
@@ -48,8 +53,15 @@
     - [Kurtosis](#kurtosis)
     - [LogFold Titer Distribution Agreement](#logfold-titer-distribution-agreement)
     - [Skewness](#skewness)
+- [Notices](#notices)
+  - [Public Domain Standard Notice](#public-domain)
+  - [License Standard Notice](#license)
+  - [Privacy Standard Notice](#privacy)
+  - [Contributing Standard Notice](#contributing)
+  - [Records Management Standard Notice](#records-management)
+  - [Additional Standard Notice](#additional-notice)
 
-## Summary
+# User-defined bioinformatics utilities for Impala SQL
 
 Functions may be created in a schema such as **udx**. To show persistent function one would then write: `use udx; show functions;`.
 Tables in **udx** show function input arguments and expected return values (*outcome*).
@@ -60,10 +72,6 @@ For further reading related to function development:
 - [Impala User-Defined Functions](https://docs.cloudera.com/cdp-private-cloud-base/latest/impala-sql-reference/topics/impala-udf.html)
 - [Impala UDF Samples](https://github.com/cloudera/impala-udf-samples)
 - [Impala GitHub mirror](https://github.com/apache/impala)
-
-## License and Usage
-
-This repository follows Cloudera's licensing for Apache Impala and is licensed under [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0>). All code copyright is dedicated to the Public Domain with attributions appreciated (Samuel S. Shepard, <vfn4@cdc.gov>, CDC).
 
 ## Scalar Function Descriptions
 
@@ -476,3 +484,38 @@ skewness(<INT or DOUBLE> values) -> DOUBLE
 ```
 
 **Purpose:** Compute the [3rd moment or skewness](https://en.wikipedia.org/wiki/Skewness) using [a one-pass formula](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Higher-order_statistics).
+
+# Notices
+
+## Public Domain Standard Notice
+This repository constitutes a work of the United States Government and is not subject to domestic copyright protection under 17 USC § 105. This repository is in the public domain within the United States, and copyright and related rights in the work worldwide are waived through the [CC0 1.0 Universal public domain dedication](https://creativecommons.org/publicdomain/zero/1.0/).  All contributions to this repository will be released under the CC0 dedication.  By submitting a pull request you are agreeing to comply with this waiver of copyright interest.
+
+## Licensee Standard Notice
+The repository utilizes code licensed under the terms of the Apache Software License and therefore is licensed under ASL v2 or later.
+
+This source code in this repository is free: you can redistribute it and/or modify it under the terms of the Apache Software License version 2, or (at your option) any later version.
+
+This source code in this repository is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the Apache Software License for more details.
+
+You should have received a copy of the Apache Software License along with this program. If not, see http://www.apache.org/licenses/LICENSE-2.0.html
+
+The source code forked from other open source projects will inherit its license.
+
+## Privacy Standard Notice
+This repository contains only non-sensitive, publicly available data and information. All material and community participation is covered by the [Disclaimer](DISCLAIMER.md).
+
+For more information about CDC's privacy policy, please visit [http://www.cdc.gov/other/privacy.html](https://www.cdc.gov/other/privacy.html).
+
+## Contributing Standard Notice
+
+Anyone is encouraged to contribute to the repository by [forking](https://help.github.com/articles/fork-a-repo) and submitting a pull request. (If you are new to GitHub, you might start with a [basic tutorial](https://help.github.com/articles/set-up-git).) By contributing to this project, you grant a world-wide, royalty-free, perpetual, irrevocable, non-exclusive, transferable license to all users under the terms of the [Apache Software License v2](http://www.apache.org/licenses/LICENSE-2.0.html) or later.
+
+All comments, messages, pull requests, and other submissions received through CDC including this GitHub page may be subject to applicable federal law, including but not limited to the Federal Records Act, and may be archived. Learn more at [http://www.cdc.gov/other/privacy.html](http://www.cdc.gov/other/privacy.html).
+
+## Records Management Standard Notice
+
+This repository is not a source of government records, but is a copy to increase collaboration and collaborative potential. All government records will be published through the [CDC web site](http://www.cdc.gov).
+
+## Additional Standard Notice
+- [Contributing to this Repository](CONTRIBUTING.md)
+- [Public Domain Notices and Disclaimers](DISCLAIMER.md)

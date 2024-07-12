@@ -2,13 +2,15 @@ As a first step, this document is under governance review. When the review
 completes as appropriate per local and agency processes, the project team will
 be allowed to remove this notice. This material is draft.
 
-# Overview
+# Overview of UDF BIOUTILS
 
-The udf-bioutils is an actively maintained code repository, containing C++ code for a number of bioinformatics-related functions used internally by CDC's Influenza Bioinformatics group. These functions are intended to be imported into [Apache Impala](https://impala.apache.org) and extends native functionality by allowing users to carry out custom bioinformatics analyses of column values directly in Impala. Functionalities include but not limited to the ability to translate nucleotide sequences into amino acid sequences and identify biologically relevant features in nucleotide or amino acid sequences. Specific instructions and system requirements (including dependencies) for building and installing the library are found in [INSTALL](INSTALL.md). 
+The `udf-bioutils` project contains bioinformatics (and public health surveillance adjacent) functions used internally by CDC's respiratory virus surveillance programs. Functions must be [uploaded](install_SO.sh) and [registered](sql/) with [Apache Impala](https://impala.apache.org). UDFs and UDAs extend Impala's native capabilities with domain-specific analysis. This library, in concert with external programs and specialized schema, helps form a basis for database-centric sequence surveillance analytics. See [INSTALL.md](INSTALL.md) for building and installation instructions.
 
-Maintainer: Samuel S. Shepard (<vfn4@cdc.gov>)
+For direct correspondence, feel free to contact: Samuel S. Shepard ([vfn4@cdc.gov](mailto:%22Samuel%20Shepard%22%3cvfn4@cdc.gov>?subject=UDF%20BIOUTILS)), Centers for Disease Control and Prevention.
 
-# User-defined bioinformatics utilities for Impala SQL
+---
+
+- [Overview of UDF BIOUTILS](#overview-of-udf-bioutils)
 - [User-defined bioinformatics utilities for Impala SQL](#user-defined-bioinformatics-utilities-for-impala-sql)
   - [Scalar Function Descriptions](#scalar-function-descriptions)
     - [Date Functions](#date-functions)
@@ -66,11 +68,15 @@ Maintainer: Samuel S. Shepard (<vfn4@cdc.gov>)
 
 # User-defined bioinformatics utilities for Impala SQL
 
-Functions may be created in a schema such as **udx**. To show persistent function one would then write: `use udx; show functions;`.
-Tables in **udx** show function input arguments and expected return values (*outcome*).
-The provided table SQL code are named after the function, but with a prefix for user-defined functions (*udf*) or user-defined aggregate functions (*uda*) and with a suffix indicating argument/return types to help distinguish when the function has been [overloaded](https://en.wikipedia.org/wiki/Function_overloading). Some function creation code for SQL, like ([udx_ensure.sql](https://git.biotech.cdc.gov/vfn4/udf-bioutils/blob/master/udx_ensure.sql), has been provided.
+Functions may be created in a schema such as `udx`. This is our default, but the user is free to change the function location to whatever they wish. To show functions already registered, one may write:
 
-For further reading related to function development:
+```sql
+use udx; 
+show functions;
+show aggregate functions;
+```
+
+For further readings related to function development, see:
 
 - [Impala User-Defined Functions](https://docs.cloudera.com/cdp-private-cloud-base/latest/impala-sql-reference/topics/impala-udf.html)
 - [Impala UDF Samples](https://github.com/cloudera/impala-udf-samples)
@@ -267,7 +273,7 @@ aa_std(STRING sequence) -> STRING
 nt_std(STRING sequence) -> STRING
 ```
 
-**Purpose:** Standardizes the assumed amino acid or nucleotide `sequence` respectively by removing extraneous characters (`\n\r\t :.-`) and switching to uppercase. The nucleotide version also removes `~`, which is interpreted by [DAIS-ribosome](https://git.biotech.cdc.gov/flu-informatics/dais-ribosome) as a partial codon for amino acid sequences. The same sequence cleaning is done by the ID generating functions [variant_hash and nt_id](#variant-hash-and-nucleotide-id). Returns `NULL` if the input is null or an empty string is provided.
+**Purpose:** Standardizes the assumed amino acid or nucleotide `sequence` respectively by removing extraneous characters (`\n\r\t :.-`) and switching to uppercase. The nucleotide version also removes `~`, which is interpreted by [DAIS-ribosome](https://hub.docker.com/r/cdcgov/dais-ribosome/tags) as a partial codon for amino acid sequences. The same sequence cleaning is done by the ID generating functions [variant_hash and nt_id](#variant-hash-and-nucleotide-id). Returns `NULL` if the input is null or an empty string is provided.
 
 #### Longest Deletion
 
@@ -382,7 +388,7 @@ sort_list_set(STRING list, STRING delim_set, STRING output_delim)
 codon_at_og_position(STRING query_nt_coords, STRING cds_nt_coords, STRING cds_aln, BIGINT original_position [, STRING allele]) -> STRING
 ```
 
-**Purpose:** Takes coordinate mapping information provided by [DAIS-ribosome](https://git.biotech.cdc.gov/flu-informatics/dais-ribosome), such as the  `query_nt_coords` and `cds_nt_coords`, the `cds_aln` (aligned coding sequence), and a position in the original coordinate space and then yields the whole codon at that position. The original position might come from an *untrimmed* [IRMA](https://wonder.cdc.gov/amd/flu/irma/) variant position. An *optional* allele argument may be provided in order to mutate the retrieved codon at the mapped CDS position. This can be convenient for analyzing variants.
+**Purpose:** Takes coordinate mapping information provided by [DAIS-ribosome](https://hub.docker.com/r/cdcgov/dais-ribosome/tags), such as the  `query_nt_coords` and `cds_nt_coords`, the `cds_aln` (aligned coding sequence), and a position in the original coordinate space and then yields the whole codon at that position. The original position might come from an *untrimmed* [IRMA](https://wonder.cdc.gov/amd/flu/irma/) variant position. An *optional* allele argument may be provided in order to mutate the retrieved codon at the mapped CDS position. This can be convenient for analyzing variants.
 
 Empty strings and null values on any input returns `NULL`. In particular, if the mapped position is *before*, *after*, or *in-between* (insertions) alignment-space coordinates, they are considered out-of-bounds and the function will return `NULL`.
 
@@ -409,7 +415,7 @@ og_to_aa_position(STRING query_nt_coords, STRING cds_nt_coords, BIGINT original_
 og_to_cds_position(STRING query_nt_coords, STRING cds_nt_coords, BIGINT original_position)  -> INT
 ```
 
-**Purpose:** Takes coordinate mapping information provided by [DAIS-ribosome](https://git.biotech.cdc.gov/flu-informatics/dais-ribosome), such as the  `query_nt_coords` and `cds_nt_coords` plus a position in the original coordinate space and maps to the **aligned** AA or CDS position for the `og_to_aa_position` or `og_to_cds_position` functions respectively. The original position might come from an *untrimmed* [IRMA](https://wonder.cdc.gov/amd/flu/irma/) variant position.
+**Purpose:** Takes coordinate mapping information provided by [DAIS-ribosome](https://hub.docker.com/r/cdcgov/dais-ribosome/tags), such as the  `query_nt_coords` and `cds_nt_coords` plus a position in the original coordinate space and maps to the **aligned** AA or CDS position for the `og_to_aa_position` or `og_to_cds_position` functions respectively. The original position might come from an *untrimmed* [IRMA](https://wonder.cdc.gov/amd/flu/irma/) variant position.
 
 Empty strings and null values on any input returns `NULL`. In particular, if the mapped position is *before*, *after*, or *in-between* (insertions) alignment-space coordinates, they are considered out-of-bounds and the function will return `NULL`.
 
@@ -431,7 +437,7 @@ select udx.og_to_cds_position("1..456;457..459;460..983", "31..486;486;487..1010
 og_pos_to_aa3_mutation(STRING query_nt_coords, STRING cds_nt_coords, STRING cds_aln, BIGINT original_position, STRING consensus_allele, STRING minority_allele) -> STRING
 ```
 
-**Purpose:** Takes coordinate mapping information provided by [DAIS-ribosome](https://git.biotech.cdc.gov/flu-informatics/dais-ribosome), such as the  `query_nt_coords` and `cds_nt_coords`, the `cds_aln` (aligned coding sequence), a position in the original coordinate space, and a pair of alleles. Under the hood, the function obtains the codon, mutates it at the provided CDS position using each allele, and then translates each mutated codon using the [degenerate amino acid](#to-amino-acids-with-degeneracy-up-to-3) translation function. The output is of the form `AA1#AA2` where the numeric position is the **aligned** amino acid position.
+**Purpose:** Takes coordinate mapping information provided by [DAIS-ribosome](https://hub.docker.com/r/cdcgov/dais-ribosome/tags), such as the  `query_nt_coords` and `cds_nt_coords`, the `cds_aln` (aligned coding sequence), a position in the original coordinate space, and a pair of alleles. Under the hood, the function obtains the codon, mutates it at the provided CDS position using each allele, and then translates each mutated codon using the [degenerate amino acid](#to-amino-acids-with-degeneracy-up-to-3) translation function. The output is of the form `AA1#AA2` where the numeric position is the **aligned** amino acid position.
 
 The original position might come from an *untrimmed* [IRMA](https://wonder.cdc.gov/amd/flu/irma/) variant position. Likewise, the alleles might come from IRMA's consensus and variant allele provided by its [variant table](https://wonder.cdc.gov/amd/flu/irma/output/A_MP-variants.html).
 
@@ -489,7 +495,9 @@ skewness(<INT or DOUBLE> values) -> DOUBLE
 **Purpose:** Compute the [3rd moment or skewness](https://en.wikipedia.org/wiki/Skewness) using [a one-pass formula](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Higher-order_statistics).
 
 # Acknowledgments
+
 We'd like to thank contributors (in alphabetical order) who have suggested features, identified bugs, or submitted merge requests:
+
 - Norman Hassell (CDC)
 - Kristine Lacek (CDC)
 - Clint Paden (CDC)
@@ -498,25 +506,17 @@ We'd like to thank contributors (in alphabetical order) who have suggested featu
 
 **General disclaimer** This repository was created for use by CDC programs to collaborate on public health related projects in support of the [CDC mission](https://www.cdc.gov/about/cdc/index.html).  GitHub is not hosted by the CDC, but is a third party website used by CDC and its partners to share information and collaborate on software. CDC use of GitHub does not imply an endorsement of any one particular service, product, or enterprise.  
 
-
 ## Public Domain Standard Notice
+
 This repository constitutes a work of the United States Government and is not subject to domestic copyright protection under 17 USC § 105. This repository is in the public domain within the United States, and copyright and related rights in the work worldwide are waived through the [CC0 1.0 Universal public domain dedication](https://creativecommons.org/publicdomain/zero/1.0/).  All contributions to this repository will be released under the CC0 dedication.  By submitting a pull request you are agreeing to comply with this waiver of copyright interest.
 
 ## License Standard Notice
-The repository utilizes code licensed under the terms of the Apache Software License and therefore is licensed under ASL v2 or later.
 
-This source code in this repository is free: you can redistribute it and/or modify it under the terms of the Apache Software License version 2, or (at your option) any later version.
-
-This source code in this repository is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the Apache Software License for more details.
-
-You should have received a copy of the Apache Software License along with this program. If not, see http://www.apache.org/licenses/LICENSE-2.0.html
-
-The source code forked from other open source projects will inherit its license.
+The repository utilizes code licensed under the terms of the Apache Software License and therefore is licensed under ASL v2 or later. This source code in this repository is free: you can redistribute it and/or modify it under the terms of the Apache Software License version 2, or (at your option) any later version. This source code in this repository is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the Apache Software License for more details. You should have received a copy of the Apache Software License along with this program. If not, see: <http://www.apache.org/licenses/LICENSE-2.0.html>. The source code forked from other open source projects will inherit its license.
 
 ## Privacy Standard Notice
-This repository contains only non-sensitive, publicly available data and information. All material and community participation is covered by the [Disclaimer](DISCLAIMER.md).
 
-For more information about CDC's privacy policy, please visit [http://www.cdc.gov/other/privacy.html](https://www.cdc.gov/other/privacy.html).
+This repository contains only non-sensitive, publicly available data and information. All material and community participation is covered by the [Disclaimer](DISCLAIMER.md). For more information about CDC's privacy policy, please visit <http://www.cdc.gov/other/privacy.html>.
 
 ## Contributing Standard Notice
 
@@ -529,5 +529,6 @@ All comments, messages, pull requests, and other submissions received through CD
 This repository is not a source of government records, but is a copy to increase collaboration and collaborative potential. All government records will be published through the [CDC web site](http://www.cdc.gov).
 
 ## Additional Standard Notice
+
 - [Contributing to this Repository](CONTRIBUTING.md)
 - [Public Domain Notices and Disclaimers](DISCLAIMER.md)

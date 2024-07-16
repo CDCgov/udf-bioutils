@@ -1,7 +1,3 @@
-As a first step, this document is under governance review. When the review
-completes as appropriate per local and agency processes, the project team will
-be allowed to remove this notice. This material is draft.
-
 # Overview of UDF BIOUTILS
 
 The `udf-bioutils` project contains bioinformatics (and public health surveillance adjacent) functions used internally by CDC's respiratory virus surveillance programs. Functions must be [uploaded](install_SO.sh) and [registered](sql/) with [Apache Impala](https://impala.apache.org). UDFs and UDAs extend Impala's native capabilities with domain-specific analysis. This library, in concert with external programs and specialized schema, helps form a basis for database-centric sequence surveillance analytics. See [INSTALL.md](INSTALL.md) for building and installation instructions.

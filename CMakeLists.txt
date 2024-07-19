@@ -16,7 +16,7 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Hide symbols in UDF code by default - UDF functions should be explicitly exported.
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=cascadelake")
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s")
 
 
 # Build the UDA/UDFs into a shared library.

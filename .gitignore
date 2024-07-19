@@ -9,3 +9,4 @@ bak/
 install_locations.sh
 test_regex
 sandbox/
+udf-bioutils-bmark.cc

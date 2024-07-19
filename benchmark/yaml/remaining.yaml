@@ -1,0 +1,345 @@
+BM_Date_Ending_In_Saturday_DATE:
+  function_name: Date_Ending_In_Saturday_DATE
+  bm_argument_values:
+    dateVal:
+      - DateVal
+      - "REPLACE_VALUE (type: DateVal)"
+BM_Date_Ending_In_Saturday_TS:
+  function_name: Date_Ending_In_Saturday_TS
+  bm_argument_values:
+    tsVal:
+      - TimestampVal
+      - "REPLACE_VALUE (type: TimestampVal)"
+BM_Date_Ending_In_Saturday_STR:
+  function_name: Date_Ending_In_Saturday_STR
+  bm_argument_values:
+    dateStr:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Fortnight_Date_STR:
+  function_name: Fortnight_Date_STR
+  bm_argument_values:
+    dateStr:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Fortnight_Date_TS:
+  function_name: Fortnight_Date_TS
+  bm_argument_values:
+    tsVal:
+      - TimestampVal
+      - "REPLACE_VALUE (type: TimestampVal)"
+BM_Fortnight_Date:
+  function_name: Fortnight_Date
+  bm_argument_values:
+    dateVal:
+      - DateVal
+      - "REPLACE_VALUE (type: DateVal)"
+BM_Fortnight_Date_Either:
+  function_name: Fortnight_Date_Either
+  bm_argument_values:
+    dateVal:
+      - DateVal
+      - "REPLACE_VALUE (type: DateVal)"
+    legacy_default_week:
+      - BooleanVal
+      - "REPLACE_VALUE (type: BooleanVal)"
+BM_Fortnight_Date_Either_TS:
+  function_name: Fortnight_Date_Either_TS
+  bm_argument_values:
+    tsVal:
+      - TimestampVal
+      - "REPLACE_VALUE (type: TimestampVal)"
+    legacy_default_week:
+      - BooleanVal
+      - "REPLACE_VALUE (type: BooleanVal)"
+BM_Fortnight_Date_Either_STR:
+  function_name: Fortnight_Date_Either_STR
+  bm_argument_values:
+    dateStr:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    legacy_default_week:
+      - BooleanVal
+      - "REPLACE_VALUE (type: BooleanVal)"
+BM_Convert_Timestamp_To_EPI_Week:
+  function_name: Convert_Timestamp_To_EPI_Week
+  bm_argument_values:
+    tsVal:
+      - TimestampVal
+      - "REPLACE_VALUE (type: TimestampVal)"
+    yearFormat:
+      - BooleanVal
+      - "REPLACE_VALUE (type: BooleanVal)"
+BM_Convert_String_To_EPI_Week:
+  function_name: Convert_String_To_EPI_Week
+  bm_argument_values:
+    dateStr:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    yearFormat:
+      - BooleanVal
+      - "REPLACE_VALUE (type: BooleanVal)"
+BM_NT_To_AA_Position:
+  function_name: NT_To_AA_Position
+  bm_argument_values:
+    oriMap:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    cdsMap:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    oriPos:
+      - BigIntVal
+      - "REPLACE_VALUE (type: BigIntVal)"
+BM_NT_To_CDS_Position:
+  function_name: NT_To_CDS_Position
+  bm_argument_values:
+    oriMap:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    cdsMap:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    oriPos:
+      - BigIntVal
+      - "REPLACE_VALUE (type: BigIntVal)"
+BM_NT_Position_To_CDS_Codon_Mutant:
+  function_name: NT_Position_To_CDS_Codon_Mutant
+  bm_argument_values:
+    oriMap:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    cdsMap:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    cdsAlignment:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    oriPos:
+      - BigIntVal
+      - "REPLACE_VALUE (type: BigIntVal)"
+    allele:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_NT_Position_To_Mutation_AA3:
+  function_name: NT_Position_To_Mutation_AA3
+  bm_argument_values:
+    oriMap:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    cdsMap:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    cdsAlignment:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    oriPos:
+      - BigIntVal
+      - "REPLACE_VALUE (type: BigIntVal)"
+    major_allele:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    minor_allele:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_NT_Position_To_CDS_Codon:
+  function_name: NT_Position_To_CDS_Codon
+  bm_argument_values:
+    oriMap:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    cdsMap:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    cdsAlignment:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    oriPos:
+      - BigIntVal
+      - "REPLACE_VALUE (type: BigIntVal)"
+BM_Substring_By_Range:
+  function_name: Substring_By_Range
+  bm_argument_values:
+    sequence:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    rangeMap:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Cut_Paste:
+  function_name: Cut_Paste
+  bm_argument_values:
+    my_string:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    delim:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    range_map:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Cut_Paste_Output:
+  function_name: Cut_Paste_Output
+  bm_argument_values:
+    my_string:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    delim:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    range_map:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    out_delim:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Mutation_List_PDS:
+  function_name: Mutation_List_PDS
+  bm_argument_values:
+    sequence1:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    sequence2:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    pairwise_delete_set:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Mutation_List_Strict_Range:
+  function_name: Mutation_List_Strict_Range
+  bm_argument_values:
+    sequence1:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    sequence2:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    rangeMap:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Hamming_Distance_Pairwise_Delete:
+  function_name: Hamming_Distance_Pairwise_Delete
+  bm_argument_values:
+    sequence1:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    sequence2:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    pairwise_delete_set:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Hamming_Distance:
+  function_name: Hamming_Distance
+  bm_argument_values:
+    sequence1:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    sequence2:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Nt_Distance:
+  function_name: Nt_Distance
+  bm_argument_values:
+    sequence1:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    sequence2:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Physiochemical_Distance:
+  function_name: Physiochemical_Distance
+  bm_argument_values:
+    sequence1:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    sequence2:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Physiochemical_Distance_List:
+  function_name: Physiochemical_Distance_List
+  bm_argument_values:
+    sequence1:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    sequence2:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Contains_An_Element:
+  function_name: Contains_An_Element
+  bm_argument_values:
+    mystring:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    list_of_items:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    delimVal:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Is_An_Element:
+  function_name: Is_An_Element
+  bm_argument_values:
+    needle:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    list_of_items:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    delimVal:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Contains_Symmetric:
+  function_name: Contains_Symmetric
+  bm_argument_values:
+    string1:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    string2:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_nt_id:
+  function_name: nt_id
+  bm_argument_values:
+    sequence:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_nt_std:
+  function_name: nt_std
+  bm_argument_values:
+    sequence:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_aa_std:
+  function_name: aa_std
+  bm_argument_values:
+    sequence:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_variant_hash:
+  function_name: variant_hash
+  bm_argument_values:
+    sequence:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_md5:
+  function_name: md5
+  bm_argument_values:
+    num_vars:
+      - int
+      - "REPLACE_VALUE (type: int)"
+    args:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Number_Deletions:
+  function_name: Number_Deletions
+  bm_argument_values:
+    sequence:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Longest_Deletion:
+  function_name: Longest_Deletion
+  bm_argument_values:
+    sequence:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"

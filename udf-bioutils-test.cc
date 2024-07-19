@@ -538,9 +538,7 @@ bool test__mutation_list_gly() {
         std::make_tuple("NRMANHSSELL", "", StringVal::null()),
         std::make_tuple("NRMANHSSELL", "NRMAN", ""),
         std::make_tuple("NRMANHSSELL", "NRSANPSSELL", "M3S-ADD-GLY, H6P-LOSS-GLY"),
-        std::make_tuple(
-            "NRMANHSSELL", "NXTANHSSNAT", "R2X, M3T-ADD-GLY, E9N-ADD-GLY, L10A, L11T-ADD-GLY"
-        ),
+        std::make_tuple("NRMANHSSELL", "NXTANHSSNAT", "R2X, M3T-ADD-GLY, E9N-ADD-GLY, L10A, L11T-ADD-GLY"),
         std::make_tuple("NANHSSELL", "NATHSSELL", "N3T-ADD-LOSS-GLY"),
         std::make_tuple("AAA", "NIT", "A1N-ADD-GLY, A2I, A3T-ADD-GLY"),
         std::make_tuple("APA", "NIT", "A1N-ADD-GLY, P2I-ADD-GLY, A3T-ADD-GLY"),

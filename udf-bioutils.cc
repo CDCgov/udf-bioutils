@@ -1,4 +1,4 @@
-// Samuel S. Shepard, CDC
+// Samuel S. Shepard, et al., CDC
 // Impala user-defined functions for CDC biofinformatics.
 // Relies on Cloudera headers being installed.
 // Current version supports C++20
@@ -1392,13 +1392,15 @@ IMPALA_UDF_EXPORT
 StringVal Mutation_List_Indel_GLY(
     FunctionContext *context, const StringVal &seq1_, const StringVal &seq2_
 ) {
+    if (seq1_.is_null || seq2_.is_null || seq1_.len == 0 || seq2_.len == 0) {
+        return StringVal::null();
+    }
+
     using namespace boost::xpressive;
 
     static const std::string p("(?i:N[_.-]*[A-OQ-Z][_.-]*[ST]$)"); // check
     static const sregex r = sregex::compile(p);
-    /*static const sregex r = icase('N') >> *(set='_', '.', '-')
-                   >> icase(set[range('A', 'O') | range('Q', 'Z')])
-                   >> *(set='_', '.', '-') >> icase((set='S', 'T')) >> eos;*/
+
     const std::string seq1((const char *)seq1_.ptr, seq1_.len);
     const std::string seq2((const char *)seq2_.ptr, seq2_.len);
 
@@ -1408,16 +1410,10 @@ StringVal Mutation_List_Indel_GLY(
 
     // Initialize a 2-dimensional array for storing ptm information.
     std::vector<std::array<std::bitset<PTM_GLY_WINDOW_SIZE>, 2>> is_motif(max_i);
-    // is_motif.assign(max_i, {std::bitset<PTM_GLY_WINDOW_SIZE>, std::bitset<PTM_GLY_WINDOW_SIZE>});
 
     std::bitset<PTM_GLY_WINDOW_SIZE> cur_ptm(1);
     bool has_ptm;
-
     char prev_char;
-
-    if (seq1_.is_null || seq2_.is_null || seq1_.len == 0 || seq2_.len == 0) {
-        return StringVal::null();
-    }
 
     for (size_t i = 0; i < max_i; i++) {
         has_ptm = false;

@@ -58,14 +58,12 @@ Deployment requires pushing our `.so` files to the remote, distributed file syst
 
 ### Set Vars
 
-Suppose we have 3 install locations for the included libraries. We can set some environmental variable like so:
+Suppose we have an install location for the included libraries. We can set an environmental variable like so:
 
 ```bash
-# Set HDFS (or other store) locations for the libraries
+# Set HDFS (or other store) location for the libraries
+export UDF_BIOUTILS_PATH="/udx/ncird_id/prod"
 
-export UDF_MATHUTILS="/udx/ncird_id/prod/libudfmathutils.so"
-export UDF_BIOUTILS="/udx/ncird_id/prod/libudfbioutils.so"
-export UDA_BIOUTILS="/udx/ncird_id/prod/libudabioutils.so"
 ```
 
 We used a folder called `/udx` for both UDF and UDAs, a prod vs. dev subfolder, and a group for our organization which is NCIRD/ID. In practice you should set this to where you expect the UDFs to be readable by Impala. If they are not readable, adjust permissions and/or [Ranger](https://docs.cloudera.com/cdp-reference-architectures/latest/cdp-ra-security/topics/cdp-ra-security-apache-ranger.html) policies until they are.

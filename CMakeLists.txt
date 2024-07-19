@@ -37,3 +37,13 @@ target_link_libraries(udfmathutils ImpalaUdf)
 
 add_executable(udf-bioutils-test udf-bioutils-test.cc)
 target_link_libraries(udf-bioutils-test udfbioutils)
+
+if(NOT EXCLUDE_BENCHMARK)
+add_executable(udf-bioutils-bmark udf-bioutils-bmark.cc)
+add_custom_command(OUTPUT udf-bioutils-bmark.cc
+    COMMAND benchmark/generate_bmark_code.py json/udf-bmark.json > udf-bioutils-bmark.cc
+    DEPENDS json/udf-bmark.json)
+target_link_libraries(udf-bioutils-bmark udfbioutils)
+target_link_libraries(udf-bioutils-bmark pthread)
+target_link_libraries(udf-bioutils-bmark benchmark)
+endif()

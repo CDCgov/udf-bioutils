@@ -1,0 +1,18 @@
+BM_Sequence_Diff:
+  function_name: Sequence_Diff
+  bm_argument_values:
+    seq1:
+      - StringVal
+      - "ATGGCGACGAAGGCCGTGTGCGTGCTGAAGG"
+    seq2:
+      - StringVal
+      - "ATGGCGADGAAGGCCGNGTGCGAGCTGAAGG"
+BM_Sequence_Diff_NT:
+  function_name: Sequence_Diff_NT
+  bm_argument_values:
+    seq1:
+      - StringVal
+      - "ATGGCGACGAAGGCCGTGTGCGTGCTGAAGG"
+    seq2:
+      - StringVal
+      - "ATGGCGADGAAGGCCGNGTGCGAGCTGAAGG"

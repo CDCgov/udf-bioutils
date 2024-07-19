@@ -1,0 +1,11 @@
+static void ${bm_function_name}(benchmark::State &state) {
+    FunctionContext::TypeDesc return_type;
+    std::vector<FunctionContext::TypeDesc> arg_types;
+    FunctionContext *context = UdfTestHarness::CreateTestContext(return_type, arg_types);
+
+
+    for (auto _ : state) {
+        ${function_call}
+    }
+    UdfTestHarness::CloseContext(context);
+}

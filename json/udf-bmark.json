@@ -1,0 +1,176 @@
+{
+    "BM_Sort_List_By_Substring": {
+        "function_name": "Sort_List_By_Substring",
+        "bm_argument_values": {
+            "listVal": [
+                "StringVal",
+                "D;Z;K;X;Y;L;Q;J;R;P;W;G;H;S;N;M;I;F;V;B;E;A;C;O;T"
+            ],
+            "delimVal": [
+                "StringVal",
+                ";"
+            ]
+        }
+    },
+    "BM_Range_From_List": {
+        "function_name": "Range_From_List",
+        "bm_argument_values": {
+            "listVal": [
+                "StringVal",
+                "5;2;9;7;1;8;3;6;4;0;2;9;6;8;4;1;3;7;5;0;2;1;9;3;6"
+            ],
+            "delimVal": [
+                "StringVal",
+                ";"
+            ]
+        }
+    },
+    "BM_Sort_List_By_Substring_Unique": {
+        "function_name": "Sort_List_By_Substring_Unique",
+        "bm_argument_values": {
+            "listVal": [
+                "StringVal",
+                "D;Z;K;X;Y;L;Q;J;R;P;W;G;H;S;N;M;I;F;V;B;E;A;C;O;T"
+            ],
+            "delimVal": [
+                "StringVal",
+                ";"
+            ]
+        }
+    },
+    "BM_Sort_List_By_Set": {
+        "function_name": "Sort_List_By_Set",
+        "bm_argument_values": {
+            "listVal": [
+                "StringVal",
+                "D;Z;K;X;Y;L;Q;J;R;P;W;G;H;S;N;M;I;F;V;B;E;A;C;O;T"
+            ],
+            "delimVal": [
+                "StringVal",
+                ";"
+            ],
+            "outDelimVal": [
+                "StringVal",
+                ":"
+            ]
+        }
+    },
+    "BM_Sort_Allele_List": {
+        "function_name": "Sort_Allele_List",
+        "bm_argument_values": {
+            "listVal": [
+                "StringVal",
+                "286G,32A,498L,174S,45R,377P,109V,456I,248T,83K,213D,95E,326F,420H,154Y,76M,278N,422Q,201W,61C,49B,122J,397O,111U,394X,285Z"
+            ],
+            "delimVal": [
+                "StringVal",
+                ","
+            ]
+        }
+    },
+    "BM_To_AA": {
+        "function_name": "To_AA",
+        "bm_argument_values": {
+            "ntsVal": [
+                "StringVal",
+                "ATGGCGACGAAGGCCGTGTGCGTGCTGAAGG"
+            ]
+        }
+    },
+    "BM_To_AA3": {
+        "function_name": "To_AA3",
+        "bm_argument_values": {
+            "ntsVal": [
+                "StringVal",
+                "ATGGCGACGAAGGCCGTGTGCGTGCTGAAGG"
+            ]
+        }
+    },
+    "BM_Rev_Complement": {
+        "function_name": "Rev_Complement",
+        "bm_argument_values": {
+            "ntsVal": [
+                "StringVal",
+                "ATGGCGACGAAGGCCGTGTGCGTGCTGAAGG"
+            ]
+        }
+    },
+    "BM_Sequence_Diff": {
+        "function_name": "Sequence_Diff",
+        "bm_argument_values": {
+            "seq1": [
+                "StringVal",
+                "ATGGCGACGAAGGCCGTGTGCGTGCTGAAGG"
+            ],
+            "seq2": [
+                "StringVal",
+                "ATGGCGADGAAGGCCGNGTGCGAGCTGAAGG"
+            ]
+        }
+    },
+    "BM_Sequence_Diff_NT": {
+        "function_name": "Sequence_Diff_NT",
+        "bm_argument_values": {
+            "seq1": [
+                "StringVal",
+                "ATGGCGACGAAGGCCGTGTGCGTGCTGAAGG"
+            ],
+            "seq2": [
+                "StringVal",
+                "ATGGCGADGAAGGCCGNGTGCGAGCTGAAGG"
+            ]
+        }
+    },
+    "BM_Mutation_List_Strict": {
+        "function_name": "Mutation_List_Strict",
+        "bm_argument_values": {
+            "sequence1": [
+                "StringVal",
+                "SYTNFTRGVYYPDKV-R"
+            ],
+            "sequence2": [
+                "StringVal",
+                "SYTN-TRGVYYPDK-FR"
+            ]
+        }
+    },
+    "BM_Mutation_List_Strict_GLY": {
+        "function_name": "Mutation_List_Strict_GLY",
+        "bm_argument_values": {
+            "sequence1": [
+                "StringVal",
+                "SYTNFTRGVYYPDKV-R"
+            ],
+            "sequence2": [
+                "StringVal",
+                "SYTN-TRGVYYPDK-FR"
+            ]
+        }
+    },
+    "BM_Mutation_List_Indel_GLY": {
+        "function_name": "Mutation_List_Indel_GLY",
+        "bm_argument_values": {
+            "seq1_": [
+                "StringVal",
+                "SYTNFTRGVYYPDKV-R"
+            ],
+            "seq2_": [
+                "StringVal",
+                "SYTN-TRGVYYPDK-FR"
+            ]
+        }
+    },
+    "BM_Mutation_List_No_Ambiguous": {
+        "function_name": "Mutation_List_No_Ambiguous",
+        "bm_argument_values": {
+            "sequence1": [
+                "StringVal",
+                "SYTNFTRGVYYPDKV-R"
+            ],
+            "sequence2": [
+                "StringVal",
+                "SYTN-TRGVYYPDK-FR"
+            ]
+        }
+    }
+}

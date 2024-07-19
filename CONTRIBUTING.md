@@ -1,4 +1,5 @@
-# Welcome!
+# Welcome
+
 Thank you for contributing to CDC's Open Source projects! If you have any
 questions or doubts, don't be afraid to send them our way. We appreciate all
 contributions, and we are looking forward to fostering an open, transparent, and
@@ -8,6 +9,7 @@ Before contributing, we encourage you to also read our [LICENSE](LICENSE) and
 [README](README.md) files, also found in this repository.
 
 ## Public Domain
+
 This project is in the public domain within the United States, and copyright and
 related rights in the work worldwide are waived through the [CC0 1.0 Universal public domain dedication](https://creativecommons.org/publicdomain/zero/1.0/).
 All contributions to this project will be released under the CC0 dedication. By
@@ -15,15 +17,18 @@ submitting a pull request you are agreeing to comply with this waiver of
 copyright interest.
 
 ## Requesting Changes
+
 Our pull request/merging process is designed to give the CDC Surveillance Team
 and other in our space an opportunity to consider and discuss any suggested
 changes. This policy affects all CDC spaces, both on-line and off, and all users
 are expected to abide by it.
 
 ### Open an issue in the repository
+
 If you don't have specific language to submit but would like to suggest a change
 or have something addressed, you can open an issue in this repository. Team
 members will respond to the issue as soon as possible.
 
 ### Submit a pull request
+
 If you would like to contribute, please submit a pull request.

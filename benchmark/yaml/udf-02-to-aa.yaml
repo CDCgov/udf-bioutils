@@ -1,0 +1,18 @@
+BM_To_AA:
+  function_name: To_AA
+  bm_argument_values:
+    ntsVal:
+      - StringVal
+      - "ATGGCGACGAAGGCCGTGTGCGTGCTGAAGG"
+BM_To_AA3:
+  function_name: To_AA3
+  bm_argument_values:
+    ntsVal:
+      - StringVal
+      - "ATGGCGACGAAGGCCGTGTGCGTGCTGAAGG"
+BM_Rev_Complement:
+  function_name: Rev_Complement
+  bm_argument_values:
+    ntsVal:
+      - StringVal
+      - "ATGGCGACGAAGGCCGTGTGCGTGCTGAAGG"

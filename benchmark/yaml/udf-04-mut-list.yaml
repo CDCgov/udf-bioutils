@@ -1,0 +1,36 @@
+BM_Mutation_List_Strict:
+  function_name: Mutation_List_Strict
+  bm_argument_values:
+    sequence1:
+      - StringVal
+      - "SYTNFTRGVYYPDKV-R"
+    sequence2:
+      - StringVal
+      - "SYTN-TRGVYYPDK-FR"
+BM_Mutation_List_Strict_GLY:
+  function_name: Mutation_List_Strict_GLY
+  bm_argument_values:
+    sequence1:
+      - StringVal
+      - "SYTNFTRGVYYPDKV-R"
+    sequence2:
+      - StringVal
+      - "SYTN-TRGVYYPDK-FR"
+BM_Mutation_List_Indel_GLY:
+  function_name: Mutation_List_Indel_GLY
+  bm_argument_values:
+    seq1_:
+      - StringVal
+      - "SYTNFTRGVYYPDKV-R"
+    seq2_:
+      - StringVal
+      - "SYTN-TRGVYYPDK-FR"
+BM_Mutation_List_No_Ambiguous:
+  function_name: Mutation_List_No_Ambiguous
+  bm_argument_values:
+    sequence1:
+      - StringVal
+      - "SYTNFTRGVYYPDKV-R"
+    sequence2:
+      - StringVal
+      - "SYTN-TRGVYYPDK-FR"

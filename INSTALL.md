@@ -26,6 +26,12 @@ sudo yum install gcc-toolset-12 boost cmake openssl openssl-devel
 
 We use OpenSSL for hashing functions, but Cloudera Manager Agent will also require OpenSSL, so that dependency will usually be met in terms of the the target daemons.
 
+For benchmarks, please install the [google-benchmark](https://github.com/google/benchmark) library:
+
+```bash
+sudo yum install -y google-benchmark-devel google-benchmark 
+```
+
 ## Compilation
 
 Configuration is done via `cmake` but `make` handles the build process. UDX tests are also provided. The test artifacts should be able to execute on the target Impala daemon. If they do not additional dependencies may be missing.
@@ -66,23 +72,12 @@ We used a folder called `/udx` for both UDF and UDAs, a prod vs. dev subfolder, 
 
 ### Push to the Remote
 
-The library artifacts are in the build directory and we can use the Hadoop CLI to push them to our remote file system (in combination with our environment vars). See:
+The library artifacts are in the build directory and we can use the Hadoop CLI to push them to our remote file system (in combination with our environment variable for the install location). See:
 
 ```bash
-for libpath in build/*.so;do 
-    lib=$(basename $libpath)
-    remote_path="none"
-    for path in "$UDF_MATHUTILS" "$UDF_BIOUTILS" "$UDA_BIOUTILS";do
-        if [ "$(basename "$path")" == "$lib" ];then
-            remote_path="$path"
-            break
-        fi
-    done
-    if [ "$remote_path" != "none" ];then
-        echo "Pushing '$libpath' to '$remote_path'"
-        hdfs dfs -put -f "$libpath" "$remote_path"
-    fi
-done
+# Set path to the SO location for your data lake
+export UDF_BIOUTILS_PATH="/udx/prod"
+./install_SO.sh
 ```
 
 ### Generate and run SQL
@@ -90,6 +85,9 @@ done
 Next we can generate SQL to register the functions using our above variables:
 
 ```bash
+# Set path to the SO location for your data lake
+export UDF_BIOUTILS_PATH="/udx/prod"
+
 # Creates tmp files to execute in Impala
 for i in sql/*;do 
     cat $i|envsubst > $(basename $i .sql).tmp.sql

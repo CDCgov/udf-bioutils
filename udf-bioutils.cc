@@ -4,9 +4,11 @@
 // Current version supports C++20
 
 #include <algorithm>
+#include <bitset>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
+#include <boost/xpressive/xpressive.hpp>
 #include <cctype>
 #include <locale>
 #include <openssl/md5.h>
@@ -23,6 +25,8 @@
 #include "udf-bioutils.h"
 #include "udx-inlines.h"
 #include "udx-matrix.h"
+
+#define PTM_GLY_WINDOW_SIZE 5
 
 
 // Utility functions
@@ -1239,96 +1243,303 @@ StringVal Mutation_List_Strict_GLY(
 
     int add_gly  = 0;
     int loss_gly = 0;
+    int is_mut   = 0;
+
     for (std::size_t i = 0; i < length; i++) {
+        is_mut   = 0;
+        add_gly  = 0;
+        loss_gly = 0;
+
+
+        seq1[i] = toupper(seq1[i]);
+        seq2[i] = toupper(seq2[i]);
         if (seq1[i] != seq2[i]) {
-            seq1[i] = toupper(seq1[i]);
-            seq2[i] = toupper(seq2[i]);
-            if (seq1[i] != seq2[i]) {
-                if (seq1[i] != '.' && seq2[i] != '.') {
-                    if (buffer.length() > 0) {
-                        buffer += ", ";
-                        buffer += seq1[i];
-                        buffer += boost::lexical_cast<std::string>(i + 1);
-                        buffer += seq2[i];
-                    } else {
-                        buffer = seq1[i] + boost::lexical_cast<std::string>(i + 1) + seq2[i];
-                    }
+            if ((seq1[i] != '.' && seq1[i] != '-') && (seq2[i] != '.' && seq2[i] != '-')) {
+                is_mut = 1;
 
-                    // GLYCOSYLATION ADD
-                    add_gly = 0;
-
-                    // ~N <= N
-                    if (seq2[i] == 'N') {
-                        // CHECK: .[^P][ST]
-                        if ((i + 2) < length && seq2[i + 1] != 'P' &&
-                            (seq2[i + 2] == 'T' || seq2[i + 2] == 'S')) {
-                            add_gly = 1;
-                        }
+                // GLYCOSYLATION ADD
+                // ~N <= N
+                if (seq2[i] == 'N') {
+                    // CHECK: .[^P][ST]
+                    if ((i + 2) < length && seq2[i + 1] != 'P' &&
+                        (seq2[i + 2] == 'T' || seq2[i + 2] == 'S')) {
+                        add_gly = 1;
                     }
+                }
 
-                    // P => ~P
-                    if (!add_gly && seq1[i] == 'P') {
-                        // CHECK: N.[ST]
-                        if ((i + 1) < length && i >= 1 && seq2[i - 1] == 'N' &&
-                            (seq2[i + 1] == 'T' || seq2[i + 1] == 'S')) {
-                            add_gly = 1;
-                        }
+                // P => ~P
+                if (!add_gly && seq1[i] == 'P') {
+                    // CHECK: N.[ST]
+                    if ((i + 1) < length && i >= 1 && seq2[i - 1] == 'N' &&
+                        (seq2[i + 1] == 'T' || seq2[i + 1] == 'S')) {
+                        add_gly = 1;
                     }
+                }
 
-                    // ~[ST] && [ST]
-                    if (!add_gly && seq1[i] != 'S' && seq1[i] != 'T' &&
-                        (seq2[i] == 'S' || seq2[i] == 'T')) {
-                        // CHECK: N[^P].
-                        if (i >= 2 && seq2[i - 2] == 'N' && seq2[i - 1] != 'P') {
-                            add_gly = 1;
-                        }
+                // ~[ST] && [ST]
+                if (!add_gly && seq1[i] != 'S' && seq1[i] != 'T' &&
+                    (seq2[i] == 'S' || seq2[i] == 'T')) {
+                    // CHECK: N[^P].
+                    if (i >= 2 && seq2[i - 2] == 'N' && seq2[i - 1] != 'P') {
+                        add_gly = 1;
                     }
+                }
 
-                    // GLYCOSYLATION LOSS
-                    loss_gly = 0;
 
-                    // N => ~N
-                    if (seq1[i] == 'N') {
-                        // CHECK: .[^P][ST]
-                        if ((i + 2) < length && seq1[i + 1] != 'P' &&
-                            (seq1[i + 2] == 'T' || seq1[i + 2] == 'S')) {
-                            loss_gly = 1;
-                        }
+                // GLYCOSYLATION LOSS
+                // N => ~N
+                if (seq1[i] == 'N') {
+                    // CHECK: .[^P][ST]
+                    if ((i + 2) < length && seq1[i + 1] != 'P' &&
+                        (seq1[i + 2] == 'T' || seq1[i + 2] == 'S')) {
+                        loss_gly = 1;
                     }
+                }
 
-                    // ~P <= P
-                    if (!loss_gly && seq2[i] == 'P') {
-                        // CHECK: N.[ST]
-                        if ((i + 1) < length && i >= 1 && seq1[i - 1] == 'N' &&
-                            (seq1[i + 1] == 'T' || seq1[i + 1] == 'S')) {
-                            loss_gly = 1;
-                        }
+                // ~P <= P
+                if (!loss_gly && seq2[i] == 'P') {
+                    // CHECK: N.[ST]
+                    if ((i + 1) < length && i >= 1 && seq1[i - 1] == 'N' &&
+                        (seq1[i + 1] == 'T' || seq1[i + 1] == 'S')) {
+                        loss_gly = 1;
                     }
+                }
 
-                    // [ST] && ~[ST]
-                    if (!loss_gly && seq2[i] != 'S' && seq2[i] != 'T' &&
-                        (seq1[i] == 'S' || seq1[i] == 'T')) {
-                        // CHECK: N[^P].
-                        if (i >= 2 && seq1[i - 2] == 'N' && seq1[i - 1] != 'P') {
-                            loss_gly = 1;
-                        }
-                    }
-
-                    if (add_gly) {
-                        buffer += "-ADD";
-                    }
-                    if (loss_gly) {
-                        buffer += "-LOSS";
-                    }
-                    if (add_gly || loss_gly) {
-                        buffer += "-GLY";
+                // [ST] && ~[ST]
+                if (!loss_gly && seq2[i] != 'S' && seq2[i] != 'T' &&
+                    (seq1[i] == 'S' || seq1[i] == 'T')) {
+                    // CHECK: N[^P].
+                    if (i >= 2 && seq1[i - 2] == 'N' && seq1[i - 1] != 'P') {
+                        loss_gly = 1;
                     }
                 }
             }
         }
+
+        // Deletions that cause changes in glycosylation
+
+        if ((seq1[i] != '.' || seq1[i] != '-') && (seq2[i] == '.' || seq2[i] == '-')) {
+            is_mut = 0;
+
+            // N.[^P][ST] -> N-[^P][ST]
+            if (0 <= (i - 1) && (i + 2) < length &&           // checking for length
+                seq2[i - 1] == 'N' &&                         // -2 position
+                seq2[i + 1] != 'P' &&                         // -1 position
+                (seq2[i + 2] == 'S' || seq2[i + 2] == 'T')) { // 0 position
+                add_gly = 1;
+            }
+
+            // N[^P].[ST] -> N[^P]-[ST]
+            if (0 <= (i - 2) && (i + 1) < length &&           // checking for length
+                seq2[i - 2] == 'N' &&                         // -2 position
+                seq2[i - 1] != 'P' &&                         // -1 position
+                (seq2[i + 1] == 'S' || seq2[i + 1] == 'T')) { // 0 position
+                add_gly = 1;
+            }
+
+            // N[^P][ST] -> -[^P][ST]
+            if (0 <= i && (i + 2) < length &&                 // checking for length
+                seq1[i] == 'N' &&                             // -2 position
+                seq1[i + 1] != 'P' &&                         // -1 position
+                (seq1[i + 2] == 'S' || seq1[i + 2] == 'T')) { // 0 position
+                loss_gly = 1;
+            }
+
+            // N[^P][ST] -> N-[ST]
+            if (0 <= (i - 1) && (i + 1) < length &&           // checking for length
+                seq1[i - 1] == 'N' &&                         // -2 position
+                seq1[i] != 'P' &&                             // -1 position
+                (seq1[i + 1] == 'S' || seq1[i + 1] == 'T')) { // 0 position
+                loss_gly = 1;
+            }
+
+            // N[^P][ST] -> N[^P]-
+            if (0 <= (i - 2) && i < length &&         // checking for length
+                seq1[i - 2] == 'N' &&                 // -2 position
+                seq1[i - 1] != 'P' &&                 // -1 position
+                (seq1[i] == 'S' || seq1[i] == 'T')) { // 0 position
+                loss_gly = 1;
+            }
+        }
+
+        // Check if the mutation should be added to the buffer for final output
+        // Will only trigger for (1) all mutations or (2) deletions that
+        // specifically causes change in glycosylation site.
+        if (is_mut || ((add_gly || loss_gly) && !is_mut)) {
+            if (buffer.length() > 0) {
+                buffer += ", ";
+                buffer += seq1[i];
+                buffer += boost::lexical_cast<std::string>(i + 1);
+                buffer += seq2[i];
+            } else {
+                buffer = seq1[i] + boost::lexical_cast<std::string>(i + 1) + seq2[i];
+            }
+
+
+            if (add_gly)
+                buffer += "-ADD";
+            if (loss_gly)
+                buffer += "-LOSS";
+            if (add_gly || loss_gly)
+                buffer += "-GLY";
+        }
     }
 
     return to_StringVal(context, buffer);
+}
+
+IMPALA_UDF_EXPORT
+StringVal Mutation_List_Indel_GLY(
+    FunctionContext *context, const StringVal &seq1_, const StringVal &seq2_
+) {
+    using namespace boost::xpressive;
+
+    static const std::string p("(?i:N[_.-]*[A-OQ-Z][_.-]*[ST]$)"); // check
+    static const sregex r = sregex::compile(p);
+    /*static const sregex r = icase('N') >> *(set='_', '.', '-')
+                   >> icase(set[range('A', 'O') | range('Q', 'Z')])
+                   >> *(set='_', '.', '-') >> icase((set='S', 'T')) >> eos;*/
+    const std::string seq1((const char *)seq1_.ptr, seq1_.len);
+    const std::string seq2((const char *)seq2_.ptr, seq2_.len);
+
+    std::string buffer;
+    const size_t max_i = std::min(seq1.size(), seq2.size());
+    smatch sm1, sm2;
+
+    // Initialize a 2-dimensional array for storing ptm information.
+    std::vector<std::array<std::bitset<PTM_GLY_WINDOW_SIZE>, 2>> is_motif(max_i);
+    // is_motif.assign(max_i, {std::bitset<PTM_GLY_WINDOW_SIZE>, std::bitset<PTM_GLY_WINDOW_SIZE>});
+
+    std::bitset<PTM_GLY_WINDOW_SIZE> cur_ptm(1);
+    bool has_ptm;
+
+    char prev_char;
+
+    if (seq1_.is_null || seq2_.is_null || seq1_.len == 0 || seq2_.len == 0) {
+        return StringVal::null();
+    }
+
+    for (size_t i = 0; i < max_i; i++) {
+        has_ptm = false;
+
+        // Look for serines or threonines
+        if (toupper(seq1[i]) != 'S' && toupper(seq1[i]) != 'T' && toupper(seq2[i]) != 'S' &&
+            toupper(seq2[i]) != 'T') {
+            continue;
+        }
+
+        // Substring the sequence around PTM site
+        const size_t sub_pos    = std::max<int>(0, i - PTM_GLY_WINDOW_SIZE + 1);
+        const size_t sub_length = std::min<int>(PTM_GLY_WINDOW_SIZE, i - sub_pos + 1);
+        ;
+        std::string seq1_sub = seq1.substr(sub_pos, sub_length);
+        std::string seq2_sub = seq2.substr(sub_pos, sub_length);
+
+        // Does the motif match in seq1?
+        bool seq1_m = regex_search(seq1_sub, sm1, r);
+        bool seq2_m = regex_search(seq2_sub, sm2, r);
+
+
+        // See if there's a difference in PTM recognition between seq1 and seq2
+        if (seq1_m && !seq2_m) {
+            has_ptm = true;
+
+            // Mark the positions associated with PTM motif
+            for (size_t j = i - sm1[0].length() + 1; j <= i; j++) {
+                // Check if the mutation is resonsible for PTM
+                for (int k = sm1[0].first - seq1_sub.begin(); k < sm1[0].second - seq1_sub.begin();
+                     k++) {
+                    if (seq1_sub[k] == seq2_sub[k]) {
+                        continue;
+                    }
+
+                    // Temporarily mutate position of interest
+                    // to see if they match PTM motif
+                    prev_char   = seq1_sub[k];
+                    seq1_sub[k] = seq2_sub[k];
+
+                    // Does seq1 have a mutation that causes loss of PTM
+                    // recognition?
+                    if (!regex_search(seq1_sub, r)) {
+                        is_motif[k + sub_pos][0] |= cur_ptm;
+                    }
+                    seq1_sub[k] = prev_char;
+                }
+            }
+        }
+
+        // See if there's a difference in PTM recognition between seq1 and seq2
+        if (seq2_m && !seq1_m) {
+            has_ptm = true;
+
+            // Mark the positions associated with PTM motif
+            for (size_t j = i - sm2[0].length() + 1; j <= i; j++)
+                // Check if the mutation is resonsible for PTM
+                for (int k = sm2[0].first - seq2_sub.begin(); k < sm2[0].second - seq2_sub.begin();
+                     k++) {
+                    if (seq1_sub[k] == seq2_sub[k]) {
+                        continue;
+                    }
+
+                    // Temporarily mutate position of interest
+                    // to see if they match PTM motif
+                    prev_char   = seq2_sub[k];
+                    seq2_sub[k] = seq1_sub[k];
+
+                    // Does seq2 have a mutation that causes loss of PTM
+                    // recognition?
+                    if (!regex_search(seq2_sub, r)) {
+                        is_motif[k + sub_pos][1] |= cur_ptm;
+                    }
+                    seq2_sub[k] = prev_char;
+                }
+        }
+
+        // Increment for the next ptm
+        if (has_ptm) {
+            cur_ptm = cur_ptm << 1;
+        }
+    }
+
+
+    // Annotate mutations
+    for (size_t i = 0; i < max_i; i++) {
+        // Annotate the mutation
+        if (// Checks if mutation is not indel
+            ((toupper(seq1[i]) != toupper(seq2[i]) &&
+              isalpha(seq1[i]) && isalpha(seq2[i])) ||
+
+            // If mutation is indel, check if it changes recognition sequence
+             (toupper(seq1[i]) != toupper(seq2[i]) &&
+              is_motif[i][0] != is_motif[i][1]))) {
+
+            if (!buffer.empty()) {
+                buffer.append(", ");
+            }
+            buffer.push_back(isalpha(seq1[i]) ? seq1[i] : '.');
+            buffer.append(std::to_string(i + 1));
+            buffer.push_back(isalpha(seq2[i]) ? seq2[i] : '.');
+        }
+
+        // Annotate the change in PTM recognition sequence
+        if (toupper(seq1[i]) != toupper(seq2[i]) && is_motif[i][0] != is_motif[i][1]) {
+            // If both sequences gained glycosylation
+            if (((is_motif[i][0] ^ is_motif[i][1]) & is_motif[i][0]).any() &&
+                ((is_motif[i][0] ^ is_motif[i][1]) & is_motif[i][1]).any()) {
+                buffer.append("-ADD-LOSS-GLY");
+            }
+            // If seq2 gained glycosylation
+            else if (((is_motif[i][0] ^ is_motif[i][1]) & is_motif[i][1]).any()) {
+                buffer.append("-ADD-GLY");
+            }
+            // If seq1 lost glycosylation
+            else if (((is_motif[i][0] ^ is_motif[i][1]) & is_motif[i][0]).any()) {
+                buffer.append("-LOSS-GLY");
+            }
+        }
+    }
+
+    return StringVal::CopyFrom(context, (const uint8_t *)buffer.c_str(), buffer.size());
 }
 
 // Create a mutation list from two aligned strings

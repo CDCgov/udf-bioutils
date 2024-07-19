@@ -232,6 +232,7 @@ sequence_diff_nt(STRING seq1, STRING seq2)
 ```sql
 mutation_list(STRING seq1, STRING seq2 [, STRING range])
 mutation_list_gly(STRING seq1, STRING seq2)
+mutation_list_indel_gly(STRING seq1, STRING seq2)
 mutation_list_nt(STRING seq1, STRING seq2)
 mutation_list_pds(STRING seq1, STRING seq2, STRING pairwise_deletion_set)
 ```
@@ -239,7 +240,7 @@ mutation_list_pds(STRING seq1, STRING seq2, STRING pairwise_deletion_set)
 **Return type:** `STRING`  
 **Purpose:** Expects **aligned** biological sequences and returns a list of mutations from `seq1` to `seq2`, delimited by a comma + space.  If the `range` argument is included, only those sites will be compared (see the description of `range_coords` in `substr_range`). For example: `A2G, T160K, G340R`. If any argument is `NULL` or empty, a null value is returned. The function `mutation_list` returns differences and may be used for nucleotide, amino acid, or any other sequence. There are some alternative variants to the function:
 
-- The function `mutation_list_gly` is similar to the vanilla `mutation_list` function but annotates the addition or loss of an [N-linked glycosylation site](https://en.wikipedia.org/wiki/N-linked_glycosylation#Transfer_of_glycan_to_protein) due to substitution (from `seq1` to `seq2`).
+- The function `mutation_list_gly` is similar to the vanilla `mutation_list` function but annotates the addition or loss of an [N-linked glycosylation site](https://en.wikipedia.org/wiki/N-linked_glycosylation#Transfer_of_glycan_to_protein) due to substitution or single deletion (from `seq1` to `seq2`). Function `mutation_list_indel_gly` is an enhancement of `mutation_list_gly` which robustly accounts for the effects of indels on glycosylation in sequences no larger than 5 (a parameter that is adjustable at compile-time) but also is substantially slower.
 - The function `mutation_list_nt` is *suitable only for nucleotide sequences* and ignores resolvable differences involving ambiguous nucleotides (e.g., "R2G" would not be listed).
 - The function `mutation_list_pds` also contains an explicit argument for a pairwise deletion character set. If any pair of characters contain any of the characters in the argument, that position is ignored from the calculation.
 

@@ -7,4 +7,5 @@ Makefile
 bak/
 *.out
 install_locations.sh
+test_regex
 sandbox/

@@ -530,39 +530,43 @@ bool test__mutation_list_range() {
 bool test__mutation_list_gly() {
     int passing = true;
 
-    std::tuple<StringVal, StringVal, StringVal> table[29] = {
+    std::tuple<StringVal, StringVal, StringVal> table[33] = {
         std::make_tuple("NRMANHSSELL", "NRMANHSSELL", ""),
         std::make_tuple(StringVal::null(), "NRMANHSSELL", StringVal::null()),
         std::make_tuple("NRMANHSSELL", StringVal::null(), StringVal::null()),
         std::make_tuple("", "NRMANHSSELL", StringVal::null()),
         std::make_tuple("NRMANHSSELL", "", StringVal::null()),
         std::make_tuple("NRMANHSSELL", "NRMAN", ""),
-        std::make_tuple("NRMANHSSELL", "NRSANPSSELL", "M3S-ADD-GLY, H6P-LOSS-GLY"),
-        std::make_tuple("NRMANHSSELL", "NXTANHSSNAT", "R2X, M3T-ADD-GLY, E9N-ADD-GLY, L10A, L11T-ADD-GLY"),
-        std::make_tuple("NANHSSELL", "NATHSSELL", "N3T-ADD-LOSS-GLY"),
-        std::make_tuple("AAA", "NIT", "A1N-ADD-GLY, A2I, A3T-ADD-GLY"),
-        std::make_tuple("APA", "NIT", "A1N-ADD-GLY, P2I-ADD-GLY, A3T-ADD-GLY"),
-        std::make_tuple("NAA", "NIT", "A2I, A3T-ADD-GLY"),
-        std::make_tuple("NPA", "NIT", "P2I-ADD-GLY, A3T-ADD-GLY"),
+        std::make_tuple("NRMANHSSELL", "NRSANPSSELL", "M3S(CHO+), H6P(CHO-)"),
+        std::make_tuple("NRMANHSSELL", "NXTANHSSNAT", "R2X, M3T(CHO+), E9N(CHO+), L10A, L11T(CHO+)"),
+        std::make_tuple("NANHSSELL", "NATHSSELL", "N3T(CHO+/-)"),
+        std::make_tuple("AAA", "NIT", "A1N(CHO+), A2I, A3T(CHO+)"),
+        std::make_tuple("APA", "NIT", "A1N(CHO+), P2I(CHO+), A3T(CHO+)"),
+        std::make_tuple("NAA", "NIT", "A2I, A3T(CHO+)"),
+        std::make_tuple("NPA", "NIT", "P2I(CHO+), A3T(CHO+)"),
         std::make_tuple("NAT", "NIS", "A2I, T3S"),
-        std::make_tuple("NPT", "NIT", "P2I-ADD-GLY"),
-        std::make_tuple("NAT", "NAP", "T3P-LOSS-GLY"),
-        std::make_tuple("NSS", "NSP", "S3P-LOSS-GLY"),
-        std::make_tuple("NPS", "NNS", "P2N-ADD-GLY"),
-        std::make_tuple("NNS", "NPS", "N2P-LOSS-GLY"),
-        std::make_tuple("NSFT", "N.FT", "S2.-ADD-GLY"),
-        std::make_tuple("NFST", "NF.T", "S3.-ADD-LOSS-GLY"),
-        std::make_tuple("NFT", "N.T", "F2.-LOSS-GLY"),
-        std::make_tuple("NFT", ".FT", "N1.-LOSS-GLY"),
-        std::make_tuple("NFT", "N.T", "F2.-LOSS-GLY"),
-        std::make_tuple("NFT", "NF.", "T3.-LOSS-GLY"),
-        std::make_tuple("NSFTNFT", "N.FTN.T", "S2.-ADD-GLY, F6.-LOSS-GLY"),
-        std::make_tuple("AANFTDPLINSFTNFT", "AAN-TAPLINSFTNFT", "F4--LOSS-GLY, D6A"),
-        std::make_tuple("SYTNFTRGVYYPDKV-R", "SYTN-TRGVYYPDK-FR", "F5--LOSS-GLY"),
-        std::make_tuple("SYTNSFTRGVYYPDKVFR", "SYTN-FTRGVYYPDKGFR", "S5--ADD-GLY, V16G")
+        std::make_tuple("NPT", "NIT", "P2I(CHO+)"),
+        std::make_tuple("NAT", "NAP", "T3P(CHO-)"),
+        std::make_tuple("NSS", "NSP", "S3P(CHO-)"),
+        std::make_tuple("NPS", "NNS", "P2N(CHO+)"),
+        std::make_tuple("NNS", "NPS", "N2P(CHO-)"),
+        std::make_tuple("NSFT", "N-FT", "S2-(CHO+)"),
+        std::make_tuple("NFST", "NF-T", "S3-(CHO+/-)"),
+        std::make_tuple("NFT", "N-T", "F2-(CHO-)"),
+        std::make_tuple("NFT", "-FT", "N1-(CHO-)"),
+        std::make_tuple("NFT", "N-T", "F2-(CHO-)"),
+        std::make_tuple("NFT", "NF-", "T3-(CHO-)"),
+        std::make_tuple("NFT", "NF.", ""),
+        std::make_tuple("NF.", "NFT", ""),
+        std::make_tuple("NFT", ".FT", ""),
+        std::make_tuple(".FT", "NFT", ""),
+        std::make_tuple("NSFTNFT", "N-FTN-T", "S2-(CHO+), F6-(CHO-)"),
+        std::make_tuple("AANFTDPLINSFTNFT", "AAN-TAPLINSFTNFT", "F4-(CHO-), D6A"),
+        std::make_tuple("SYTNFTRGVYYPDKV-R", "SYTN-TRGVYYPDK-FR", "F5-(CHO-)"),
+        std::make_tuple("SYTNSFTRGVYYPDKVFR", "SYTN-FTRGVYYPDKGFR", "S5-(CHO+), V16G")
     };
 
-    for (int i = 0; i < 29; i++) {
+    for (int i = 0; i < 33; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
@@ -580,61 +584,65 @@ bool test__mutation_list_gly() {
 bool test__mutation_list_indel_gly() {
     int passing = true;
 
-    std::tuple<StringVal, StringVal, StringVal> table[34] = {
+    std::tuple<StringVal, StringVal, StringVal> table[38] = {
         std::make_tuple("NRMANHSSELL", "NRMANHSSELL", ""),
         std::make_tuple(StringVal::null(), "NRMANHSSELL", StringVal::null()),
         std::make_tuple("NRMANHSSELL", StringVal::null(), StringVal::null()),
         std::make_tuple("", "NRMANHSSELL", StringVal::null()),
         std::make_tuple("NRMANHSSELL", "", StringVal::null()),
         std::make_tuple("NRMANHSSELL", "NRMAN", ""),
-        std::make_tuple("NRMANHSSELL", "NRSANPSSELL", "M3S-ADD-GLY, H6P-LOSS-GLY"),
+        std::make_tuple("NRMANHSSELL", "NRSANPSSELL", "M3S(CHO+), H6P(CHO-)"),
         std::make_tuple(
-            "NRMANHSSELL", "NXTANHSSNAT", "R2X, M3T-ADD-GLY, E9N-ADD-GLY, L10A, L11T-ADD-GLY"
+            "NRMANHSSELL", "NXTANHSSNAT", "R2X, M3T(CHO+), E9N(CHO+), L10A, L11T(CHO+)"
         ),
-        std::make_tuple("NANHSSELL", "NATHSSELL", "N3T-ADD-LOSS-GLY"),
-        std::make_tuple("AAA", "NIT", "A1N-ADD-GLY, A2I, A3T-ADD-GLY"),
-        std::make_tuple("APA", "NIT", "A1N-ADD-GLY, P2I-ADD-GLY, A3T-ADD-GLY"),
-        std::make_tuple("NAA", "NIT", "A2I, A3T-ADD-GLY"),
-        std::make_tuple("NPA", "NIT", "P2I-ADD-GLY, A3T-ADD-GLY"),
+        std::make_tuple("NANHSSELL", "NATHSSELL", "N3T(CHO+/-)"),
+        std::make_tuple("AAA", "NIT", "A1N(CHO+), A2I, A3T(CHO+)"),
+        std::make_tuple("APA", "NIT", "A1N(CHO+), P2I(CHO+), A3T(CHO+)"),
+        std::make_tuple("NAA", "NIT", "A2I, A3T(CHO+)"),
+        std::make_tuple("NPA", "NIT", "P2I(CHO+), A3T(CHO+)"),
         std::make_tuple("NAT", "NIS", "A2I, T3S"),
-        std::make_tuple("NPT", "NIT", "P2I-ADD-GLY"),
-        std::make_tuple("NAT", "NAP", "T3P-LOSS-GLY"),
-        std::make_tuple("NSS", "NSP", "S3P-LOSS-GLY"),
-        std::make_tuple("NPS", "NNS", "P2N-ADD-GLY"),
-        std::make_tuple("NNS", "NPS", "N2P-LOSS-GLY"),
-        std::make_tuple("NSFT", "N.FT", "S2.-ADD-GLY"),
-        std::make_tuple("NFST", "NF.T", "S3.-ADD-LOSS-GLY"),
-        std::make_tuple("NFT", "N.T", "F2.-LOSS-GLY"),
-        std::make_tuple("NFT", ".FT", "N1.-LOSS-GLY"),
-        std::make_tuple("NFT", "N.T", "F2.-LOSS-GLY"),
-        std::make_tuple("NFT", "NF.", "T3.-LOSS-GLY"),
-        std::make_tuple("NSFTNFT", "N.FTN.T", "S2.-ADD-GLY, F6.-LOSS-GLY"),
-        std::make_tuple("AANFTDPLINSFTNFT", "AAN-TAPLINSFTNFT", "F4.-LOSS-GLY, D6A"),
-        std::make_tuple("SYTNFTRGVYYPDKV-R", "SYTN-TRGVYYPDK-FR", "F5.-LOSS-GLY"),
-        std::make_tuple("SYTNSFTRGVYYPDKVFR", "SYTN-FTRGVYYPDKGFR", "S5.-ADD-GLY, V16G"),
+        std::make_tuple("NPT", "NIT", "P2I(CHO+)"),
+        std::make_tuple("NAT", "NAP", "T3P(CHO-)"),
+        std::make_tuple("NSS", "NSP", "S3P(CHO-)"),
+        std::make_tuple("NPS", "NNS", "P2N(CHO+)"),
+        std::make_tuple("NNS", "NPS", "N2P(CHO-)"),
+        std::make_tuple("NSFT", "N-FT", "S2-(CHO+)"),
+        std::make_tuple("NFST", "NF-T", "S3-(CHO+/-)"),
+        std::make_tuple("NFT", "N-T", "F2-(CHO-)"),
+        std::make_tuple("NFT", "-FT", "N1-(CHO-)"),
+        std::make_tuple("NFT", "N-T", "F2-(CHO-)"),
+        std::make_tuple("NFT", "NF-", "T3-(CHO-)"),
+        std::make_tuple("NFT", "NF.", ""),
+        std::make_tuple("NF.", "NFT", ""),
+        std::make_tuple("NFT", ".FT", ""),
+        std::make_tuple(".FT", "NFT", ""),
+        std::make_tuple("NSFTNFT", "N-FTN-T", "S2-(CHO+), F6-(CHO-)"),
+        std::make_tuple("AANFTDPLINSFTNFT", "AAN-TAPLINSFTNFT", "F4-(CHO-), D6A"),
+        std::make_tuple("SYTNFTRGVYYPDKV-R", "SYTN-TRGVYYPDK-FR", "F5-(CHO-)"),
+        std::make_tuple("SYTNSFTRGVYYPDKVFR", "SYTN-FTRGVYYPDKGFR", "S5-(CHO+), V16G"),
         std::make_tuple(
             "NFSNNSTSFNNSSTNPTTT", "NFTNFSTSFNFSATNNTTT",
-            "S3T, N5F-LOSS-GLY, N11F-LOSS-GLY, S13A-LOSS-GLY, P16N-ADD-GLY"
+            "S3T, N5F(CHO-), N11F(CHO-), S13A(CHO-), P16N(CHO+)"
         ),
         std::make_tuple(
             "NNPSATNASATNASAT", "NNTNPTNANPTNANET",
-            "P3T-ADD-GLY, S4N, A5P, S9N-LOSS-GLY, A10P, S14N-ADD-LOSS-GLY, A15E"
+            "P3T(CHO+), S4N, A5P, S9N(CHO-), A10P, S14N(CHO+/-), A15E"
         ),
         std::make_tuple(
             "N-SSTN-SSTN--AT", "NA-STNP-STNPTAT",
-            ".7P-LOSS-GLY, S8.-LOSS-GLY, .12P-LOSS-GLY, .13T-LOSS-GLY"
+            "-7P(CHO-), S8-(CHO-), -12P(CHO-), -13T(CHO-)"
         ),
-        std::make_tuple("NXTTNPST", "NPSTNXTS", "X2P-LOSS-GLY, T3S, P6X-ADD-GLY, S7T, T8S"),
-        std::make_tuple("N--ASN--ASS", "NPNASNP-NAS", ".7P-LOSS-GLY, A9N-ADD-GLY, S10A-LOSS-GLY")
+        std::make_tuple("NXTTNPST", "NPSTNXTS", "X2P(CHO-), T3S, P6X(CHO+), S7T, T8S"),
+        std::make_tuple("N--ASN--ASS", "NPNASNP-NAS", "-7P(CHO-), A9N(CHO+), S10A(CHO-)")
     };
 
-    for (int i = 0; i < 34; i++) {
+    for (int i = 0; i < 38; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
                 Mutation_List_Indel_GLY, arg0_s, arg1_s, expected
             )) {
-            std::cout << "UDX calculate_gly_change(ss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
+            std::cout << "UDX mutation_list_indel_gly(ss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
                       << arg1_s.ptr << "|\n\t|" << expected.ptr << "|\n";
             passing = false;
         }

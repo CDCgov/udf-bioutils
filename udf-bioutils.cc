@@ -1254,7 +1254,7 @@ StringVal Mutation_List_Strict_GLY(
         seq1[i] = toupper(seq1[i]);
         seq2[i] = toupper(seq2[i]);
         if (seq1[i] != seq2[i]) {
-            if ((seq1[i] != '.' && seq1[i] != '-') && (seq2[i] != '.' && seq2[i] != '-')) {
+            if (seq1[i] != '.' && seq2[i] != '.' && seq1[i] != '-' && seq2[i] != '-') {
                 is_mut = 1;
 
                 // GLYCOSYLATION ADD
@@ -1318,7 +1318,7 @@ StringVal Mutation_List_Strict_GLY(
 
         // Deletions that cause changes in glycosylation
 
-        if ((seq1[i] != '.' || seq1[i] != '-') && (seq2[i] == '.' || seq2[i] == '-')) {
+        if (seq1[i] != '-' && seq2[i] == '-') {
             is_mut = 0;
 
             // N.[^P][ST] -> N-[^P][ST]
@@ -1376,12 +1376,15 @@ StringVal Mutation_List_Strict_GLY(
             }
 
 
-            if (add_gly)
-                buffer += "-ADD";
-            if (loss_gly)
-                buffer += "-LOSS";
-            if (add_gly || loss_gly)
-                buffer += "-GLY";
+            if (add_gly && loss_gly) {
+                buffer += "(CHO+/-)";
+            }
+            else if (add_gly) {
+                buffer += "(CHO+)";
+            }
+            else if (loss_gly) {
+                buffer += "(CHO-)";
+            }
         }
     }
 
@@ -1398,7 +1401,7 @@ StringVal Mutation_List_Indel_GLY(
 
     using namespace boost::xpressive;
 
-    static const std::string p("(?i:N[_.-]*[A-OQ-Z][_.-]*[ST]$)"); // check
+    static const std::string p("(?i:N-*[A-OQ-Z]-*[ST]$)"); // check
     static const sregex r = sregex::compile(p);
 
     const std::string seq1((const char *)seq1_.ptr, seq1_.len);
@@ -1445,7 +1448,7 @@ StringVal Mutation_List_Indel_GLY(
                 // Check if the mutation is resonsible for PTM
                 for (int k = sm1[0].first - seq1_sub.begin(); k < sm1[0].second - seq1_sub.begin();
                      k++) {
-                    if (seq1_sub[k] == seq2_sub[k]) {
+                    if (seq1_sub[k] == seq2_sub[k] || seq1_sub[k] == '.' || seq2_sub[k] == '.') {
                         continue;
                     }
 
@@ -1473,7 +1476,7 @@ StringVal Mutation_List_Indel_GLY(
                 // Check if the mutation is resonsible for PTM
                 for (int k = sm2[0].first - seq2_sub.begin(); k < sm2[0].second - seq2_sub.begin();
                      k++) {
-                    if (seq1_sub[k] == seq2_sub[k]) {
+                    if (seq1_sub[k] == seq2_sub[k] || seq1_sub[k] == '.' || seq2_sub[k] == '.') {
                         continue;
                     }
 
@@ -1512,9 +1515,9 @@ StringVal Mutation_List_Indel_GLY(
             if (!buffer.empty()) {
                 buffer.append(", ");
             }
-            buffer.push_back(isalpha(seq1[i]) ? seq1[i] : '.');
+            buffer.push_back(isalpha(seq1[i]) ? seq1[i] : '-');
             buffer.append(std::to_string(i + 1));
-            buffer.push_back(isalpha(seq2[i]) ? seq2[i] : '.');
+            buffer.push_back(isalpha(seq2[i]) ? seq2[i] : '-');
         }
 
         // Annotate the change in PTM recognition sequence
@@ -1522,15 +1525,15 @@ StringVal Mutation_List_Indel_GLY(
             // If both sequences gained glycosylation
             if (((is_motif[i][0] ^ is_motif[i][1]) & is_motif[i][0]).any() &&
                 ((is_motif[i][0] ^ is_motif[i][1]) & is_motif[i][1]).any()) {
-                buffer.append("-ADD-LOSS-GLY");
+                buffer.append("(CHO+/-)");
             }
             // If seq2 gained glycosylation
             else if (((is_motif[i][0] ^ is_motif[i][1]) & is_motif[i][1]).any()) {
-                buffer.append("-ADD-GLY");
+                buffer.append("(CHO+)");
             }
             // If seq1 lost glycosylation
             else if (((is_motif[i][0] ^ is_motif[i][1]) & is_motif[i][0]).any()) {
-                buffer.append("-LOSS-GLY");
+                buffer.append("(CHO-)");
             }
         }
     }

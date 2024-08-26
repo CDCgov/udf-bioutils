@@ -172,5 +172,14 @@
                 "SYTN-TRGVYYPDK-FR"
             ]
         }
+    },
+    "BM_Calculate_Entropy": {
+        "function_name": "Calculate_Entropy",
+        "bm_argument_values": {
+            "s": [
+                "StringVal",
+                "AAAABBBBCCCaaaabbbbcccdd"
+            ]
+        }
     }
 }

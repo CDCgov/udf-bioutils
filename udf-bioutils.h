@@ -61,7 +61,9 @@ StringVal Mutation_List_PDS(
 StringVal Mutation_List_Strict_GLY(
     FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2
 );
-StringVal Mutation_List_Indel_GLY(FunctionContext *context, const StringVal &seq1_, const StringVal &seq2_);
+StringVal Mutation_List_Indel_GLY(
+    FunctionContext *context, const StringVal &seq1_, const StringVal &seq2_
+);
 StringVal Mutation_List_Strict(
     FunctionContext *context, const StringVal &sequence1, const StringVal &sequence2
 );
@@ -183,4 +185,5 @@ DateVal Fortnight_Date_STR(FunctionContext *context, const StringVal &dateStr);
 DateVal Fortnight_Date_TS(FunctionContext *context, const TimestampVal &tsVal);
 DateVal Fortnight_Date(FunctionContext *context, const DateVal &dateVal);
 
+DoubleVal Calculate_Entropy(FunctionContext *context, const StringVal &s);
 #endif

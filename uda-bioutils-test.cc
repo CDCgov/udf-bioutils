@@ -169,11 +169,96 @@ bool TestBitwiseOr() {
 
     return true;
 }
+
+bool TestCharEntropy() {
+    typedef UdaTestHarness<DoubleVal, StringVal, StringVal> TestHarness;
+    TestHarness test(CalcCharEntropyInit, CalcCharEntropyUpdate, CalcCharEntropyMerge,
+            reinterpret_cast<TestHarness::SerializeFn>(CalcCharEntropySerialize),
+            CalcCharEntropyFinalize);
+    //test.SetResultComparator(FuzzyCompareStrings);
+    bool passing = true;
+
+    vector<StringVal> vals;
+    vals.push_back(StringVal("C"));
+    vals.push_back(StringVal("A"));
+    vals.push_back(StringVal("Ab"));
+
+    if (!test.Execute<StringVal>(vals, DoubleVal(1.5))) {
+        cerr << "Calculate str entropy: " << test.GetErrorMsg() << endl;
+        passing = false;
+    }
+    return passing;
+}
+
+bool TestNTEntropy() {
+    typedef UdaTestHarness<DoubleVal, StringVal, StringVal> TestHarness;
+    TestHarness test(CalcNTEntropyInit, CalcNTEntropyUpdate, CalcNTEntropyMerge,
+            reinterpret_cast<TestHarness::SerializeFn>(CalcNTEntropySerialize),
+            CalcNTEntropyFinalize);
+    bool passing = true;
+
+    vector<StringVal> vals;
+    vals.push_back(StringVal("C"));
+    vals.push_back(StringVal("t"));
+    vals.push_back(StringVal("a"));
+    vals.push_back(StringVal("A"));
+
+    if (!test.Execute<StringVal>(vals, DoubleVal(1.5))) {
+        cerr << "Calculate NT entropy: " << test.GetErrorMsg() << endl;
+        passing = false;
+    }
+    return passing;
+}
+
+bool TestAAEntropy() {
+    typedef UdaTestHarness<DoubleVal, StringVal, StringVal> TestHarness;
+    TestHarness test(CalcAAEntropyInit, CalcAAEntropyUpdate, CalcAAEntropyMerge,
+            reinterpret_cast<TestHarness::SerializeFn>(CalcAAEntropySerialize),
+            CalcAAEntropyFinalize);
+    bool passing = true;
+
+    vector<StringVal> vals;
+    vals.push_back(StringVal("T"));
+    vals.push_back(StringVal("S"));
+    vals.push_back(StringVal("D"));
+    vals.push_back(StringVal("d"));
+
+    if (!test.Execute<StringVal>(vals, DoubleVal(1.5))) {
+        cerr << "Calculate AA entropy: " << test.GetErrorMsg() << endl;
+        passing = false;
+    }
+    return passing;
+}
+
+bool TestCDEntropy() {
+    typedef UdaTestHarness<DoubleVal, StringVal, StringVal> TestHarness;
+    TestHarness test(CalcCDEntropyInit, CalcCDEntropyUpdate, CalcCDEntropyMerge,
+            reinterpret_cast<TestHarness::SerializeFn>(CalcCDEntropySerialize),
+            CalcCDEntropyFinalize);
+    bool passing = true;
+
+    vector<StringVal> vals;
+    vals.push_back(StringVal("ATG"));
+    vals.push_back(StringVal("GGG"));
+    vals.push_back(StringVal("TCt"));
+    vals.push_back(StringVal("TCT"));
+
+    if (!test.Execute<StringVal>(vals, DoubleVal(1.5))) {
+        cerr << "Calculate AA entropy: " << test.GetErrorMsg() << endl;
+        passing = false;
+    }
+    return passing;
+}
+
 int main(int argc, char **argv) {
     bool passed = true;
     passed &= TestAgreement();
     passed &= TestVariance();
     passed &= TestBitwiseOr();
+    passed &= TestCharEntropy();
+    passed &= TestNTEntropy();
+    passed &= TestAAEntropy();
+    passed &= TestCDEntropy();
     cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
     return 0;
 }

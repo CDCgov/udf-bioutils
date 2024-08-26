@@ -538,7 +538,9 @@ bool test__mutation_list_gly() {
         std::make_tuple("NRMANHSSELL", "", StringVal::null()),
         std::make_tuple("NRMANHSSELL", "NRMAN", ""),
         std::make_tuple("NRMANHSSELL", "NRSANPSSELL", "M3S(CHO+), H6P(CHO-)"),
-        std::make_tuple("NRMANHSSELL", "NXTANHSSNAT", "R2X, M3T(CHO+), E9N(CHO+), L10A, L11T(CHO+)"),
+        std::make_tuple(
+            "NRMANHSSELL", "NXTANHSSNAT", "R2X, M3T(CHO+), E9N(CHO+), L10A, L11T(CHO+)"
+        ),
         std::make_tuple("NANHSSELL", "NATHSSELL", "N3T(CHO+/-)"),
         std::make_tuple("AAA", "NIT", "A1N(CHO+), A2I, A3T(CHO+)"),
         std::make_tuple("APA", "NIT", "A1N(CHO+), P2I(CHO+), A3T(CHO+)"),
@@ -629,8 +631,7 @@ bool test__mutation_list_indel_gly() {
             "P3T(CHO+), S4N, A5P, S9N(CHO-), A10P, S14N(CHO+/-), A15E"
         ),
         std::make_tuple(
-            "N-SSTN-SSTN--AT", "NA-STNP-STNPTAT",
-            "-7P(CHO-), S8-(CHO-), -12P(CHO-), -13T(CHO-)"
+            "N-SSTN-SSTN--AT", "NA-STNP-STNPTAT", "-7P(CHO-), S8-(CHO-), -12P(CHO-), -13T(CHO-)"
         ),
         std::make_tuple("NXTTNPST", "NPSTNXTS", "X2P(CHO-), T3S, P6X(CHO+), S7T, T8S"),
         std::make_tuple("N--ASN--ASS", "NPNASNP-NAS", "-7P(CHO-), A9N(CHO+), S10A(CHO-)")
@@ -1886,6 +1887,32 @@ bool test__sequence_diff_nt() {
     return passing;
 }
 
+bool test__calculate_entropy() {
+    bool passing = true;
+
+    std::tuple<StringVal, DoubleVal> table[8] = {
+        std::make_tuple(StringVal::null(), DoubleVal::null()),
+        std::make_tuple(StringVal(""), DoubleVal::null()),
+        std::make_tuple(StringVal(" "), DoubleVal(0)),
+        std::make_tuple(StringVal("S"), DoubleVal(0)),
+        std::make_tuple(StringVal("SS"), DoubleVal(0)),
+        std::make_tuple(StringVal("S  S"), DoubleVal(0)),
+        std::make_tuple(StringVal("ABCDEFGH"), DoubleVal(3)),
+        std::make_tuple(StringVal("AAaa"), DoubleVal(1))
+    };
+    for (int i = 0; i < 8; i++) {
+        auto [arg_s, expected] = table[i];
+        if (!UdfTestHarness::ValidateUdf<DoubleVal, StringVal>(
+                Calculate_Entropy, arg_s, expected
+            )) {
+            cout << "UDX Calculate_Entropy(s)->s failed:\n\t|" << arg_s.ptr << "|\n\t|"
+                 << expected.val << "|\n";
+            passing = false;
+        }
+    }
+    return passing;
+}
+
 int main(int argc, char **argv) {
     int passed = true;
 
@@ -1921,6 +1948,7 @@ int main(int argc, char **argv) {
     passed &= test__nt_position_to_mutation_aa3();
     passed &= test__sequence_diff();
     passed &= test__sequence_diff_nt();
+    passed &= test__calculate_entropy();
 
     cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
     return !passed;

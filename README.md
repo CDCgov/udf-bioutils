@@ -53,6 +53,7 @@ For direct correspondence, feel free to contact: Samuel S. Shepard ([vfn4@cdc.go
     - [Kurtosis](#kurtosis)
     - [LogFold Titer Distribution Agreement](#logfold-titer-distribution-agreement)
     - [Skewness](#skewness)
+    - [Entropy](#entropy)
 - [Acknowledgments](#acknowledgments)
 - [Notices](#notices)
   - [Public Domain Standard Notice](#public-domain-standard-notice)
@@ -490,6 +491,24 @@ skewness(<INT or DOUBLE> values) -> DOUBLE
 ```
 
 **Purpose:** Compute the [3rd moment or skewness](https://en.wikipedia.org/wiki/Skewness) using [a one-pass formula](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Higher-order_statistics).
+
+### Entropy
+
+```sql
+-- Aggregate Function
+alphanumeric_entropy(STRING s) -> DOUBLE
+nt_entropy(STRING s) -> DOUBLE
+aa_entropy(STRING s) -> DOUBLE
+codon_entropy(STRING s) -> DOUBLE
+
+-- Scalar Function
+alnum_entropy(STRING s) -> DOUBLE
+
+```
+
+**Purpose:** The aggregate function `alphanumeric_entropy` slurps all strings within the `GROUP BY` column and calculates the alphanumeric character entropy over the total group-wise data. Likewise, the aggregate functions `nt_entropy`, `aa_entropy`, and `codon_entropy` calculate the entropy based on group data where the entropy is being calculated over canonical nucleotides, amino acids (1-letter code, no `X` or `*`), or by codon (3 canonical nucleotides) respectively. Please note that these function operate over the first base, residue or codon and do not slurp every value in each sequence. As such they are useful in combination with extraction and slicing functions.
+
+The scalar function `alnum_entropy` is equivalent to `alphanumeric_entropy` but only performs its operation on a single value.
 
 # Acknowledgments
 

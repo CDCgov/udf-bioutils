@@ -53,3 +53,4 @@ create function if not exists udx.saturday_date(timestamp) returns date location
 create function if not exists udx.to_aa3(string) returns string location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "To_AA3";
 create function if not exists udx.sequence_diff(string, string) returns string location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "Sequence_Diff";
 create function if not exists udx.sequence_diff_nt(string, string) returns string location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "Sequence_Diff_NT";
+create function if not exists udx.alnum_entropy(string) returns double location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "Calculate_Entropy";

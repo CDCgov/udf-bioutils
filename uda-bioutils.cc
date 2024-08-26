@@ -4,9 +4,9 @@
 #include "uda-bioutils.h"
 
 #include <algorithm>
-#include <assert.h>
+#include <array>
 #include <cmath>
-#include <iostream>
+#include <cstring>
 #include <limits>
 #include <string>
 
@@ -599,3 +599,424 @@ void BitwiseOrUpdateMerge(FunctionContext *context, const BigIntVal &src, BigInt
 
 IMPALA_UDF_EXPORT
 BigIntVal BitwiseOrFinalize(FunctionContext *context, const BigIntVal &val) { return val; }
+
+
+// ---------------------------------------------------------------------------
+// Entropy Calculation Functions
+// ---------------------------------------------------------------------------
+
+// String Entropy
+IMPALA_UDF_EXPORT
+void CalcCharEntropyInit(FunctionContext *context, StringVal *val) {
+    val->ptr = context->Allocate(sizeof(unsigned int[256]));
+
+    if (val->ptr == NULL) {
+        *val = StringVal::null();
+        return;
+    }
+    val->is_null = false;
+    val->len     = sizeof(unsigned int[256]);
+    memset(val->ptr, 0, val->len);
+}
+
+IMPALA_UDF_EXPORT
+void CalcCharEntropyUpdate(FunctionContext *context, const StringVal &input, StringVal *val) {
+    if (input.is_null || val->is_null) {
+        return; // null input
+    }
+    if (input.len == 0) {
+        context->AddWarning("Value ignored because is length of 0.");
+        return;
+    }
+    unsigned int *tbl = reinterpret_cast<unsigned int *>(val->ptr);
+    for (int i = 0; i < input.len; i++) {
+        tbl[input.ptr[i]]++;
+    }
+}
+
+IMPALA_UDF_EXPORT
+void CalcCharEntropyMerge(FunctionContext *context, const StringVal &src, StringVal *dst) {
+    if (src.is_null || dst->is_null) {
+        return;
+    }
+
+    const unsigned int *src_tbl = reinterpret_cast<unsigned int *>(src.ptr);
+    unsigned int *dst_tbl       = reinterpret_cast<unsigned int *>(dst->ptr);
+
+    for (int i = '0'; i <= 'z'; i++) {
+        dst_tbl[i] += src_tbl[i];
+    }
+}
+
+IMPALA_UDF_EXPORT
+StringVal CalcCharEntropySerialize(FunctionContext *context, const StringVal &val) {
+    if (val.is_null) {
+        return StringVal::null();
+    }
+
+    StringVal result = StringVal::CopyFrom(context, val.ptr, val.len);
+    context->Free(val.ptr);
+    return result;
+}
+
+IMPALA_UDF_EXPORT
+DoubleVal CalcCharEntropyFinalize(FunctionContext *context, const StringVal &val) {
+    if (val.is_null) {
+        return DoubleVal::null();
+    }
+
+    const unsigned int *tbl = reinterpret_cast<unsigned int *>(val.ptr);
+    double N                = 0;
+    double sum              = 0;
+
+    // Calculate entropy
+    for (int i = '0'; i <= 'z'; i++) {
+        if (isalnum(i)) {
+            N += tbl[i];
+        }
+    }
+
+    for (int i = '0'; i <= 'z'; i++) {
+        if (tbl[i] != 0 && isalnum(i)) {
+            sum -= tbl[i] / N * log2(tbl[i] / N);
+        }
+    }
+
+    // String conversion, copying, and memory freeing
+    context->Free(val.ptr);
+    return DoubleVal(sum);
+}
+
+// NT Sequence Entropy
+typedef std::array<unsigned int, 256> charmap_t;
+
+constexpr charmap_t InitializeCharArrayToNT() {
+    charmap_t a;
+    a.fill(0);
+
+    // clang-format off
+    a['A'] = 1; a['a'] = 1;
+    a['C'] = 2; a['c'] = 2;
+    a['G'] = 3; a['g'] = 3;
+    a['T'] = 4; a['t'] = 4; a['U'] = 4; a['u'] = 4;
+    // clang-format on
+
+    return a;
+}
+const charmap_t map_c_nt = InitializeCharArrayToNT();
+
+IMPALA_UDF_EXPORT
+void CalcNTEntropyInit(FunctionContext *context, StringVal *val) {
+    val->ptr = context->Allocate(sizeof(unsigned int[5]));
+
+    if (val->ptr == NULL) {
+        *val = StringVal::null();
+        return;
+    }
+    val->is_null = false;
+    val->len     = sizeof(unsigned int[5]);
+    memset(val->ptr, 0, val->len);
+}
+
+IMPALA_UDF_EXPORT
+void CalcNTEntropyUpdate(FunctionContext *context, const StringVal &input, StringVal *val) {
+    if (input.is_null || val->is_null) {
+        return; // null input
+    }
+    if (input.len != 1) {
+        context->AddWarning("Value ignored because is not length of 1.");
+        return; // entropy is only calculated for single characters
+    }
+
+    unsigned int *ntmat = reinterpret_cast<unsigned int *>(val->ptr);
+
+    // Map nucleotide to index, then access that in the count matrix
+    // then, increment
+    unsigned int index = map_c_nt[*input.ptr];
+
+    if (index == 0) {
+        context->AddWarning("Value ignored because is not a legitimate nucleotide.");
+    }
+    ntmat[index]++;
+}
+
+IMPALA_UDF_EXPORT
+void CalcNTEntropyMerge(FunctionContext *context, const StringVal &src, StringVal *dst) {
+    if (src.is_null || dst->is_null) {
+        return;
+    }
+
+    const unsigned int *src_tbl = reinterpret_cast<unsigned int *>(src.ptr);
+    unsigned int *dst_tbl       = reinterpret_cast<unsigned int *>(dst->ptr);
+
+    for (int i = 0; i < 5; i++) {
+        dst_tbl[i] += src_tbl[i];
+    }
+}
+
+IMPALA_UDF_EXPORT
+StringVal CalcNTEntropySerialize(FunctionContext *context, const StringVal &val) {
+    if (val.is_null) {
+        return StringVal::null();
+    }
+
+    StringVal result = StringVal::CopyFrom(context, val.ptr, val.len);
+    context->Free(val.ptr);
+    return result;
+}
+
+IMPALA_UDF_EXPORT
+DoubleVal CalcNTEntropyFinalize(FunctionContext *context, const StringVal &val) {
+    if (val.is_null) {
+        return DoubleVal::null();
+    }
+
+    unsigned int *tbl = reinterpret_cast<unsigned int *>(val.ptr);
+    double N          = 0;
+    double sum        = 0;
+
+    // Calculate entropy
+    for (int i = 1; i < 5; i++) {
+        N += tbl[i];
+    }
+    for (int i = 1; i < 5; i++) {
+        if (tbl[i] != 0) {
+            sum -= tbl[i] / N * log2(tbl[i] / N);
+        }
+    }
+
+    // String conversion, copying, and memory freeing
+    context->Free(val.ptr);
+    return DoubleVal(sum);
+}
+
+// AA Sequence Entropy
+constexpr charmap_t InitializeCharArrayToAA() {
+    charmap_t a;
+    a.fill(0);
+
+    // clang-format off
+    a['A'] = 1; a['a'] = 1;
+    a['R'] = 2; a['r'] = 2;
+    a['N'] = 3; a['n'] = 3;
+    a['D'] = 4; a['d'] = 4;
+    a['C'] = 5; a['c'] = 5;
+    a['Q'] = 6; a['q'] = 6;
+    a['E'] = 7; a['e'] = 7;
+    a['G'] = 8; a['g'] = 8;
+    a['H'] = 9; a['h'] = 9;
+    a['I'] = 10; a['i'] = 10;
+    a['L'] = 11; a['l'] = 11;
+    a['K'] = 12; a['k'] = 12;
+    a['M'] = 13; a['m'] = 13;
+    a['F'] = 14; a['f'] = 14;
+    a['P'] = 15; a['p'] = 15;
+    a['S'] = 16; a['s'] = 16;
+    a['T'] = 17; a['t'] = 17;
+    a['W'] = 18; a['w'] = 18;
+    a['Y'] = 19; a['y'] = 19;
+    a['V'] = 20; a['v'] = 20;
+    // clang-format on
+
+    return a;
+}
+const charmap_t map_c_aa = InitializeCharArrayToAA();
+
+IMPALA_UDF_EXPORT
+void CalcAAEntropyInit(FunctionContext *context, StringVal *val) {
+    val->ptr = context->Allocate(sizeof(unsigned int[21]));
+
+    if (val->ptr == NULL) {
+        *val = StringVal::null();
+        return;
+    }
+    val->is_null = false;
+    val->len     = sizeof(unsigned int[21]);
+    memset(val->ptr, 0, val->len);
+}
+
+IMPALA_UDF_EXPORT
+void CalcAAEntropyUpdate(FunctionContext *context, const StringVal &input, StringVal *val) {
+    if (input.is_null || val->is_null) {
+        return;
+    }
+    if (input.len != 1) { // entropy is only calculated for single characters
+        context->AddWarning("Value ignored because is not length of 1.");
+        return;
+    }
+
+    unsigned int *ntmat = reinterpret_cast<unsigned int *>(val->ptr);
+
+    // Map nucleotide to index, then access that in the count matrix
+    // then, increment
+    unsigned int index = map_c_aa[*input.ptr];
+    if (index == 0) {
+        context->AddWarning("Value ignored because is not a legitimate amino acid code.");
+    }
+    ntmat[index]++;
+}
+
+IMPALA_UDF_EXPORT
+void CalcAAEntropyMerge(FunctionContext *context, const StringVal &src, StringVal *dst) {
+    if (src.is_null || dst->is_null) {
+        return;
+    }
+
+    const unsigned int *src_tbl = reinterpret_cast<unsigned int *>(src.ptr);
+    unsigned int *dst_tbl       = reinterpret_cast<unsigned int *>(dst->ptr);
+
+    for (int i = 0; i < 21; i++) {
+        dst_tbl[i] += src_tbl[i];
+    }
+}
+
+IMPALA_UDF_EXPORT
+StringVal CalcAAEntropySerialize(FunctionContext *context, const StringVal &val) {
+    if (val.is_null) {
+        return StringVal::null();
+    }
+
+    StringVal result = StringVal::CopyFrom(context, val.ptr, val.len);
+    context->Free(val.ptr);
+    return result;
+}
+
+IMPALA_UDF_EXPORT
+DoubleVal CalcAAEntropyFinalize(FunctionContext *context, const StringVal &val) {
+    if (val.is_null) {
+        return DoubleVal::null();
+    }
+
+    unsigned int *tbl = reinterpret_cast<unsigned int *>(val.ptr);
+    double N          = 0;
+    double sum        = 0;
+
+    // Calculate entropy
+    for (int i = 1; i < 21; i++) {
+        N += tbl[i];
+    }
+    for (int i = 1; i < 21; i++) {
+        if (tbl[i] != 0) {
+            sum -= tbl[i] / N * log2(tbl[i] / N);
+        }
+    }
+
+    // String conversion, copying, and memory freeing
+    context->Free(val.ptr);
+    return DoubleVal(sum);
+}
+
+// Codon Sequence Entropy
+unsigned int ConvertNTToCDIndex(const char &c) {
+    switch (c) {
+    case 'A':
+    case 'a':
+        return 0;
+    case 'C':
+    case 'c':
+        return 1;
+    case 'G':
+    case 'g':
+        return 2;
+    case 'T':
+    case 't':
+        return 3;
+    default: // This is an error code (must catch).
+        return 4;
+    }
+}
+
+unsigned int ConvertCodonToIndex(char *c) {
+    unsigned int cod_1 = ConvertNTToCDIndex(c[0]);
+    unsigned int cod_2 = ConvertNTToCDIndex(c[1]);
+    unsigned int cod_3 = ConvertNTToCDIndex(c[2]);
+
+    if (cod_1 == 4 || cod_2 == 4 || cod_3 == 4) {
+        return 4;
+    }
+    return (ConvertNTToCDIndex(c[0]) << 4) | (ConvertNTToCDIndex(c[1]) << 2) |
+           ConvertNTToCDIndex(c[2]);
+}
+
+IMPALA_UDF_EXPORT
+void CalcCDEntropyInit(FunctionContext *context, StringVal *val) {
+    val->ptr = context->Allocate(sizeof(unsigned int[64]));
+
+    if (val->ptr == NULL) {
+        *val = StringVal::null();
+        return;
+    }
+    val->is_null = false;
+    val->len     = sizeof(unsigned int[64]);
+    memset(val->ptr, 0, val->len);
+}
+
+IMPALA_UDF_EXPORT
+void CalcCDEntropyUpdate(FunctionContext *context, const StringVal &input, StringVal *val) {
+    if (input.is_null || val->is_null) {
+        return; // null input
+    }
+    if (input.len != 3) { // entropy is only calculated for codon
+        context->AddWarning("Value ignored because has incorrect length.");
+        return;
+    }
+    unsigned int *cdmat = reinterpret_cast<unsigned int *>(val->ptr);
+
+    // Map codon to index
+    unsigned int i = ConvertCodonToIndex(reinterpret_cast<char *>(input.ptr));
+    if (i == 4) {
+        context->AddWarning("Value ignored because is not a codon.");
+        return;
+    }
+    cdmat[i]++;
+}
+
+IMPALA_UDF_EXPORT
+void CalcCDEntropyMerge(FunctionContext *context, const StringVal &src, StringVal *dst) {
+    if (src.is_null || dst->is_null) {
+        return;
+    }
+
+    const unsigned int *src_tbl = reinterpret_cast<unsigned int *>(src.ptr);
+    unsigned int *dst_tbl       = reinterpret_cast<unsigned int *>(dst->ptr);
+
+    for (int i = 0; i < 64; i++) {
+        dst_tbl[i] += src_tbl[i];
+    }
+}
+
+IMPALA_UDF_EXPORT
+StringVal CalcCDEntropySerialize(FunctionContext *context, const StringVal &val) {
+    if (val.is_null) {
+        return StringVal::null();
+    }
+
+    StringVal result = StringVal::CopyFrom(context, val.ptr, val.len);
+    context->Free(val.ptr);
+    return result;
+}
+
+IMPALA_UDF_EXPORT
+DoubleVal CalcCDEntropyFinalize(FunctionContext *context, const StringVal &val) {
+    if (val.is_null) {
+        return DoubleVal::null();
+    }
+
+    unsigned int *tbl = reinterpret_cast<unsigned int *>(val.ptr);
+    double N          = 0;
+    double sum        = 0;
+
+    // Calculate entropy
+    for (int i = 0; i < 64; i++) {
+        N += tbl[i];
+    }
+    for (int i = 0; i < 64; i++) {
+        if (tbl[i] != 0) {
+            sum -= tbl[i] / N * log2(tbl[i] / N);
+        }
+    }
+
+    // String conversion, copying, and memory freeing
+    context->Free(val.ptr);
+    return DoubleVal(sum);
+}

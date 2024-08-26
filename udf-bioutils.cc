@@ -1378,11 +1378,9 @@ StringVal Mutation_List_Strict_GLY(
 
             if (add_gly && loss_gly) {
                 buffer += "(CHO+/-)";
-            }
-            else if (add_gly) {
+            } else if (add_gly) {
                 buffer += "(CHO+)";
-            }
-            else if (loss_gly) {
+            } else if (loss_gly) {
                 buffer += "(CHO-)";
             }
         }
@@ -2077,4 +2075,34 @@ IntVal Longest_Deletion(FunctionContext *context, const StringVal &sequence) {
     }
 
     return IntVal(longest_del);
+}
+
+IMPALA_UDF_EXPORT
+DoubleVal Calculate_Entropy(FunctionContext *context, const StringVal &s) {
+    if (s.is_null || s.len == 0) {
+        return DoubleVal::null();
+    }
+
+    const unsigned int bin_size = 256; // 8-bit
+    unsigned int bins[bin_size] = {0};
+
+    for (int i = 0; i < s.len; i++) {
+        // This check causes non alphanumeric characters to remain zero
+        if (std::isalnum(s.ptr[i])) {
+            bins[s.ptr[i]]++;
+        }
+    }
+
+    double n       = 0;
+    double ent_sum = 0;
+    for (int i = '0'; i <= 'z'; i++) {
+        n += bins[i];
+    }
+
+    for (int i = '0'; i <= 'z'; i++) {
+        if (bins[i] != 0) {
+            ent_sum -= bins[i] / n * std::log2(bins[i] / n);
+        }
+    }
+    return DoubleVal(ent_sum);
 }

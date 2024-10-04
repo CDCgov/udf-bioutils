@@ -49,7 +49,7 @@ BM_Fortnight_Date_Either_TS:
     tsVal:
       - TimestampVal
       - "REPLACE_VALUE (type: TimestampVal)"
-    legacy_default_week:
+    legacy_default_week:tn
       - BooleanVal
       - "REPLACE_VALUE (type: BooleanVal)"
 BM_Fortnight_Date_Either_STR:
@@ -265,6 +265,27 @@ BM_Physiochemical_Distance_List:
     sequence2:
       - StringVal
       - "REPLACE_VALUE (type: StringVal)"
+BM_Tn_93_Distance:
+  function_name: Tn_93_Distance
+  bm_argument_values:
+    sequence1:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    sequence2:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+BM_Tn_93_Gamma:
+  function_name: Tn_93_Gamma
+  bm_argument_values:
+    sequence1: 
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    sequence2:
+      - StringVal
+      - "REPLACE_VALUE (type: StringVal)"
+    alpha:
+      - DoubleVal
+      - "REPLACE_VALUE (type: DoubleVal)"
 BM_Contains_An_Element:
   function_name: Contains_An_Element
   bm_argument_values:

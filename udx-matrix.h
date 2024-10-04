@@ -2,6 +2,8 @@
 #include <cmath>
 #include <cstdint>
 #include <unordered_map>
+using namespace std;
+
 
 struct LookupEntry {
     bool valid   = false;
@@ -14,6 +16,7 @@ constexpr double roundoff(double value, unsigned int prec) {
     double pow_10 = pow(10.0f, (float)prec);
     return std::round(value * pow_10) / pow_10;
 }
+
 
 constexpr auto init_pcd() {
     // physio-chemical factors
@@ -432,3 +435,30 @@ constexpr auto init_rcm() {
 }
 // Reverse Complement Matrix
 constexpr auto RCM = init_rcm();
+
+constexpr std::array<unsigned char, 256> TO_DNA_PROFILE_INDEX = []() {
+    const unsigned char FROM_BYTE[] = "acgtunACGTUN";
+    const unsigned char THE_INDEX[] = "012334012334";
+
+    std::array<unsigned char, 256> v{};
+    v.fill(4);
+    for (std::size_t i = 0; i < sizeof(FROM_BYTE) - 1; ++i) {
+        v[FROM_BYTE[i]] = THE_INDEX[i] - '0';
+    }
+    return v;
+}();
+
+inline std::size_t toDNAProfileIndex(unsigned char b) { return TO_DNA_PROFILE_INDEX[b]; }
+
+inline auto buildSubMatrix(string seq_1, string seq_2) {
+    std::array<std::array<unsigned int, 4>, 4> sub = {0};
+
+    for (size_t i = 0; i < min(seq_1.length(), seq_2.length()); ++i) {
+        int idx1 = toDNAProfileIndex(seq_1[i]);
+        int idx2 = toDNAProfileIndex(seq_2[i]);
+        if (idx1 < 4 && idx2 < 4) {
+            sub[idx1][idx2]++;
+        }
+    }
+    return sub;
+}

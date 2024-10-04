@@ -185,5 +185,9 @@ DateVal Fortnight_Date_STR(FunctionContext *context, const StringVal &dateStr);
 DateVal Fortnight_Date_TS(FunctionContext *context, const TimestampVal &tsVal);
 DateVal Fortnight_Date(FunctionContext *context, const DateVal &dateVal);
 
+DoubleVal Tn_93_Distance(FunctionContext *context, const StringVal &seq1, const StringVal &seq2);
+DoubleVal Tn_93_Gamma(
+    FunctionContext *context, const StringVal &seq1, const StringVal &seq2, const DoubleVal &alpha
+);
 DoubleVal Calculate_Entropy(FunctionContext *context, const StringVal &s);
 #endif

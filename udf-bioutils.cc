@@ -10,6 +10,7 @@
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <boost/xpressive/xpressive.hpp>
 #include <cctype>
+#include <cmath>
 #include <locale>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
@@ -2077,6 +2078,7 @@ IntVal Longest_Deletion(FunctionContext *context, const StringVal &sequence) {
     return IntVal(longest_del);
 }
 
+
 IMPALA_UDF_EXPORT
 DoubleVal Calculate_Entropy(FunctionContext *context, const StringVal &s) {
     if (s.is_null || s.len == 0) {
@@ -2105,4 +2107,94 @@ DoubleVal Calculate_Entropy(FunctionContext *context, const StringVal &s) {
         }
     }
     return DoubleVal(ent_sum);
+}
+
+inline std::array<double, 7> Tn_93_Variables(const StringVal &seq1, const StringVal &seq2) {
+    std::string sequence1((const char *)seq1.ptr, seq1.len);
+    std::string sequence2((const char *)seq2.ptr, seq2.len);
+
+    auto matrix = buildSubMatrix(sequence1, sequence2);
+
+    // base frequencies
+    std::array<double, 4> bf = {0.0, 0.0, 0.0, 0.0};
+    int total_bases          = 0;
+    int hd                   = 0;
+    for (int i = 0; i < 4; ++i) {
+        int column_sum = 0;
+        int row_sum    = 0;
+        for (int j = 0; j < 4; ++j) {
+            column_sum += matrix[i][j];
+            row_sum += matrix[j][i];
+            if (i != j) {
+                hd += matrix[i][j];
+            }
+        }
+        bf[i] = column_sum + row_sum;
+        total_bases += column_sum;
+    }
+
+    for (auto &freq : bf) {
+        freq /= 2.0 * total_bases;
+    }
+    double purines     = bf[0] + bf[2];
+    double pyrimidines = bf[1] + bf[3];
+
+    double k1 = 2.0 * bf[0] * bf[2] / purines;
+    double k2 = 2.0 * bf[1] * bf[3] / pyrimidines;
+    double k3 = 2.0 * (purines * pyrimidines - bf[0] * bf[2] * pyrimidines / purines -
+                       bf[1] * bf[3] * purines / pyrimidines);
+    double k4 = 2 * (bf[0] * bf[2] + bf[1] * bf[3] + purines * pyrimidines); // only used in gamma
+
+    double transv1 = static_cast<double>(matrix[0][2] + matrix[2][0]);
+    double transv2 = static_cast<double>(matrix[1][3] + matrix[3][1]);
+    double total   = static_cast<double>(total_bases);
+
+    double p1 = transv1 / total;
+    double p2 = transv2 / total;
+    double q  = (static_cast<double>(hd) - transv1 - transv2) / total;
+
+    double w1 = 1.0 - p1 / k1 - q / (2.0 * purines);
+    double w2 = 1.0 - p2 / k2 - q / (2.0 * pyrimidines);
+    double w3 = 1.0 - q / (2.0 * purines * pyrimidines);
+
+    return {k1, k2, k3, k4, w1, w2, w3};
+}
+
+IMPALA_UDF_EXPORT
+DoubleVal Tn_93_Distance(FunctionContext *context, const StringVal &seq1, const StringVal &seq2) {
+
+    if (seq1.is_null || seq2.is_null || seq1.len == 0 || seq2.len == 0) {
+        return DoubleVal::null();
+    }
+
+    auto [k1, k2, k3, _, w1, w2, w3] = Tn_93_Variables(seq1, seq2);
+
+    double dist = -k1 * log(w1) - k2 * log(w2) - k3 * log(w3);
+
+    if (std::isnan(dist) || std::isinf(dist)) {
+        return DoubleVal::null();
+    }
+
+    return DoubleVal(dist);
+}
+
+IMPALA_UDF_EXPORT
+DoubleVal Tn_93_Gamma(
+    FunctionContext *context, const StringVal &seq1, const StringVal &seq2, const DoubleVal &alpha
+) {
+    if (seq1.is_null || seq2.is_null || seq1.len == 0 || seq2.len == 0 || alpha.is_null ||
+        alpha.val == 0.0) {
+        return DoubleVal::null();
+    }
+
+    auto [k1, k2, k3, k4, w1, w2, w3] = Tn_93_Variables(seq1, seq2);
+
+    double beta = -1 / alpha.val;
+    double dist = alpha.val * (k1 * pow(w1, beta) + k2 * pow(w2, beta) + k3 * pow(w3, beta) - k4);
+
+    if (std::isnan(dist) || std::isinf(dist)) {
+        return DoubleVal::null();
+    }
+
+    return DoubleVal(dist);
 }

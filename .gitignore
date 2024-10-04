@@ -9,3 +9,4 @@ bak/
 install_locations.sh
 test_regex
 udf-bioutils-bmark.cc
+valgrind*

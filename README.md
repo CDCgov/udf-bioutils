@@ -26,6 +26,7 @@ For direct correspondence, feel free to contact: Samuel S. Shepard ([vfn4@cdc.go
       - [To Amino Acids with Degeneracy Up to 3](#to-amino-acids-with-degeneracy-up-to-3)
     - [Sequence Comparison](#sequence-comparison)
       - [Hamming and Nucleotide Distance](#hamming-and-nucleotide-distance)
+      - [Tamura-Nei Distance (TN-93)](#tamura-nei-distance-tn-93)
       - [Sequence Difference Functions](#sequence-difference-functions)
       - [Mutation List Family of Functions](#mutation-list-family-of-functions)
       - [Physiochemical Distance](#physiochemical-distance)
@@ -216,6 +217,14 @@ If one sequence is longer than the other, the extra characters are discarded fro
 
 &rarr; *See also the Impala native function [JARO_DISTANCE](https://docs.cloudera.com/cdp-private-cloud-base/7.1.8/impala-sql-reference/topics/impala-string-functions.html?#string_functions__jaro_distance).*
 
+#### Tamura-Nei Distance (TN-93)
+
+```sql
+tn_93(STRING sequence1, STRING sequence2 [, DOUBLE alpha]) -> DOUBLE
+```
+
+**Purpose:** Calculates the [Tamura-Nei (TN-93)](https://pubmed.ncbi.nlm.nih.gov/8336541/) evolutionary distance between two **aligned** nucleotide sequences. The model accounts for different base frequencies of each nucleotide, as well as different rates for different substitution types: transitions, (A ↔ G or C ↔ T) type 1 transversions, (A ↔ T and C ↔ G) and type 2 transversions. (A ↔ C and G ↔ T). If either argument is `NULL` or `""` then a null is returned. For very short and dissimilar sequences, a null value may also be returned due to needing to calculate the logarithm of a non-positive number. This model can optionally include a correction for rate variability among sites using a [gamma](http://abacus.gene.ucl.ac.uk/ziheng/pdf/1996YangTREEv11p367.pdf) distribution with a single shape parameter (alpha). Smaller values of alpha represent greater rate variation, while larger values suggest more uniform rates. If no alpha is specified, the distance is calculated under the assumption of equal rates across all sites.
+
 #### Sequence Difference Functions
 
 ```sql
@@ -251,7 +260,7 @@ mutation_list_pds(STRING seq1, STRING seq2, STRING pairwise_deletion_set)
 pcd(STRING sequence1, STRING sequence2) -> DOUBLE
 ```
 
-**Purpose:**  Calculates the "physiochemical distance" (PCD) between two **aligned** amino acid sequences. First the function takes the [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance) of physiochemical factors (see [*Atchley et al.*'s protein sequence analysis](https://www.pnas.org/doi/full/10.1073/pnas.0408677102)) corresponding to the compared residues at each site. After that the per-site PCD values are averaged over all *valid* sites, or sites where both alleles contain normal amino residues. The function ignores sequence case and does not count `X` as a valid comparison. However, comparisons to deletion states (`-`) are calculated versus the 0-vector. If either argument is `NULL` or `""` then a null is returned. Anecdotally, S. Shepard has observed that the distances correlate strongly with [the JTT model](https://pubmed.ncbi.nlm.nih.gov/1633570/).
+**Purpose:**  Calculates the PCD ("physiochemical", or perhaps more precisely, the "physicochemical" distance) between two **aligned** amino acid sequences. First the function takes the [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance) of physiochemical factors (see [*Atchley et al.*'s protein sequence analysis](https://www.pnas.org/doi/full/10.1073/pnas.0408677102)) corresponding to the compared residues at each site. After that the per-site PCD values are averaged over all *valid* sites, or sites where both alleles contain normal amino residues. The function ignores sequence case and does not count `X` as a valid comparison. However, comparisons to deletion states (`-`) are calculated versus the 0-vector. If either argument is `NULL` or `""` then a null is returned. Anecdotally, S. Shepard has observed that the distances correlate strongly with [the JTT model](https://pubmed.ncbi.nlm.nih.gov/1633570/).
 
 #### Physiochemical Difference List
 
@@ -260,6 +269,7 @@ pcd_list(STRING sequence1, STRING sequence2) -> STRING
 ```
 
 **Purpose:**  Calculates the per-site "physiochemical distance" (PCD) between two **aligned** amino acid sequences (see description for `pcd()`). String-encoded PCDs *for each site* are space-delimited, and the number of sites will be the shorter of the two sequences. If either argument is `NULL` or `""` then a null is returned.
+
 <br /><br />
 
 ### Sequence Quality Control

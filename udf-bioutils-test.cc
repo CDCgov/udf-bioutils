@@ -6,11 +6,9 @@
 #include <impala_udf/udf-test-harness.h>
 #include <tuple>
 
-
 using namespace impala;
 using namespace impala_udf;
 using namespace std;
-
 
 bool test__any_instr() {
     int passing = true;
@@ -1887,6 +1885,7 @@ bool test__sequence_diff_nt() {
     return passing;
 }
 
+
 bool test__calculate_entropy() {
     bool passing = true;
 
@@ -1910,8 +1909,70 @@ bool test__calculate_entropy() {
             passing = false;
         }
     }
+
     return passing;
 }
+
+bool test__tn_93() {
+    bool passing = true;
+
+    std::tuple<StringVal, StringVal, DoubleVal> table[9] = {
+        std::make_tuple("ACGTX", "ACGAT", 0.32664338819911215),
+        std::make_tuple("", "", DoubleVal::null()),
+        std::make_tuple("ACGTX", "", DoubleVal::null()),
+        std::make_tuple("ACGTX", StringVal::null(), DoubleVal::null()),
+        std::make_tuple("ATCGATCGATCG", "ATCGATCGATCA", 0.10204780968478636),
+        std::make_tuple("ACGTA", "ACGTA", 0.0),
+        std::make_tuple("TTAAAAGCACGT", "TTAA--GTACGT", 0.13579170463426105),
+        std::make_tuple("ACGTA", "acgtt", 0.23992356680997826),
+        std::make_tuple("NNNN", "ACGT", DoubleVal::null()),
+    };
+    for (int i = 0; i < 9; i++) {
+        auto [arg0_s, arg1_s, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<DoubleVal, StringVal, StringVal>(
+                Tn_93_Distance, arg0_s, arg1_s, expected
+            )) {
+            cout << "UDX Tn_93_Distance(s, s)->d failed:\n\t|" << arg0_s.ptr << "|\n\t|"
+                 << arg1_s.ptr << "|\n\t|" << expected.val << "|\n";
+            passing = false;
+        }
+    }
+    return passing;
+}
+
+bool test__tn_93_gamma() {
+    bool passing = true;
+
+    std::tuple<StringVal, StringVal, DoubleVal, DoubleVal> table[12] = {
+        std::make_tuple("ACGTX", "ACGAT", 100.0, 0.32758930623668636),
+        std::make_tuple("", "", 100.0, DoubleVal::null()),
+        std::make_tuple("ACGTX", "", 100.0, DoubleVal::null()),
+        std::make_tuple("ACGTX", StringVal::null(), 100.0, DoubleVal::null()),
+        std::make_tuple("ATCGATCGATCG", "ATCGATCGATCA", 100.0, 0.10226233563817022),
+        std::make_tuple("ATCGATCGATCG", "ATCGATCGATCA", 1.0, 0.12681159420289845),
+        std::make_tuple("ATCGATCGATCG", "ATCGATCGATCA", 0.1, 1.5941755568827523),
+        std::make_tuple("ATCGATCGATCG", "ATCGATCGATCA", 0.0, DoubleVal::null()),
+        std::make_tuple("ATCGATCGATCG", "ATCGATCGATCA", DoubleVal::null(), DoubleVal::null()),
+        std::make_tuple("TTAAAAGCACGT", "TTAA--GTACGT", 20.0, 0.1380107197790581),
+        std::make_tuple("ACGTA", "acgtt", 3.0, 0.25598523599037293),
+        std::make_tuple("ACGT", "NNNN", 1.0, DoubleVal::null()),
+    };
+    for (int i = 0; i < 12; i++) {
+        auto [arg0_s, arg1_s, arg2_d, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<DoubleVal, StringVal, StringVal, DoubleVal>(
+                Tn_93_Gamma, arg0_s, arg1_s, arg2_d, expected
+            )) {
+            cout << "UDX Tn_93_Gamma(s, s, d)->d failed:\n\t|" << arg0_s.ptr << "|\n\t|"
+                 << arg1_s.ptr << "|\n\t|" << arg2_d.val << "|\n\t|" << expected.val << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
+
 
 int main(int argc, char **argv) {
     int passed = true;
@@ -1949,6 +2010,8 @@ int main(int argc, char **argv) {
     passed &= test__sequence_diff();
     passed &= test__sequence_diff_nt();
     passed &= test__calculate_entropy();
+    passed &= test__tn_93();
+    passed &= test__tn_93_gamma();
 
     cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
     return !passed;

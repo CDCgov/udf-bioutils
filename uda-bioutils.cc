@@ -688,7 +688,7 @@ DoubleVal CalcCharEntropyFinalize(FunctionContext *context, const StringVal &val
 }
 
 // NT Sequence Entropy
-typedef std::array<unsigned int, 256> charmap_t;
+typedef std::array<unsigned char, 256> charmap_t;
 
 constexpr charmap_t InitializeCharArrayToNT() {
     charmap_t a;

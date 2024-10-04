@@ -29,6 +29,8 @@ create function if not exists udx.nt_std(string) returns string location "$UDF_B
 create function if not exists udx.aa_std(string) returns string location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "aa_std";
 create function if not exists udx.pcd_list(string, string) returns string location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "Physiochemical_Distance_List";
 create function if not exists udx.pcd(string, string) returns double location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "Physiochemical_Distance";
+create function if not exists udx.tn_93(string, string) returns double location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "Tn_93_Distance";
+create function if not exists udx.tn_93(string, string, double) returns double location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "Tn_93_Gamma";
 create function if not exists udx.any_instr(string, string) returns boolean location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "Find_Set_In_String";
 create function if not exists udx.to_epiweek(string, boolean) returns int location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "Convert_String_To_EPI_Week";
 create function if not exists udx.to_epiweek(string) returns int location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "Convert_String_To_EPI_Week";

@@ -172,10 +172,12 @@ bool TestBitwiseOr() {
 
 bool TestCharEntropy() {
     typedef UdaTestHarness<DoubleVal, StringVal, StringVal> TestHarness;
-    TestHarness test(CalcCharEntropyInit, CalcCharEntropyUpdate, CalcCharEntropyMerge,
-            reinterpret_cast<TestHarness::SerializeFn>(CalcCharEntropySerialize),
-            CalcCharEntropyFinalize);
-    //test.SetResultComparator(FuzzyCompareStrings);
+    TestHarness test(
+        CalcCharEntropyInit, CalcCharEntropyUpdate, CalcCharEntropyMerge,
+        reinterpret_cast<TestHarness::SerializeFn>(CalcCharEntropySerialize),
+        CalcCharEntropyFinalize
+    );
+    // test.SetResultComparator(FuzzyCompareStrings);
     bool passing = true;
 
     vector<StringVal> vals;
@@ -192,9 +194,10 @@ bool TestCharEntropy() {
 
 bool TestNTEntropy() {
     typedef UdaTestHarness<DoubleVal, StringVal, StringVal> TestHarness;
-    TestHarness test(CalcNTEntropyInit, CalcNTEntropyUpdate, CalcNTEntropyMerge,
-            reinterpret_cast<TestHarness::SerializeFn>(CalcNTEntropySerialize),
-            CalcNTEntropyFinalize);
+    TestHarness test(
+        CalcNTEntropyInit, CalcNTEntropyUpdate, CalcNTEntropyMerge,
+        reinterpret_cast<TestHarness::SerializeFn>(CalcNTEntropySerialize), CalcNTEntropyFinalize
+    );
     bool passing = true;
 
     vector<StringVal> vals;
@@ -212,9 +215,10 @@ bool TestNTEntropy() {
 
 bool TestAAEntropy() {
     typedef UdaTestHarness<DoubleVal, StringVal, StringVal> TestHarness;
-    TestHarness test(CalcAAEntropyInit, CalcAAEntropyUpdate, CalcAAEntropyMerge,
-            reinterpret_cast<TestHarness::SerializeFn>(CalcAAEntropySerialize),
-            CalcAAEntropyFinalize);
+    TestHarness test(
+        CalcAAEntropyInit, CalcAAEntropyUpdate, CalcAAEntropyMerge,
+        reinterpret_cast<TestHarness::SerializeFn>(CalcAAEntropySerialize), CalcAAEntropyFinalize
+    );
     bool passing = true;
 
     vector<StringVal> vals;
@@ -232,9 +236,10 @@ bool TestAAEntropy() {
 
 bool TestCDEntropy() {
     typedef UdaTestHarness<DoubleVal, StringVal, StringVal> TestHarness;
-    TestHarness test(CalcCDEntropyInit, CalcCDEntropyUpdate, CalcCDEntropyMerge,
-            reinterpret_cast<TestHarness::SerializeFn>(CalcCDEntropySerialize),
-            CalcCDEntropyFinalize);
+    TestHarness test(
+        CalcCDEntropyInit, CalcCDEntropyUpdate, CalcCDEntropyMerge,
+        reinterpret_cast<TestHarness::SerializeFn>(CalcCDEntropySerialize), CalcCDEntropyFinalize
+    );
     bool passing = true;
 
     vector<StringVal> vals;

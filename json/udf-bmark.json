@@ -181,5 +181,65 @@
                 "AAAABBBBCCCaaaabbbbcccdd"
             ]
         }
+    },
+    "BM_Tn_93_Distance": {
+        "function_name": "Tn_93_Distance",
+        "bm_argument_values": {
+            "sequence1": [
+                "StringVal",
+                "GCCACAGCCTTGTTTCGCCAGAAACCCAGTCAGCATAAGGG----CTCAAGGCAGGTCAACTCGCACAGTGAGGGTCACATGGTCGTTCGGCTCTACCGACACGAACCTCAGTTAGCGTACATCCTACCAGAGGTCTGTGGCCCCG----"
+            ],
+            "sequence2": [
+                "StringVal",
+                "GCCACAGACTTGTTCCGCCAGAATTGCAGTCAGCATAAGGGAGAGCTCAAGGCAGGTCAACTCGCACAGTGAGGGTCACATGGTCGTTCAAACCTACCGACACGAACCTCAGTTAG----CATCCTACCAGAGGTCTGTGCGACCGTGGT"
+            ]
+        }
+    },
+    "BM_Tn_93_Gamma": {
+        "function_name": "Tn_93_Gamma",
+        "bm_argument_values": {
+            "sequence1": [
+                "StringVal",
+                "GCCACAGCCTTGTTTCGCCAGAAACCCAGTCAGCATAAGGG----CTCAAGGCAGGTCAACTCGCACAGTGAGGGTCACATGGTCGTTCGGCTCTACCGACACGAACCTCAGTTAGCGTACATCCTACCAGAGGTCTGTGGCCCCG----"
+            ],
+            "sequence2": [
+                "StringVal",
+                "GCCACAGACTTGTTCCGCCAGAATTGCAGTCAGCATAAGGGAGAGCTCAAGGCAGGTCAACTCGCACAGTGAGGGTCACATGGTCGTTCAAACCTACCGACACGAACCTCAGTTAG----CATCCTACCAGAGGTCTGTGCGACCGTGGT"
+            ],
+            "alpha": [
+                "DoubleVal",
+                1.0
+            ]
+        }
+    },
+    "BM_Hamming_Distance": {
+        "function_name": "Hamming_Distance",
+        "bm_argument_values": {
+            "sequence1": [
+                "StringVal",
+                "GCCACAGCCTTGTTTCGCCAGAAACCCAGTCAGCATAAGGG----CTCAAGGCAGGTCAACTCGCACAGTGAGGGTCACATGGTCGTTCGGCTCTACCGACACGAACCTCAGTTAGCGTACATCCTACCAGAGGTCTGTGGCCCCG----"
+            ],
+            "sequence2": [
+                "StringVal",
+                "GCCACAGACTTGTTCCGCCAGAATTGCAGTCAGCATAAGGGAGAGCTCAAGGCAGGTCAACTCGCACAGTGAGGGTCACATGGTCGTTCAAACCTACCGACACGAACCTCAGTTAG----CATCCTACCAGAGGTCTGTGCGACCGTGGT"
+            ]
+        }
+    },
+    "BM_Hamming_Distance_Pairwise_Delete": {
+        "function_name": "Hamming_Distance_Pairwise_Delete",
+        "bm_argument_values": {
+            "sequence1": [
+                "StringVal",
+                "GCCACAGCCTTGTTTCGCCAGAAACCCAGTCAGCATAAGGG----CTCAAGGCAGGTCAACTCGCACAGTGAGGGTCACATGGTCGTTCGGCTCTACCGACACGAACCTCAGTTAGCGTACATCCTACCAGAGGTCTGTGGCCCCG----"
+            ],
+            "sequence2": [
+                "StringVal",
+                "GCCACAGACTTGTTCCGCCAGAATTGCAGTCAGCATAAGGGAGAGCTCAAGGCAGGTCAACTCGCACAGTGAGGGTCACATGGTCGTTCAAACCTACCGACACGAACCTCAGTTAG----CATCCTACCAGAGGTCTGTGCGACCGTGGT"
+            ],
+            "pairwise_delete_set": [
+                "StringVal",
+                "-"
+            ]
+        }
     }
 }

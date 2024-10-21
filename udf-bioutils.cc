@@ -31,41 +31,7 @@
 
 
 // Utility functions
-// Compare alleles for two strings.
-// TO-DO: revisit, likely outdated
-bool comp_allele(std::string s1, std::string s2) {
-    int x     = 0;
-    int y     = 0;
-    int index = 0;
 
-    std::string buff1 = "";
-    for (index = 0; index < s1.length(); index++) {
-        if (isdigit(s1[index])) {
-            buff1 += s1[index];
-        } else if (!buff1.empty()) {
-            break;
-        }
-    }
-    std::istringstream(buff1) >> x;
-
-    std::string buff2 = "";
-    for (index = 0; index < s2.length(); index++) {
-        if (isdigit(s2[index])) {
-            buff2 += s2[index];
-        } else if (!buff2.empty()) {
-            break;
-        }
-    }
-    std::istringstream(buff2) >> y;
-
-    if (x < y) {
-        return true;
-    } else if (y < x) {
-        return false;
-    } else {
-        return (s1 < s2);
-    }
-}
 
 // We take a string of delimited values in a string and sort it in ascending
 // order
@@ -164,13 +130,14 @@ StringVal Sort_List_By_Substring_Unique(
     }
     if (listVal.len == 0 || delimVal.len == 0) {
         return listVal;
-    };
+    }
 
-    std::string list((const char *)listVal.ptr, listVal.len);
-    std::string delim((const char *)delimVal.ptr, delimVal.len);
-    std::vector<std::string> tokens = split_by_substr(list, delim);
+    std::string_view list(reinterpret_cast<const char *>(listVal.ptr), listVal.len);
+    std::string_view delim(reinterpret_cast<const char *>(delimVal.ptr), delimVal.len);
 
-    if (tokens.size() == 0) {
+    std::vector<std::string_view> tokens = split_by_substr_view(list, delim);
+
+    if (tokens.empty()) {
         if (list == delim) {
             return StringVal("");
         } else {
@@ -179,14 +146,16 @@ StringVal Sort_List_By_Substring_Unique(
     } else {
         // Use the usual ascending sort
         std::sort(tokens.begin(), tokens.end());
-        std::string s = tokens[0];
-        for (std::size_t i = 1; i < tokens.size(); i++) {
+
+        std::string result(tokens[0]);
+        for (std::size_t i = 1; i < tokens.size(); ++i) {
             if (tokens[i] != tokens[i - 1]) {
-                s += delim + tokens[i];
+                result += delim;
+                result += tokens[i];
             }
         }
 
-        return to_StringVal(context, s);
+        return to_StringVal(context, result);
     }
 }
 
@@ -230,8 +199,46 @@ StringVal Sort_List_By_Set(
     return to_StringVal(context, s);
 }
 
-// We take a string of delimited values in a string and sort it in ascending
-// order
+struct Allele {
+    int numericPart;
+    std::string_view originalAllele;
+
+    Allele(int num, std::string_view str) : numericPart(num), originalAllele(str) {}
+};
+
+Allele parse_allele(std::string_view s) {
+    std::string_view numericStr;
+    int index = 0;
+
+    for (index = 0; index < s.size(); ++index) {
+        if (isdigit(s[index])) {
+            numericStr = s.substr(index);
+            break;
+        }
+    }
+
+    int endIdx = index;
+    while (endIdx < s.size() && isdigit(s[endIdx])) {
+        ++endIdx;
+    }
+    numericStr = s.substr(index, endIdx - index);
+
+    int numericPart = 0;
+    std::from_chars(numericStr.data(), numericStr.data() + numericStr.size(), numericPart);
+
+    return Allele(numericPart, s);
+}
+
+bool comp_allele_struct(const Allele &a1, const Allele &a2) {
+    if (a1.numericPart < a2.numericPart) {
+        return true;
+    } else if (a1.numericPart > a2.numericPart) {
+        return false;
+    } else {
+        return a1.originalAllele < a2.originalAllele;
+    }
+}
+
 IMPALA_UDF_EXPORT
 StringVal Sort_Allele_List(
     FunctionContext *context, const StringVal &listVal, const StringVal &delimVal
@@ -243,22 +250,27 @@ StringVal Sort_Allele_List(
         return listVal;
     };
 
-    std::string list((const char *)listVal.ptr, listVal.len);
-    std::string delim((const char *)delimVal.ptr, delimVal.len);
-    std::vector<std::string> tokens = split_by_substr(list, delim);
+    std::string_view list(reinterpret_cast<const char *>(listVal.ptr), listVal.len);
+    std::string_view delim(reinterpret_cast<const char *>(delimVal.ptr), delimVal.len);
 
-    if (tokens.size() == 0) {
+    auto tokens = split_by_substr_view(list, delim);
+
+    if (tokens.empty()) {
         return listVal;
     } else {
-        // Use the usual ascending sort
-        std::sort(tokens.begin(), tokens.end(), comp_allele);
-        std::string s = tokens[0];
-        for (std::vector<std::string>::const_iterator i = tokens.begin() + 1; i < tokens.end();
-             ++i) {
-            s += delim + *i;
+        std::vector<Allele> alleles;
+        for (auto token : tokens) {
+            alleles.emplace_back(parse_allele(token));
         }
 
-        return to_StringVal(context, s);
+        std::sort(alleles.begin(), alleles.end(), comp_allele_struct);
+
+        std::string sortedList(alleles[0].originalAllele);
+        for (size_t i = 1; i < alleles.size(); i++) {
+            sortedList += std::string(delim) + std::string(alleles[i].originalAllele);
+        }
+
+        return to_StringVal(context, sortedList);
     }
 }
 

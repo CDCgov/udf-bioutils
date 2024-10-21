@@ -38,6 +38,7 @@ StringVal Sort_List_By_Substring(
 StringVal Sort_List_By_Substring_Unique(
     FunctionContext *context, const StringVal &listVal, const StringVal &delimVal
 );
+
 StringVal Sort_List_By_Set(
     FunctionContext *context, const StringVal &listVal, const StringVal &delimVal,
     const StringVal &outDelimVal
@@ -45,6 +46,7 @@ StringVal Sort_List_By_Set(
 StringVal Sort_Allele_List(
     FunctionContext *context, const StringVal &listVal, const StringVal &delimVal
 );
+
 StringVal To_AA(FunctionContext *context, const StringVal &ntsVal);
 StringVal To_AA_Mutant(
     FunctionContext *context, const StringVal &ntsVal, const StringVal &alleleVal, const IntVal &pos

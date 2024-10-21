@@ -1298,7 +1298,7 @@ bool test__reverse_complement() {
 bool test__sort_alleles() {
     int passing = true;
 
-    std::tuple<StringVal, StringVal, StringVal> table[9] = {
+    std::tuple<StringVal, StringVal, StringVal> table[10] = {
         std::make_tuple("89G, 56Y, 2S, 160T", ", ", "2S, 56Y, 89G, 160T"),
         std::make_tuple(StringVal::null(), ", ", StringVal::null()),
         std::make_tuple("89G, 56Y, 2S, 160T", StringVal::null(), StringVal::null()),
@@ -1307,9 +1307,10 @@ bool test__sort_alleles() {
         std::make_tuple("A160T;S53G;M140R", ";", "S53G;M140R;A160T"),
         std::make_tuple("A1starkC3starkA2", "stark", "A1starkA2starkC3"),
         std::make_tuple("89G, 56Y, 2S, 160T", "#", "89G, 56Y, 2S, 160T"),
-        std::make_tuple("A,C,B", ",", "A,B,C")
+        std::make_tuple("A,C,B", ",", "A,B,C"),
+        std::make_tuple("B1,A1,B1,B2,2B", ",", "A1,B1,B1,2B,B2"),
     };
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 10; i++) {
         auto [arg0_s, arg1_s, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
@@ -2012,6 +2013,10 @@ int main(int argc, char **argv) {
     passed &= test__calculate_entropy();
     passed &= test__tn_93();
     passed &= test__tn_93_gamma();
+    passed &= test__sort_alleles();
+    passed &= test__sort_list();
+    passed &= test__sort_list_set();
+    passed &= test__sort_list_unique();
 
     cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
     return !passed;

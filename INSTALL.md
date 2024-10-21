@@ -20,8 +20,8 @@ Notice that Impala 4.0 is shipped with CDP 7.1.9 and the package indicates both 
 On RHEL8, one can use so-called GCC toolsets to get a newer version of GCC that has binary compatibility with the base systems you are using. GCC 9 is required to get C++20 features used by this library. Later versions of GCC work just as well.
 
 ```bash
-# Could gcc-toolset 9+, eg, gcc 9 to 14 on RHEL 8. Pick the toolchain based on your needs.
-sudo yum install gcc-toolset-12 boost cmake openssl openssl-devel
+# Could be gcc-toolset 9+, eg, gcc 9 to 13 on RHEL 8 (GCC 13 tested). Pick the toolchain based on your needs.
+sudo yum install gcc-toolset-13 boost cmake openssl openssl-devel
 ```
 
 We use OpenSSL for hashing functions, but Cloudera Manager Agent will also require OpenSSL, so that dependency will usually be met in terms of the the target daemons.
@@ -38,8 +38,8 @@ Configuration is done via `cmake` but `make` handles the build process. UDX test
 
 ```bash
 # Load the toolchain.
-# This example assumes `gcc-toolset-12`` was installed on RHEL 8.
-source /opt/rh/gcc-toolset-12/enable
+# This example assumes `gcc-toolset-13`` was installed on RHEL 8.
+source /opt/rh/gcc-toolset-13/enable
 
 # Configure and compile
 cmake .
@@ -48,6 +48,9 @@ make
 ## Run tests
 ./build/udf-bioutils-test
 ./build/uda-bioutils-test
+
+## Run benchmarks
+./build/udf-bioutils-bmark
 ```
 
 Built libraries will need to be put in HDFS / S3 / ADLS and then instantiated within Impala using the appropriate SQL.
@@ -92,4 +95,9 @@ for i in sql/*;do
 done
 ```
 
-The query files can be executed via CLI or in something like HUE.
+The query files can be executed via CLI or in something like HUE. Finally, it is recommended to use:
+
+```sql
+-- Supposing `udx` is the DB with your functions
+refresh functions `udx`;
+```

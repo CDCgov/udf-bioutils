@@ -70,7 +70,8 @@
                 "typeinfo": "cpp",
                 "format": "cpp",
                 "span": "cpp",
-                "variant": "cpp"
+                "variant": "cpp",
+                "ranges": "cpp"
         },
         "C_Cpp.formatting": "clangFormat"
 }

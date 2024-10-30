@@ -135,7 +135,7 @@ StringVal Sort_List_By_Substring_Unique(
     std::string_view list(reinterpret_cast<const char *>(listVal.ptr), listVal.len);
     std::string_view delim(reinterpret_cast<const char *>(delimVal.ptr), delimVal.len);
 
-    std::vector<std::string_view> tokens = split_by_substr_view(list, delim);
+    std::vector<std::string_view> tokens = split_by_substr(list, delim);
 
     if (tokens.empty()) {
         if (list == delim) {
@@ -253,7 +253,7 @@ StringVal Sort_Allele_List(
     std::string_view list(reinterpret_cast<const char *>(listVal.ptr), listVal.len);
     std::string_view delim(reinterpret_cast<const char *>(delimVal.ptr), delimVal.len);
 
-    auto tokens = split_by_substr_view(list, delim);
+    auto tokens = split_by_substr(list, delim);
 
     if (tokens.empty()) {
         return listVal;
@@ -268,6 +268,36 @@ StringVal Sort_Allele_List(
         std::string sortedList(alleles[0].originalAllele);
         for (size_t i = 1; i < alleles.size(); i++) {
             sortedList += std::string(delim) + std::string(alleles[i].originalAllele);
+        }
+
+        return to_StringVal(context, sortedList);
+    }
+}
+
+// for sorting a concatenated list of sites
+IMPALA_UDF_EXPORT
+StringVal Sort_Site_List(FunctionContext *context, const StringVal &listVal) {
+    if (listVal.is_null) {
+        return StringVal::null();
+    }
+    if (listVal.len == 0) {
+        return listVal;
+    };
+
+    std::string_view list(reinterpret_cast<const char *>(listVal.ptr), listVal.len);
+    std::string_view delim = ", ";
+    auto numbers           = split_int_by_substr(list, delim);
+
+    if (numbers.empty()) {
+        return StringVal::null();
+    } else if (std::is_sorted(numbers.begin(), numbers.end())) {
+        return listVal;
+    } else {
+        std::sort(numbers.begin(), numbers.end());
+
+        std::string sortedList(std::to_string(numbers[0]));
+        for (size_t i = 1; i < numbers.size(); i++) {
+            sortedList += std::string(delim) + std::to_string(numbers[i]);
         }
 
         return to_StringVal(context, sortedList);

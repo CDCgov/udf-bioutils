@@ -1410,6 +1410,44 @@ bool test__sort_list_unique() {
     return passing;
 }
 
+bool test__sort_sites() {
+    int passing = true;
+
+    std::tuple<StringVal, StringVal> table[7] = {
+        std::make_tuple(
+            "1, 177, 697, 731, 740, 869, 900, 902, 1029, 1050, 1229, 1233, 1237",
+            "1, 177, 697, 731, 740, 869, 900, 902, 1029, 1050, 1229, 1233, 1237"
+        ),
+        std::make_tuple(StringVal::null(), StringVal::null()),
+        std::make_tuple(
+            "191, 145, 187, 166, 140, 143, 163, 164, 172, 41, 141, 167, 27, 165, 49, 142, 168, "
+            "189, 188, 144, 190, 54, 260, 248, 166, 55, 140, 15, 164, 172, 15, 189, 144, 129, 135, "
+            "50, 54",
+            "15, 15, 27, 41, 49, 50, 54, 54, 55, 129, 135, 140, 140, 141, 142, 143, 144, 144, 145, "
+            "163, 164, 164, 165, 166, 166, 167, 168, 172, 172, 187, 188, 189, 189, 190, 191, 248, "
+            "260"
+        ),
+        std::make_tuple(
+            "33, 61, 97, 179, 190, 219, 296, 303, 358, 375, 380, 399, 423, 437, 455, 457",
+            "33, 61, 97, 179, 190, 219, 296, 303, 358, 375, 380, 399, 423, 437, 455, 457"
+        ),
+        std::make_tuple("1, 2, 3, 5, A, 52, 77", StringVal::null()),
+        std::make_tuple("A, B, C, D", StringVal::null()),
+        std::make_tuple("Apple", StringVal::null()),
+    };
+    for (int i = 0; i < 7; i++) {
+        auto [arg0_s, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal>(Sort_Site_List, arg0_s, expected)) {
+            cout << "UDX sort_list_unique(ss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
+                 << expected.ptr << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
+
 bool test__substr_range() {
     int passing = true;
 
@@ -2017,6 +2055,7 @@ int main(int argc, char **argv) {
     passed &= test__sort_list();
     passed &= test__sort_list_set();
     passed &= test__sort_list_unique();
+    passed &= test__sort_sites();
 
     cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
     return !passed;

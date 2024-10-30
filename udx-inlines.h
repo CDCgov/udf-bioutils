@@ -60,24 +60,6 @@ inline std::vector<std::string> split_by_substr(
     return output;
 }
 
-inline std::vector<std::string_view> split_by_substr_view(
-    std::string_view str, std::string_view delim_str
-) {
-    const std::size_t LD = delim_str.size();
-    std::vector<std::string_view> output;
-
-    for (auto first = str.data(), second = str.data(), last = first + str.size();
-         second != last && first != last; first = second + LD) {
-
-        second = std::search(first, last, delim_str.begin(), delim_str.end());
-
-        if (first != second) {
-            output.emplace_back(first, second - first);
-        }
-    }
-
-    return output;
-}
 
 // SPLIT STRING/VIEW by string of single delimiters (uses find_first_of)
 // Courtesy: https://github.com/fenbf/StringViewTests/blob/master/StringViewTest.cpp

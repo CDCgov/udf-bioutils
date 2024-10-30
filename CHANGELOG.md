@@ -1,5 +1,10 @@
 # UDF-BioUtils Changelog #
 
+## v1.3.2 (2024-10-28) ##
+
+- Added function `sort_site_list` for numerically sorting a string of comma-separated integers, as returned by `group_concat()`S.
+- _INTERNAL_: Removed redundant inline function `split_by_substr_view` and instead used the already-existing `split_by_substr` function.
+
 ## v1.3.1 (2024-10-16) ##
 
 - Optimized functions `sort_alleles` and `sort_list_unique` for efficiency.

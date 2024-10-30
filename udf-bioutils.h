@@ -29,7 +29,6 @@ int get_final_saturday() {
 static int FINAL_SATURDAY = get_final_saturday();
 
 // private functions
-bool comp_allele(std::string s1, std::string s2);
 struct epiweek_t date_to_epiweek(boost::gregorian::date d);
 
 StringVal Sort_List_By_Substring(
@@ -46,6 +45,8 @@ StringVal Sort_List_By_Set(
 StringVal Sort_Allele_List(
     FunctionContext *context, const StringVal &listVal, const StringVal &delimVal
 );
+
+StringVal Sort_Site_List(FunctionContext *context, const StringVal &listVal);
 
 StringVal To_AA(FunctionContext *context, const StringVal &ntsVal);
 StringVal To_AA_Mutant(

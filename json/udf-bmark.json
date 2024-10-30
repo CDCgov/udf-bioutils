@@ -68,6 +68,24 @@
             ]
         }
     },
+    "BM_Sort_Site_List_unsorted": {
+        "function_name": "Sort_Site_List",
+        "bm_argument_values": {
+            "listVal": [
+                "StringVal",
+                "191, 145, 187, 166, 140, 143, 163, 164, 172, 41, 141, 167, 27, 165, 49, 142, 168, 189, 188, 144, 190, 54, 260, 248, 166, 55, 140, 15, 164, 172, 15, 189, 144, 129, 135, 50, 54"
+            ]
+        }
+    },
+    "BM_Sort_Site_List_sorted": {
+        "function_name": "Sort_Site_List",
+        "bm_argument_values": {
+            "listVal": [
+                "StringVal",
+                "15, 15, 27, 41, 49, 50, 54, 54, 55, 129, 135, 140, 140, 141, 142, 143, 144, 144, 145, 163, 164, 164, 165, 166, 166, 167, 168, 172, 172, 187, 188, 189, 189, 190, 191, 248, 260"
+            ]
+        }
+    },
     "BM_To_AA": {
         "function_name": "To_AA",
         "bm_argument_values": {

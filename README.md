@@ -383,10 +383,11 @@ sort_alleles(STRING allele_or_mutation_list, STRING delim) -> STRING
 sort_list(STRING list, STRING delim)
 sort_list_unique(STRING list, STRING delim)
 sort_list_set(STRING list, STRING delim_set, STRING output_delim)
+sort_site_list(SRING list)
 ```
 
 **Return type:** `STRING`  
-**Purpose:** Returns an alphabetically sorted list of elements in the STRING `list` delimited by `delim` or `delim_set`. The function `sort_list` interprets multi-character delimiters as a whole STRING while the function `sort_list_set` treats each character in the argument `delim_set` as a single-character delimiter (all are applied). The input and output delimiter for `sort_list` are taken to be the same while the output delimiter for `sort_list_set` is specified by `output_delim`. If any argument is `NULL` a null value is returned. The function variant `sort_list_unique` behaves exactly like `sort_list` but removes redundant elements.
+**Purpose:** Returns an alphabetically sorted list of elements in the STRING `list` delimited by `delim` or `delim_set`. The function `sort_list` interprets multi-character delimiters as a whole STRING while the function `sort_list_set` treats each character in the argument `delim_set` as a single-character delimiter (all are applied). The input and output delimiter for `sort_list` are taken to be the same while the output delimiter for `sort_list_set` is specified by `output_delim`. If any argument is `NULL` a null value is returned. The function variant `sort_list_unique` behaves exactly like `sort_list` but removes redundant elements. `sort_site_list` is for numerically sorting a string of comma-separated integers returned by the output of `group_concat()`, and will return `NULL` if non-numeric values are found in the list.
 
 ### DAIS-ribosome Related Functions
 

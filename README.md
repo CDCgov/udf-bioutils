@@ -62,7 +62,7 @@ For direct correspondence, feel free to contact: Samuel S. Shepard ([vfn4@cdc.go
   - [Privacy Standard Notice](#privacy-standard-notice)
   - [Contributing Standard Notice](#contributing-standard-notice)
   - [Records Management Standard Notice](#records-management-standard-notice)
-  - [Additional Standard Notice](#additional-standard-notice)
+  - [Additional Standard Notices](#additional-standard-notices)
 
 # User-defined bioinformatics utilities for Impala SQL
 
@@ -555,7 +555,6 @@ All comments, messages, pull requests, and other submissions received through CD
 
 This repository is not a source of government records, but is a copy to increase collaboration and collaborative potential. All government records will be published through the [CDC web site](http://www.cdc.gov).
 
-## Additional Standard Notice
+## Additional Standard Notices
 
-- [Contributing to this Repository](CONTRIBUTING.md)
-- [Public Domain Notices and Disclaimers](DISCLAIMER.md)
+Please refer to [CDC's Template Repository](https://github.com/CDCgov/template) for more information about [contributing to this repository](https://github.com/CDCgov/template/blob/main/CONTRIBUTING.md), [public domain notices and disclaimers](https://github.com/CDCgov/template/blob/main/DISCLAIMER.md), and [code of conduct](https://github.com/CDCgov/template/blob/main/code-of-conduct.md).

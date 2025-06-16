@@ -5,6 +5,7 @@
 #include "udf-bioutils.h"
 #include <impala_udf/udf-test-harness.h>
 #include <tuple>
+#include <random>
 
 using namespace impala;
 using namespace impala_udf;
@@ -167,6 +168,76 @@ bool test__ending_in_saturday_date() {
         }
     }
 
+    return passing;
+}
+
+bool test__date_to_double() {
+    bool passing = true;
+
+    std::tuple<DateVal, DoubleVal> table[7] = {
+        std::make_tuple(to_dv(2000, 1, 1), 2000.003),
+        std::make_tuple(to_dv(2000, 1, 17), 2000.046),
+        std::make_tuple(to_dv(2001, 1, 17), 2001.047), // no leap day
+        std::make_tuple(to_dv(2100, 1, 17), 2100.047), // no leap day
+        std::make_tuple(to_dv(2000, 12, 31), 2000.999),
+        std::make_tuple(to_dv(2001, 12, 31), 2001.999),
+        std::make_tuple(to_dv(2025, 6, 16), 2025.458),
+    };
+
+    for (int i = 0; i < 7; i++) {
+        auto [arg0_s, expected] = table[i];
+        if (!UdfTestHarness::ValidateUdf<DoubleVal, DateVal>(
+            Date_to_Double, arg0_s, expected
+        )) {
+            cout << "UDX Date_to_double(Date)->Double failed:\n\t|" << arg0_s.val << "|\n\t|"
+                << expected.val << "|\n";
+            passing = false;
+        }
+    }
+    return passing;
+}
+
+bool test__double_to_date() {
+    bool passing = true;
+
+    std::tuple<DoubleVal, DateVal> table[7] = {
+        std::make_tuple(2000.003, to_dv(2000, 1, 1)),
+        std::make_tuple(2000.046, to_dv(2000, 1, 17)),
+        std::make_tuple(2001.047, to_dv(2001, 1, 17)), // no leap day
+        std::make_tuple(2100.047, to_dv(2100, 1, 17)), // no leap day
+        std::make_tuple(2000.999, to_dv(2000, 12, 31)),
+        std::make_tuple(2001.999, to_dv(2001, 12, 31)),
+        std::make_tuple(2025.458, to_dv(2025, 6, 16)),
+    };
+
+    for (int i = 0; i < 7; i++) {
+        auto [arg0_s, expected] = table[i];
+        if (!UdfTestHarness::ValidateUdf<DateVal, DoubleVal>(
+            Double_to_Date, arg0_s, expected
+        )) {
+            cout << "UDX Double_to_Date(Double)->Date failed:\n\t|" << arg0_s.val << "|\n\t|"
+                << expected.val << "|\n";
+            passing = false;
+        }
+    }
+    return passing;
+}
+
+bool test__doubleday_fuzz() {
+    bool passing = true;
+
+    std::mt19937 rng(42);
+    std::uniform_int_distribution<int32_t> dist(-209678, 4654321); // valid date range for DateVals
+    
+    for (int i = 0; i < 100; i++) {
+        int32_t raw_val = dist(rng);
+        auto date = DateVal(raw_val);
+        
+        if (date != Double_to_Date(Date_to_Double(date))) {
+            cout << "UDX Double_to_Date/Date_to_Double Fuzz failed:\n\t|" << date.val;
+            return false;
+        }
+    } 
     return passing;
 }
 
@@ -2044,6 +2115,8 @@ int main(int argc, char **argv) {
     passed &= test__nt_position_to_codon_mutant();
     passed &= test__ending_in_saturday_str();
     passed &= test__ending_in_fornight_str();
+    passed &= test__date_to_double();
+    passed &= test__double_to_date();
     passed &= test__nt_to_aa_position();
     passed &= test__nt_position_to_mutation_aa3();
     passed &= test__sequence_diff();

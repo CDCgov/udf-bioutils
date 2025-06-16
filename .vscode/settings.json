@@ -71,7 +71,8 @@
                 "format": "cpp",
                 "span": "cpp",
                 "variant": "cpp",
-                "ranges": "cpp"
+                "ranges": "cpp",
+                "text_encoding": "cpp"
         },
         "C_Cpp.formatting": "clangFormat"
 }

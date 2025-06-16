@@ -14,6 +14,7 @@ For direct correspondence, feel free to contact: Samuel S. Shepard ([vfn4@cdc.go
       - [Fortnight Date](#fortnight-date)
       - [Saturday Date](#saturday-date)
       - [To EpiWeek](#to-epiweek)
+      - [Date to Decimal and Decimal to Date](#date-to-decimal-and-decimal-to-date)
     - [ID Functions](#id-functions)
       - [Variant Hash and Nucleotide ID](#variant-hash-and-nucleotide-id)
       - [md5](#md5)
@@ -123,6 +124,24 @@ to_epiweek(<STRING or TIMESTAMP> date [, BOOLEAN year_format]) -> INT
 ```
 
 **Purpose:** Returns the [MMWR or EPI](https://wwwn.cdc.gov/nndss/document/MMWR_Week_overview.pdf) week of a formatted date STRING or timestamp. Normally the output is an integer ranging from 1 up to 52 or 53. The *optional* `year_format` (defaults to `false`) adds the padded week to the year so that the output can be graphed on a contiguous timeline. Some examples using the year format would be: *202102* and *199853*.
+
+Null inputs, invalid dates, or the empty STRING will return `null`.  If the `date` is a STRING it must be in *YYYY-MM-DD* format but may also be delimited using `.` or `/`. Partial STRING dates are considered invalid but can be corrected (see [complete_date](#complete-date)). Finally, dates before `1400-01-01` return `NULL`, even if the date is considered valid otherwise.
+
+#### Date to Decimal and Decimal to Date
+
+```sql
+date_to_decimal(<STRING or TIMESTAMP or DATE> date) -> DOUBLE
+decimal_to_date(DOUBLE) -> DATE
+```
+
+**Purpose:** Converts a provided date into a double format, as used by [BEAST](https://beast.community/tip_dates), and vice versa. The double output will be a decimal with the integer part equal to the year of the provided date, and the fractional part representing the proportion of the year that *elapsed* at the *completion* of the given month and day. `decimal_to_date()` will convert the double back into the standard date format.
+
+**Example:**
+
+```sql
+select udx.date_to_decimal("2025-06-16") --> 2025.458
+select udx.decimal_to_date(2025.047)     --> "2025-01-17"
+```
 
 Null inputs, invalid dates, or the empty STRING will return `null`.  If the `date` is a STRING it must be in *YYYY-MM-DD* format but may also be delimited using `.` or `/`. Partial STRING dates are considered invalid but can be corrected (see [complete_date](#complete-date)). Finally, dates before `1400-01-01` return `NULL`, even if the date is considered valid otherwise.
 

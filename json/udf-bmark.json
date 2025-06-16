@@ -259,5 +259,23 @@
                 "-"
             ]
         }
+    },
+    "BM_Date_to_Double": {
+        "function_name": "Date_to_Double",
+        "bm_argument_values": {
+            "dateVal": [
+                "DateVal",
+                10957
+            ]
+        }
+    },
+    "BM_Double_to_Date": {
+        "function_name": "Double_to_Date",
+        "bm_argument_values": {
+            "doubleVal": [
+                "DoubleVal",
+                2001.047
+            ]
+        }
     }
 }

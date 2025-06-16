@@ -128,6 +128,10 @@ IntVal Convert_Timestamp_To_EPI_Week(FunctionContext *context, const TimestampVa
 IntVal Convert_Timestamp_To_EPI_Week(
     FunctionContext *context, const TimestampVal &tsVal, const BooleanVal &yearFormat
 );
+
+DoubleVal Date_to_Double(FunctionContext *context, const DateVal &dateVal);
+DateVal Double_to_Date(FunctionContext *context, const DoubleVal &doubleVal);
+
 IntVal Longest_Deletion(FunctionContext *context, const StringVal &sequence);
 IntVal Number_Deletions(FunctionContext *context, const StringVal &sequence);
 

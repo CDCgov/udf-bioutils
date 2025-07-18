@@ -223,21 +223,27 @@ bool test__double_to_date() {
     return passing;
 }
 
+// picks 100 random days and runs them through to make sure that our functions
+// convert properly back and forth.
 bool test__doubleday_fuzz() {
     bool passing = true;
 
     std::mt19937 rng(42);
-    std::uniform_int_distribution<int32_t> dist(-209678, 4654321); // valid date range for DateVals
+    boost::gregorian::date min_valid(1400, 1, 1);
+    boost::gregorian::date max_valid(9999, 12, 31);
+
+    int32_t min_dateval = min_valid.day_number() - EPOCH_OFFSET;
+    int32_t max_dateval = max_valid.day_number() - EPOCH_OFFSET;
+
+    std::uniform_int_distribution<int32_t> dist(min_dateval, max_dateval);
     
     for (int i = 0; i < 100; i++) {
-        int32_t raw_val = dist(rng);
-        auto date = DateVal(raw_val);
-        
-        if (date != Double_to_Date(Date_to_Double(date))) {
-            cout << "UDX Double_to_Date/Date_to_Double Fuzz failed:\n\t|" << date.val;
-            return false;
+        int32_t date = dist(rng);
+        if (date != double_to_date_inner(date_to_double_inner(date))) {
+            cout << "UDX Double_to_Date/Date_to_Double Fuzz failed:\n\t|" << date;
+            passing = false;
         }
-    } 
+    }
     return passing;
 }
 
@@ -2117,6 +2123,7 @@ int main(int argc, char **argv) {
     passed &= test__ending_in_fornight_str();
     passed &= test__date_to_double();
     passed &= test__double_to_date();
+    passed &= test__doubleday_fuzz();
     passed &= test__nt_to_aa_position();
     passed &= test__nt_position_to_mutation_aa3();
     passed &= test__sequence_diff();

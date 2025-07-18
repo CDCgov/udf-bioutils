@@ -129,6 +129,8 @@ IntVal Convert_Timestamp_To_EPI_Week(
     FunctionContext *context, const TimestampVal &tsVal, const BooleanVal &yearFormat
 );
 
+int32_t double_to_date_inner(double doubleval);
+double date_to_double_inner(int32_t dateval);
 DoubleVal Date_to_Double(FunctionContext *context, const DateVal &dateVal);
 DateVal Double_to_Date(FunctionContext *context, const DoubleVal &doubleVal);
 

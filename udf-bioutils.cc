@@ -775,32 +775,42 @@ IntVal Convert_String_To_EPI_Week(
     }
 }
 
-// Convert Gregorian Date to float for portion of the year passed
-IMPALA_UDF_EXPORT
-DoubleVal Date_to_Double(FunctionContext *context, const DateVal &dateVal) {
-    if (dateVal.is_null) return DoubleVal::null();
-    auto d = boost::gregorian::date(dateVal.val + EPOCH_OFFSET);
-    if (d.day() == 31 && d.month() == 12) return DoubleVal(d.year() + 0.999);
+__attribute__((visibility("default")))
+double date_to_double_inner(int32_t dateval) {
+    auto d = boost::gregorian::date(dateval + EPOCH_OFFSET);
+    if (d.day() == 31 && d.month() == 12) return (d.year() + 0.999);
     int days_in_year = 365 + int(boost::gregorian::gregorian_calendar::is_leap_year(d.year()));
     double ratio = d.year() + static_cast<double>(d.day_of_year()) / days_in_year;
     // Round to 3 decimal places
     double rounded = std::round(ratio * 1000.0) / 1000.0;
-    return DoubleVal(rounded);
+    return rounded;
 }
 
+// Convert Gregorian Date to float for portion of the year passed
 IMPALA_UDF_EXPORT
-DateVal Double_to_Date(FunctionContext *context, const DoubleVal &doubleVal) {
-    if (doubleVal.is_null) return DateVal::null();
-    double dub = doubleVal.val;
+DoubleVal Date_to_Double(FunctionContext *context, const DateVal &dateVal) {
+    if (dateVal.is_null) return DoubleVal::null();
+    double result = date_to_double_inner(dateVal.val);
+    return DoubleVal(result);
+}
+
+__attribute__((visibility("default")))
+int32_t double_to_date_inner(double doubleval) {
     double year;
-    double decimal = std::modf(dub, &year);
+    double decimal = std::modf(doubleval, &year);
     int days_in_year = 365 + int(boost::gregorian::gregorian_calendar::is_leap_year(year));
     double day_of_year = std::round(days_in_year * decimal);
 
     auto result = boost::gregorian::date(year, 1, 1) + boost::gregorian::date_duration(day_of_year - 1);
     int32_t impala_val = result.day_number() - EPOCH_OFFSET;
-    return DateVal(impala_val);
+    return impala_val;
+}
 
+IMPALA_UDF_EXPORT
+DateVal Double_to_Date(FunctionContext *context, const DoubleVal &doubleVal) {
+    if (doubleVal.is_null) return DateVal::null();
+    int32_t result = double_to_date_inner(doubleVal.val);
+    return DateVal(result);
 }
 
 IMPALA_UDF_EXPORT

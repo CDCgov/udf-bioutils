@@ -1,5 +1,9 @@
 # UDF-BioUtils Changelog #
 
+## v1.4.1 (2025-06-24) ##
+
+- Added functions `date_to_decimal` and `decimal_to_date` for interconversion between standard dates and a double format used by programs such as BEAST.
+
 ## v1.4.0 (2024-10-28) ##
 
 - Added function `sort_site_list` for numerically sorting a string of comma-separated integers, as returned by `group_concat()`'s.

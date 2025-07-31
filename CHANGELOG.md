@@ -1,6 +1,6 @@
 # UDF-BioUtils Changelog #
 
-## v1.4.1 (2025-06-24) ##
+## v1.5.0 (2025-07-31) ##
 
 - Added functions `date_to_decimal` and `decimal_to_date` for interconversion between standard dates and a double format used by programs such as BEAST.
 

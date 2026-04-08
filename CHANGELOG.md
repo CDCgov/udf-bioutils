@@ -1,5 +1,9 @@
 # UDF-BioUtils Changelog #
 
+## v1.5.1 (2056-04-08) ##
+
+- Fixes underflow bug in `Mutation_List_Strict_GLY`.
+
 ## v1.5.0 (2025-07-31) ##
 
 - Added functions `date_to_decimal` and `decimal_to_date` for interconversion between standard dates and a double format used by programs such as BEAST.

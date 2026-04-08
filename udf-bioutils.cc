@@ -1403,7 +1403,7 @@ StringVal Mutation_List_Strict_GLY(
             is_mut = 0;
 
             // N.[^P][ST] -> N-[^P][ST]
-            if (0 <= (i - 1) && (i + 2) < length &&           // checking for length
+            if (i >= 1 && (i + 2) < length &&           // checking for length
                 seq2[i - 1] == 'N' &&                         // -2 position
                 seq2[i + 1] != 'P' &&                         // -1 position
                 (seq2[i + 2] == 'S' || seq2[i + 2] == 'T')) { // 0 position
@@ -1411,7 +1411,7 @@ StringVal Mutation_List_Strict_GLY(
             }
 
             // N[^P].[ST] -> N[^P]-[ST]
-            if (0 <= (i - 2) && (i + 1) < length &&           // checking for length
+            if (i >= 2 && (i + 1) < length &&           // checking for length
                 seq2[i - 2] == 'N' &&                         // -2 position
                 seq2[i - 1] != 'P' &&                         // -1 position
                 (seq2[i + 1] == 'S' || seq2[i + 1] == 'T')) { // 0 position
@@ -1419,7 +1419,7 @@ StringVal Mutation_List_Strict_GLY(
             }
 
             // N[^P][ST] -> -[^P][ST]
-            if (0 <= i && (i + 2) < length &&                 // checking for length
+            if ((i + 2) < length &&                 // checking for length
                 seq1[i] == 'N' &&                             // -2 position
                 seq1[i + 1] != 'P' &&                         // -1 position
                 (seq1[i + 2] == 'S' || seq1[i + 2] == 'T')) { // 0 position
@@ -1427,7 +1427,7 @@ StringVal Mutation_List_Strict_GLY(
             }
 
             // N[^P][ST] -> N-[ST]
-            if (0 <= (i - 1) && (i + 1) < length &&           // checking for length
+            if (i >= 1 && (i + 1) < length &&           // checking for length
                 seq1[i - 1] == 'N' &&                         // -2 position
                 seq1[i] != 'P' &&                             // -1 position
                 (seq1[i + 1] == 'S' || seq1[i + 1] == 'T')) { // 0 position
@@ -1435,7 +1435,7 @@ StringVal Mutation_List_Strict_GLY(
             }
 
             // N[^P][ST] -> N[^P]-
-            if (0 <= (i - 2) && i < length &&         // checking for length
+            if (i >= 2 && i < length &&         // checking for length
                 seq1[i - 2] == 'N' &&                 // -2 position
                 seq1[i - 1] != 'P' &&                 // -1 position
                 (seq1[i] == 'S' || seq1[i] == 'T')) { // 0 position

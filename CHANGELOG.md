@@ -1,5 +1,9 @@
 # UDF-BioUtils Changelog #
 
+## v1.6.0 (2026-05-20) ##
+
+- Added functions `pearson_correlation` and `og_pos_to_cds_allele`, where user can provide the cds_aln, and the function will take the cds position and return the 1-base substring at that position in the sequence.
+
 ## v1.5.1 (2056-04-08) ##
 
 - Fixes underflow bug in `Mutation_List_Strict_GLY`.

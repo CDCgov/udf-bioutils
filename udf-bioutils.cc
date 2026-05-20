@@ -2278,3 +2278,25 @@ DoubleVal Tn_93_Gamma(
 
     return DoubleVal(dist);
 }
+
+IMPALA_UDF_EXPORT
+StringVal OG_Pos_To_CDS_Allele(FunctionContext *context, const StringVal &oriMap, 
+    const StringVal &cdsMap, const BigIntVal &oriPos, const StringVal &cdsAlignment) {
+        if (cdsAlignment.is_null || cdsAlignment.len == 0) {
+            return StringVal::null();
+        }
+        // Convert orig nucleotide position into a 1-based CDS position
+        IntVal v = NT_To_CDS_Position(context, oriMap, cdsMap, oriPos);
+        if (v.is_null) {
+            // mapping failed or position does not correspond to a CDS position
+            return StringVal::null();
+        }
+        // Convert from 1-based CDS coordinate to a 0-based string index
+        int cds_index = v.val - 1;
+        // check in case mapped position falls outside alignment
+        if (cds_index < 0 || cds_index >= cdsAlignment.len) {
+            return StringVal::null();
+        }
+        // Return single-character allele at mapped CDS position
+        return StringVal::CopyFrom(context, cdsAlignment.ptr + cds_index, 1);
+}

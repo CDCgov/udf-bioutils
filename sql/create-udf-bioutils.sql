@@ -59,3 +59,4 @@ create function if not exists udx.to_aa3(string) returns string location "$UDF_B
 create function if not exists udx.sequence_diff(string, string) returns string location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "Sequence_Diff";
 create function if not exists udx.sequence_diff_nt(string, string) returns string location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "Sequence_Diff_NT";
 create function if not exists udx.alnum_entropy(string) returns double location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "Calculate_Entropy";
+create function if not exists udx.og_pos_to_cds_allele(string, string, bigint, string) returns string location "$UDF_BIOUTILS_PATH/libudfbioutils.so" SYMBOL = "OG_Pos_To_CDS_Allele";

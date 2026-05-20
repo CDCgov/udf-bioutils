@@ -199,4 +199,6 @@ DoubleVal Tn_93_Gamma(
     FunctionContext *context, const StringVal &seq1, const StringVal &seq2, const DoubleVal &alpha
 );
 DoubleVal Calculate_Entropy(FunctionContext *context, const StringVal &s);
+StringVal OG_Pos_To_CDS_Allele(FunctionContext *context, const StringVal &oriMap, 
+    const StringVal &cdsMap, const BigIntVal &oriPos, const StringVal &cdsAlignment);
 #endif

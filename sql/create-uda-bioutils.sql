@@ -100,3 +100,13 @@ CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.codon_entropy(STRING)
     MERGE_FN="CalcCDEntropyMerge"
     SERIALIZE_FN="CalcCDEntropySerialize"
     FINALIZE_FN="CalcCDEntropyFinalize";
+
+CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.pearson_correlation(DOUBLE, DOUBLE)
+    RETURNS DOUBLE
+    INTERMEDIATE STRING
+    LOCATION "$UDF_BIOUTILS_PATH/libudabioutils.so"
+    INIT_FN="PearsonCorrInit"
+    UPDATE_FN="PearsonCorrUpdate"
+    MERGE_FN="PearsonCorrMerge"
+    SERIALIZE_FN="PearsonCorrSerialize"
+    FINALIZE_FN="PearsonCorrFinalize";

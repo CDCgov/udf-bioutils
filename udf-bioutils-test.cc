@@ -2057,6 +2057,43 @@ bool test__tn_93() {
     return passing;
 }
 
+bool test__og_pos_to_cds_allele() {
+    bool passing = true;
+
+    std::tuple<StringVal, StringVal, BigIntVal, StringVal, StringVal> table[12] = {
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 11, "AAAAAAGTTTTTTT", "G"), // Basic mapping
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 4, "AAAAAAGTTTTTTT", "A"), // First base
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 16, "AAAAAAGTTTTTTT", "T"), // Last mapped base
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 3, "AAAAAAGTTTTTTT", StringVal::null()), // Before range
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 7, "AAAAAAGTTTTTTT", StringVal::null()), // Between ranges
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 17, "AAAAAAGTTTTTTT", StringVal::null()), // After range
+        std::make_tuple("1..456;457..459;460..983", "31..486;486;487..1010", 458, "ACGT", StringVal::null()), // Insertion (not mappable)
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 16, "AAAAA", StringVal::null()), // Alignment too short
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6", 11, "AAAAAAGTTTTTTT", StringVal::null()), // Token mismatch
+        std::make_tuple(StringVal::null(), "1..3;4..6;7..12", 11, "AAAAAAGTTTTTTT", StringVal::null()), // Null ori map
+        std::make_tuple("4..6;8..10;11..16", StringVal::null(), 11, "AAAAAAGTTTTTTT", StringVal::null()), // Null cds map
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 11, StringVal::null(), StringVal::null()), // Null alignment
+    };
+
+    for (int i = 0; i < 12; i++) {
+        auto [ori_map, cds_map, ori_pos, cds_alignment, expected] = table[i];
+
+        if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, BigIntVal, StringVal>(
+                OG_Pos_To_CDS_Allele, ori_map, cds_map, ori_pos, cds_alignment, expected
+            )) {
+            cout << "UDX OG_Pos_To_CDS_Allele(s, s, i, s)->s failed:\n\t|"
+                 << (ori_map.is_null ? "NULL" : std::string((char*)ori_map.ptr, ori_map.len)) << "|\n\t|"
+                 << (cds_map.is_null ? "NULL" : std::string((char*)cds_map.ptr, cds_map.len)) << "|\n\t|"
+                 << (ori_pos.is_null ? "NULL" : std::to_string(ori_pos.val)) << "|\n\t|"
+                 << (cds_alignment.is_null ? "NULL" : std::string((char*)cds_alignment.ptr, cds_alignment.len)) << "|\n\t|"
+                 << (expected.is_null ? "NULL" : std::string((char*)expected.ptr, expected.len)) << "|\n";
+            passing = false;
+        }
+    }
+
+    return passing;
+}
+
 bool test__tn_93_gamma() {
     bool passing = true;
 
@@ -2136,6 +2173,7 @@ int main(int argc, char **argv) {
     passed &= test__sort_list_set();
     passed &= test__sort_list_unique();
     passed &= test__sort_sites();
+    passed &= test__og_pos_to_cds_allele();
 
     cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
     return !passed;

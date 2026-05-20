@@ -52,4 +52,22 @@ void CalcCDEntropyUpdate(FunctionContext *context, const StringVal &input, Strin
 void CalcCDEntropyMerge(FunctionContext *context, const StringVal &src, StringVal *dst);
 StringVal CalcCDEntropySerialize(FunctionContext *context, const StringVal &val);
 DoubleVal CalcCDEntropyFinalize(FunctionContext *context, const StringVal &val);
+
+// Pearson correlation
+
+struct PearsonState {
+    uint64_t sets;
+    double mean_x;
+    double mean_y;
+    double sum_sqr_x;
+    double sum_sqr_y;
+    double sum_sqr_xy;
+};
+
+void PearsonCorrInit(FunctionContext *context, StringVal *val);
+void PearsonCorrUpdate(FunctionContext *context, const DoubleVal &x, const DoubleVal &y, StringVal *val);
+void PearsonCorrMerge(FunctionContext *context, const StringVal &src, StringVal *dst);
+StringVal PearsonCorrSerialize(FunctionContext *context, const StringVal &val);
+DoubleVal PearsonCorrFinalize(FunctionContext *context, const StringVal &val);
+
 #endif

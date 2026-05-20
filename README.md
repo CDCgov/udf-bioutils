@@ -48,6 +48,7 @@ For direct correspondence, feel free to contact: Samuel S. Shepard ([vfn4@cdc.go
       - [Sort List Family of Functions](#sort-list-family-of-functions)
     - [DAIS-ribosome Related Functions](#dais-ribosome-related-functions)
       - [Codon at Original Position](#codon-at-original-position)
+      - [Original Position to CDS Allele](#original-position-to-cds-allele)
       - [Original Position to AA or CDS Position](#original-position-to-aa-or-cds-position)
       - [Original Position to Degenerate Amino Acid Mutation](#original-position-to-degenerate-amino-acid-mutation)
   - [Aggregate Function Descriptions](#aggregate-function-descriptions)
@@ -56,6 +57,7 @@ For direct correspondence, feel free to contact: Samuel S. Shepard ([vfn4@cdc.go
     - [LogFold Titer Distribution Agreement](#logfold-titer-distribution-agreement)
     - [Skewness](#skewness)
     - [Entropy](#entropy)
+    - [Pearson Correlation](#pearson-correlation)
 - [Acknowledgments](#acknowledgments)
 - [Notices](#notices)
   - [Public Domain Standard Notice](#public-domain-standard-notice)
@@ -436,6 +438,20 @@ select udx.codon_at_og_position("4..6;8..10;11..16", "1..3;4..6;7..12", "ATGTAGC
 select udx.codon_at_og_position("4..6;8..10;11..16", "1..3;4..6;7..12", "ATGTAGCATTAR", 16, "a")  --> "TAa"
 ```
 
+#### Original Position to CDS Allele
+```sql
+og_pos_to_cds_allele(STRING query_nt_coords, STRING cds_nt_coords, BIGINT original_position, STRING cds_aln) -> STRING
+```
+
+**Purpose:** Takes coordinate mapping information provided by [DAIS-ribosome](https://hub.docker.com/r/cdcgov/dais-ribosome/tags), such as the  `query_nt_coords` and `cds_nt_coords`, the `cds_aln` (aligned coding sequence), and a nucleotide position `original_position` then returns the corresponding single-character allele from the cds_aln string. the function returns `NULL` if the mapping fails, inputs are invalid, or the computed position falls outside the alignment bounds. 
+
+**Example:**
+
+```sql
+select udx.og_pos_to_cds_allele("4..6;8..10;11..16", "1..3;4..6;7..12", 11, "AAAAAAGTTTTTTT") --> "G"
+```
+
+
 #### Original Position to AA or CDS Position
 
 ```sql
@@ -539,6 +555,16 @@ alnum_entropy(STRING s) -> DOUBLE
 **Purpose:** The aggregate function `alphanumeric_entropy` slurps all strings within the `GROUP BY` column and calculates the alphanumeric character entropy over the total group-wise data. Likewise, the aggregate functions `nt_entropy`, `aa_entropy`, and `codon_entropy` calculate the entropy based on group data where the entropy is being calculated over canonical nucleotides, amino acids (1-letter code, no `X` or `*`), or by codon (3 canonical nucleotides) respectively. Please note that these function operate over the first base, residue or codon and do not slurp every value in each sequence. As such they are useful in combination with extraction and slicing functions.
 
 The scalar function `alnum_entropy` is equivalent to `alphanumeric_entropy` but only performs its operation on a single value.
+
+### Pearson Correlation
+
+```sql
+pearson_correlation(DOUBLE x, DOUBLE y) -> DOUBLE
+```
+
+**Purpose:** Computes pearson correlation coefficient between two numeric columns `x` and `y`. This measures the strength and direction of a linear relationship between variables, returning a value in the range `[-1, 1]`. The function uses a Welford-style implementation. 
+
+Rows where either `x` or `y` is `NULL`, non-finite (`NaN`, `InF`), or invalid are ignored. The function returns `NULL` if fewer than two valid rows are present or if variance in either variable is zero.
 
 # Acknowledgments
 

@@ -600,6 +600,155 @@ void BitwiseOrUpdateMerge(FunctionContext *context, const BigIntVal &src, BigInt
 IMPALA_UDF_EXPORT
 BigIntVal BitwiseOrFinalize(FunctionContext *context, const BigIntVal &val) { return val; }
 
+// ---------------------------------------------------------------------------
+// Pearson Correlation Calculation Functions
+// ---------------------------------------------------------------------------
+
+IMPALA_UDF_EXPORT
+void PearsonCorrInit(FunctionContext *context, StringVal *val) {
+    // Allocate fixed-size state storage for running pearson corr
+    val->ptr = context->Allocate(sizeof(PearsonState));
+    if (val->ptr == NULL) {
+        *val = StringVal::null();
+        return;
+    }
+    // Initialize pearson state
+    val->is_null = false;
+    val->len = sizeof(PearsonState);
+    std::memset(val->ptr, 0, val->len);
+}
+
+IMPALA_UDF_EXPORT
+void PearsonCorrUpdate(FunctionContext *context, const DoubleVal &x, const DoubleVal &y, StringVal *val) {
+    if (x.is_null || y.is_null || val->is_null || val->ptr == NULL) {
+        return;
+    }
+    if (!std::isfinite(x.val) || !std::isfinite(y.val)) {
+        return;
+    }
+    if(val->len != sizeof(PearsonState)) {
+        return;
+    }
+    PearsonState *ps = reinterpret_cast<PearsonState*>(val->ptr);
+    // prevent uint64_t overflow
+    if (ps->sets == std::numeric_limits<uint64_t>::max()) {
+        return;
+    }
+    // welford style covariance
+    const uint64_t new_sets = ps->sets + 1;
+    const double dx = x.val - ps->mean_x;
+    const double dy = y.val - ps->mean_y;
+    const double mean_x_new = ps->mean_x + dx / static_cast<double>(new_sets);
+    const double mean_y_new = ps->mean_y + dy / static_cast<double>(new_sets);
+
+    ps->sum_sqr_x += dx * (x.val - mean_x_new);
+    ps->sum_sqr_y += dy * (y.val - mean_y_new);
+    ps->sum_sqr_xy += dx * (y.val - mean_y_new);
+
+    ps->mean_x = mean_x_new;
+    ps->mean_y = mean_y_new;
+    ps->sets = new_sets;
+}
+
+IMPALA_UDF_EXPORT
+void PearsonCorrMerge(FunctionContext *context, const StringVal &src, StringVal *dst) {
+    if (src.is_null || src.ptr == NULL || dst->is_null) {
+        return;
+    }
+    // Source buffer must contain pearson state
+    if (src.len != sizeof(PearsonState)) {
+        return;
+    }
+    // allocate dest state if it doesn't exist
+    if (dst->ptr == NULL) {
+        dst->ptr = context->Allocate(sizeof(PearsonState));
+        if (dst->ptr == NULL) {
+            *dst = StringVal::null();
+            return;
+        }
+        dst->is_null = false;
+        dst->len = sizeof(PearsonState);
+        std::memset(dst->ptr, 0, dst->len);
+    }
+    // destination buffer must match pearson state
+    if (dst->len != sizeof(PearsonState)) {
+        return;
+    }
+    const PearsonState *src_ps = reinterpret_cast<const PearsonState*>(src.ptr);
+    PearsonState *dst_ps = reinterpret_cast<PearsonState*>(dst->ptr);
+    if (src_ps->sets == 0) {
+        return;
+    }
+    // if dest empty copy source
+    if (dst_ps->sets == 0) {
+        std::memcpy(dst->ptr, src.ptr, sizeof(PearsonState));
+        return;
+    }
+    // prevent overflow when combining row counts
+    if (dst_ps->sets > std::numeric_limits<uint64_t>::max() - src_ps->sets) {
+        return;
+    }
+    // merge two partial pearson states using parallel variance/covariance
+    const uint64_t n1 = dst_ps->sets;
+    const uint64_t n2 = src_ps->sets;
+    const uint64_t n = n1 + n2;
+
+    const double dn1 = static_cast<double>(n1);
+    const double dn2 = static_cast<double>(n2);
+    const double dn = static_cast<double>(n);
+
+    const double dx = src_ps->mean_x - dst_ps->mean_x;
+    const double dy = src_ps->mean_y - dst_ps->mean_y;
+
+    dst_ps->mean_x += dx * (dn2 / dn);
+    dst_ps->mean_y += dy * (dn2 / dn);
+
+    const double w = (dn1 * dn2) / dn;
+    
+    dst_ps->sum_sqr_x += src_ps->sum_sqr_x + dx * dx * w;
+    dst_ps->sum_sqr_y += src_ps->sum_sqr_y + dy * dy * w;
+    dst_ps->sum_sqr_xy += src_ps->sum_sqr_xy + dx * dy * w;
+    dst_ps->sets = n;
+}
+
+IMPALA_UDF_EXPORT
+StringVal PearsonCorrSerialize(FunctionContext *context, const StringVal &val) {
+    if (val.is_null || val.ptr == NULL || val.len != sizeof(PearsonState)) {
+        if (!val.is_null && val.ptr != NULL) {
+            context->Free(val.ptr);
+        }
+        return StringVal::null();
+    }
+    // Copy pearson state into serialized StringVal 
+    StringVal result = StringVal::CopyFrom(context, val.ptr, val.len);
+    context->Free(val.ptr);
+    return result;
+}
+
+IMPALA_UDF_EXPORT
+DoubleVal PearsonCorrFinalize(FunctionContext *context, const StringVal &val) {
+    if (val.is_null || val.ptr == NULL || val.len != sizeof(PearsonState)) {
+        if (!val.is_null && val.ptr != NULL) {
+            context->Free(val.ptr);
+        }
+        return DoubleVal::null();
+    }
+    const PearsonState *ps = reinterpret_cast<const PearsonState*>(val.ptr);
+    DoubleVal result = DoubleVal::null();
+    // Pearson correlation calculation
+    if (ps->sets >= 2 && std::isfinite(ps->sum_sqr_x) && std::isfinite(ps->sum_sqr_y) && 
+        std::isfinite(ps->sum_sqr_xy) && ps->sum_sqr_x > 0.0 && ps->sum_sqr_y > 0.0) {
+            const double denom = std::sqrt(ps->sum_sqr_x * ps->sum_sqr_y);
+            if (denom > 0.0 && std::isfinite(denom)) {
+                const double r = ps->sum_sqr_xy / denom;
+                if (std::isfinite(r)) {
+                    result = DoubleVal(r);
+                }
+            }
+        }
+    context->Free(val.ptr);
+    return DoubleVal(result);
+}
 
 // ---------------------------------------------------------------------------
 // Entropy Calculation Functions

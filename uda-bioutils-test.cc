@@ -255,6 +255,193 @@ bool TestCDEntropy() {
     return passing;
 }
 
+bool TestPearsonCorrelation() {
+    typedef UdaTestHarness2<DoubleVal, StringVal, DoubleVal, DoubleVal> TestHarnessPearson;
+    TestHarnessPearson pearson(
+        PearsonCorrInit, PearsonCorrUpdate, PearsonCorrMerge, 
+        reinterpret_cast<TestHarnessPearson::SerializeFn>(PearsonCorrSerialize), PearsonCorrFinalize
+    );
+    pearson.SetResultComparator(FuzzyCompare);
+    {
+        // Test all empty
+        vector<DoubleVal> x_vals {};
+        vector<DoubleVal> y_vals {};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal::null())) {
+            cerr << "Pearson Correlation: Empty input test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Test all null
+        vector<DoubleVal> x_vals {DoubleVal::null(), DoubleVal::null()};
+        vector<DoubleVal> y_vals {DoubleVal::null(), DoubleVal::null()};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal::null())) {
+            cerr << "Pearson Correlation: Empty input test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Test empty column
+        vector<DoubleVal> x_vals {DoubleVal::null(), DoubleVal::null(), DoubleVal::null()};
+        vector<DoubleVal> y_vals {1.0, 2.0, 3.0};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal::null())) {
+            cerr << "Pearson Correlation: Empty column test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+        if (!pearson.Execute(y_vals, x_vals, DoubleVal::null())) {
+            cerr << "Pearson Correlation: Empty column test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Test too few input
+        vector<DoubleVal> x_vals {1.0};
+        vector<DoubleVal> y_vals {2.0};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal::null())) {
+            cerr << "Pearson Correlation: Too few input test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Minimum input
+        vector<DoubleVal> x_vals {1.0, 2.0};
+        vector<DoubleVal> y_vals {3.0, 4.0};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
+            cerr << "Pearson Correlation: Minimum input test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Test zero variance
+        vector<DoubleVal> x_vals {5.0, 5.0, 5.0, 5.0};
+        vector<DoubleVal> y_vals {1.0, 2.0, 3.0, 4.0};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal::null())) {
+            cerr << "Pearson Correlation: Zero Variance test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+        if (!pearson.Execute(y_vals, x_vals, DoubleVal::null())) {
+            cerr << "Pearson Correlation: Zero Variance test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Test null pair
+        vector<DoubleVal> x_vals {1.0, DoubleVal::null(), 3.0};
+        vector<DoubleVal> y_vals {1.0, 999.0, 3.0};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
+            cerr << "Pearson Correlation: Null row test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+        if (!pearson.Execute(y_vals, x_vals, DoubleVal(1.0))) {
+            cerr << "Pearson Correlation: Null row test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Test infinity pair
+        vector<DoubleVal> x_vals {1.0, std::numeric_limits<double>::infinity(), 3.0};
+        vector<DoubleVal> y_vals {1.0, 999.0, 3.0};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
+            cerr << "Pearson Correlation: Infinite row test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+        if (!pearson.Execute(y_vals, x_vals, DoubleVal(1.0))) {
+            cerr << "Pearson Correlation: Infinite row test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // perfect +1
+        vector<DoubleVal> x_vals {1.0, 2.0, 3.0, 4.0};
+        vector<DoubleVal> y_vals {1.0, 2.0, 3.0, 4.0};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
+            cerr << "Pearson Correlation: Perfect +1 test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // perfect -1
+        vector<DoubleVal> x_vals {1.0, 2.0, 3.0, 4.0};
+        vector<DoubleVal> y_vals {4.0, 3.0, 2.0, 1.0};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal(-1.0))) {
+            cerr << "Pearson Correlation: Perfect -1 test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Test very large numbers
+        vector<DoubleVal> x_vals {1.0e12, 2.0e12, 3.0e12};
+        vector<DoubleVal> y_vals {1.0e12, 2.0e12, 3.0e12};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
+            cerr << "Pearson Correlation: Very large numbers test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Test very small numbers
+        vector<DoubleVal> x_vals {1.0e-12, 2.0e-12, 3.0e-12};
+        vector<DoubleVal> y_vals {1.0e-12, 2.0e-12, 3.0e-12};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
+            cerr << "Pearson Correlation: Very small numbers test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Test mixed magnitude
+        vector<DoubleVal> x_vals {1.0e12, 2.0e12+1, 3.0e12+2};
+        vector<DoubleVal> y_vals {1.0, 2.0, 3.0};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
+            cerr << "Pearson Correlation: Mixed magnitude test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Test negative numbers
+        vector<DoubleVal> x_vals {-1.0, -2.0, -3.0};
+        vector<DoubleVal> y_vals {1.0, 2.0, 3.0};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal(-1.0))) {
+            cerr << "Pearson Correlation: Negative numbers test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+        if (!pearson.Execute(y_vals, x_vals, DoubleVal(-1.0))) {
+            cerr << "Pearson Correlation: Negative numbers test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Test negative numbers
+        vector<DoubleVal> x_vals {-1.0, -2.0, -3.0};
+        vector<DoubleVal> y_vals {1.0, 2.0, 3.0};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal(-1.0))) {
+            cerr << "Pearson Correlation: Negative numbers test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Test large datasets
+        vector<DoubleVal> x_vals;
+        vector<DoubleVal> y_vals;
+        for (int i=0;i<10000;i++) {
+            x_vals.push_back(i);
+            y_vals.push_back(i);
+        }
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
+            cerr << "Pearson Correlation: Large dataset test. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    {
+        // Test random dataset
+        vector<DoubleVal> x_vals {1.0, 2.0, 3.0, 4.0, 5.0};
+        vector<DoubleVal> y_vals {2.0, 1.0, 4.0, 3.0, 5.0};
+        if (!pearson.Execute(x_vals, y_vals, DoubleVal(0.8))) {
+            cerr << "Pearson Correlation: Random ties dataset. " << pearson.GetErrorMsg() << endl;
+            return false;
+        }
+    }
+    return true;
+}
+
 int main(int argc, char **argv) {
     bool passed = true;
     passed &= TestAgreement();
@@ -264,6 +451,7 @@ int main(int argc, char **argv) {
     passed &= TestNTEntropy();
     passed &= TestAAEntropy();
     passed &= TestCDEntropy();
+    passed &= TestPearsonCorrelation();
     cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
     return 0;
 }

@@ -236,7 +236,7 @@ bool test__doubleday_fuzz() {
     int32_t max_dateval = max_valid.day_number() - EPOCH_OFFSET;
 
     std::uniform_int_distribution<int32_t> dist(min_dateval, max_dateval);
-    
+
     for (int i = 0; i < 100; i++) {
         int32_t date = dist(rng);
         if (date != double_to_date_inner(date_to_double_inner(date))) {
@@ -2060,7 +2060,7 @@ bool test__tn_93() {
 bool test__og_pos_to_cds_allele() {
     bool passing = true;
 
-    std::tuple<StringVal, StringVal, BigIntVal, StringVal, StringVal> table[12] = {
+    std::tuple<StringVal, StringVal, BigIntVal, StringVal, StringVal> table[13] = {
         std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 11, "AAAAAAGTTTTTTT", "G"), // Basic mapping
         std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 4, "AAAAAAGTTTTTTT", "A"), // First base
         std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 16, "AAAAAAGTTTTTTT", "T"), // Last mapped base
@@ -2072,10 +2072,11 @@ bool test__og_pos_to_cds_allele() {
         std::make_tuple("4..6;8..10;11..16", "1..3;4..6", 11, "AAAAAAGTTTTTTT", StringVal::null()), // Token mismatch
         std::make_tuple(StringVal::null(), "1..3;4..6;7..12", 11, "AAAAAAGTTTTTTT", StringVal::null()), // Null ori map
         std::make_tuple("4..6;8..10;11..16", StringVal::null(), 11, "AAAAAAGTTTTTTT", StringVal::null()), // Null cds map
+        std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", BigIntVal::null(), "AAAAAAGTTTTTTT", StringVal::null()), // Null ori_pos
         std::make_tuple("4..6;8..10;11..16", "1..3;4..6;7..12", 11, StringVal::null(), StringVal::null()), // Null alignment
     };
 
-    for (int i = 0; i < 12; i++) {
+    for (int i = 0; i < 13; i++) {
         auto [ori_map, cds_map, ori_pos, cds_alignment, expected] = table[i];
 
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, BigIntVal, StringVal>(

@@ -2,7 +2,8 @@
 
 ## v1.6.0 (2026-05-20) ##
 
-- Added functions `pearson_correlation` and `og_pos_to_cds_allele`, where user can provide the cds_aln, and the function will take the cds position and return the 1-base substring at that position in the sequence.
+- Added UDA `pearson_corr` for one-pass correlations
+- Added a helper UDF `og_pos_to_cds_allele`, where users can provide the `cds_aln`, and the function will take the cds position and return the 1-base substring at that position in the sequence.
 
 ## v1.5.1 (2056-04-08) ##
 

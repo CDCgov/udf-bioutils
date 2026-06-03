@@ -704,7 +704,7 @@ void PearsonCorrMerge(FunctionContext *context, const StringVal &src, StringVal 
     dst_ps->mean_y += dy * (dn2 / dn);
 
     const double w = (dn1 * dn2) / dn;
-    
+
     dst_ps->sum_sqr_x += src_ps->sum_sqr_x + dx * dx * w;
     dst_ps->sum_sqr_y += src_ps->sum_sqr_y + dy * dy * w;
     dst_ps->sum_sqr_xy += src_ps->sum_sqr_xy + dx * dy * w;
@@ -719,7 +719,7 @@ StringVal PearsonCorrSerialize(FunctionContext *context, const StringVal &val) {
         }
         return StringVal::null();
     }
-    // Copy pearson state into serialized StringVal 
+    // Copy pearson state into serialized StringVal
     StringVal result = StringVal::CopyFrom(context, val.ptr, val.len);
     context->Free(val.ptr);
     return result;
@@ -736,7 +736,7 @@ DoubleVal PearsonCorrFinalize(FunctionContext *context, const StringVal &val) {
     const PearsonState *ps = reinterpret_cast<const PearsonState*>(val.ptr);
     DoubleVal result = DoubleVal::null();
     // Pearson correlation calculation
-    if (ps->sets >= 2 && std::isfinite(ps->sum_sqr_x) && std::isfinite(ps->sum_sqr_y) && 
+    if (ps->sets >= 2 && std::isfinite(ps->sum_sqr_x) && std::isfinite(ps->sum_sqr_y) &&
         std::isfinite(ps->sum_sqr_xy) && ps->sum_sqr_x > 0.0 && ps->sum_sqr_y > 0.0) {
             const double denom = std::sqrt(ps->sum_sqr_x * ps->sum_sqr_y);
             if (denom > 0.0 && std::isfinite(denom)) {
@@ -747,7 +747,7 @@ DoubleVal PearsonCorrFinalize(FunctionContext *context, const StringVal &val) {
             }
         }
     context->Free(val.ptr);
-    return DoubleVal(result);
+    return result;
 }
 
 // ---------------------------------------------------------------------------

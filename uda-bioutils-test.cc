@@ -258,7 +258,7 @@ bool TestCDEntropy() {
 bool TestPearsonCorrelation() {
     typedef UdaTestHarness2<DoubleVal, StringVal, DoubleVal, DoubleVal> TestHarnessPearson;
     TestHarnessPearson pearson(
-        PearsonCorrInit, PearsonCorrUpdate, PearsonCorrMerge, 
+        PearsonCorrInit, PearsonCorrUpdate, PearsonCorrMerge,
         reinterpret_cast<TestHarnessPearson::SerializeFn>(PearsonCorrSerialize), PearsonCorrFinalize
     );
     pearson.SetResultComparator(FuzzyCompare);
@@ -404,15 +404,6 @@ bool TestPearsonCorrelation() {
             return false;
         }
         if (!pearson.Execute(y_vals, x_vals, DoubleVal(-1.0))) {
-            cerr << "Pearson Correlation: Negative numbers test. " << pearson.GetErrorMsg() << endl;
-            return false;
-        }
-    }
-    {
-        // Test negative numbers
-        vector<DoubleVal> x_vals {-1.0, -2.0, -3.0};
-        vector<DoubleVal> y_vals {1.0, 2.0, 3.0};
-        if (!pearson.Execute(x_vals, y_vals, DoubleVal(-1.0))) {
             cerr << "Pearson Correlation: Negative numbers test. " << pearson.GetErrorMsg() << endl;
             return false;
         }

@@ -1,19 +1,19 @@
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.logfold_agreement(bigint)
-    RETURNS double 
-    INTERMEDIATE string 
-    LOCATION "$UDF_BIOUTILS_PATH/libudabioutils.so" 
-    INIT_FN = "BoundedArrayInit" 
-    UPDATE_FN = "BoundedArrayUpdate" 
-    MERGE_FN = "BoundedArrayMerge" 
-    SERIALIZE_FN = "StringStructSerialize" 
+    RETURNS double
+    INTERMEDIATE string
+    LOCATION "$UDF_BIOUTILS_PATH/libudabioutils.so"
+    INIT_FN = "BoundedArrayInit"
+    UPDATE_FN = "BoundedArrayUpdate"
+    MERGE_FN = "BoundedArrayMerge"
+    SERIALIZE_FN = "StringStructSerialize"
     FINALIZE_FN = "AgreementFinalize";
 
-CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.bitwise_sum(bigint) 
-    RETURNS bigint 
-    LOCATION "$UDF_BIOUTILS_PATH/libudabioutils.so" 
-    INIT_FN = "BitwiseOrInit" 
-    UPDATE_FN = "BitwiseOrUpdateMerge" 
-    MERGE_FN = "BitwiseOrUpdateMerge" 
+CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.bitwise_sum(bigint)
+    RETURNS bigint
+    LOCATION "$UDF_BIOUTILS_PATH/libudabioutils.so"
+    INIT_FN = "BitwiseOrInit"
+    UPDATE_FN = "BitwiseOrUpdateMerge"
+    MERGE_FN = "BitwiseOrUpdateMerge"
     FINALIZE_FN = "BitwiseOrFinalize";
 
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.skewness(BIGINT)
@@ -101,7 +101,7 @@ CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.codon_entropy(STRING)
     SERIALIZE_FN="CalcCDEntropySerialize"
     FINALIZE_FN="CalcCDEntropyFinalize";
 
-CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.pearson_correlation(DOUBLE, DOUBLE)
+CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.pearson_corr(DOUBLE, DOUBLE)
     RETURNS DOUBLE
     INTERMEDIATE STRING
     LOCATION "$UDF_BIOUTILS_PATH/libudabioutils.so"

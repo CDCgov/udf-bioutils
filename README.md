@@ -559,7 +559,7 @@ The scalar function `alnum_entropy` is equivalent to `alphanumeric_entropy` but 
 ### Pearson Correlation
 
 ```sql
-pearson_correlation(DOUBLE x, DOUBLE y) -> DOUBLE
+pearson_corr(DOUBLE x, DOUBLE y) -> DOUBLE
 ```
 
 **Purpose:** Computes pearson correlation coefficient between two numeric columns `x` and `y`. This measures the strength and direction of a linear relationship between variables, returning a value in the range `[-1, 1]`. The function uses a Welford-style implementation. 

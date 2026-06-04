@@ -8,7 +8,7 @@ Cloudera provides [a development library](https://docs.cloudera.com/cdp-private-
 
 ```bash
 # Set Cloudera username and password according to license info.
-wget https://$username:$password@archive.cloudera.com/p/cdh7/7.1.9.0/impala/redhat8/impala-udf-devel-client-4.0.0.7.1.9.0-387.x86_64.rpm
+wget https://$username:$password@archive.cloudera.com/p/cdh7/7.1.9.1080/impala/redhat8/impala-udf-devel-client-4.0.0.7.1.9.1080-4.x86_64.rpm
 sudo rpm -i impala-udf-devel-client-4.0.0.7.1.9.0-387.x86_64.rpm
 sudo yum info impala-udf-devel-client
 ```
@@ -29,7 +29,7 @@ We use OpenSSL for hashing functions, but Cloudera Manager Agent will also requi
 For benchmarks, please install the [google-benchmark](https://github.com/google/benchmark) library:
 
 ```bash
-sudo yum install -y google-benchmark-devel google-benchmark 
+sudo yum install -y google-benchmark-devel google-benchmark
 ```
 
 ## Compilation
@@ -42,7 +42,7 @@ Configuration is done via `cmake` but `make` handles the build process. UDX test
 source /opt/rh/gcc-toolset-13/enable
 
 # Configure and compile
-cmake .
+cmake -B build .
 make
 
 ## Run tests
@@ -90,7 +90,7 @@ Next we can generate SQL to register the functions using our above variables:
 export UDF_BIOUTILS_PATH="/udx/prod"
 
 # Creates tmp files to execute in Impala
-for i in sql/*;do 
+for i in sql/*;do
     cat $i|envsubst > $(basename $i .sql).tmp.sql
 done
 ```

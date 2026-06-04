@@ -1,0 +1,20 @@
+FROM --platform=amd64 redhat/ubi8-minimal
+
+RUN microdnf update -y \
+ && rpm -i https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
+ && microdnf install -y \
+  gcc-toolset-13 boost169 boost169-devel cmake openssl openssl-devel \
+  python38 google-benchmark-devel google-benchmark \
+ && microdnf clean all \
+ && alternatives --set python /usr/bin/python3.8
+
+RUN --mount=type=bind,target=/build-context \
+    rpm -i /build-context/impala-udf-devel-client-*.rpm
+
+ENV BOOST_INCLUDEDIR=/usr/include/boost169
+ENV BOOST_LIBRARYDIR=/usr/lib64/boost169
+
+RUN echo "source /opt/rh/gcc-toolset-13/enable" > /etc/profile.d/gcc-toolset-13.sh
+ENV BASH_ENV=/etc/profile.d/gcc-toolset-13.sh
+
+WORKDIR /app

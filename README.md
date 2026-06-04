@@ -7,7 +7,7 @@ For direct correspondence, feel free to contact: Samuel S. Shepard ([vfn4@cdc.go
 ---
 
 - [Overview of UDF BIOUTILS](#overview-of-udf-bioutils)
-- [User-defined bioinformatics utilities for Impala SQL](#user-defined-bioinformatics-utilities-for-impala-sql)
+  - [User-defined bioinformatics utilities for Impala SQL](#user-defined-bioinformatics-utilities-for-impala-sql)
   - [Scalar Function Descriptions](#scalar-function-descriptions)
     - [Date Functions](#date-functions)
       - [Complete Date](#complete-date)
@@ -58,21 +58,21 @@ For direct correspondence, feel free to contact: Samuel S. Shepard ([vfn4@cdc.go
     - [Skewness](#skewness)
     - [Entropy](#entropy)
     - [Pearson Correlation](#pearson-correlation)
-- [Acknowledgments](#acknowledgments)
-- [Notices](#notices)
-  - [Public Domain Standard Notice](#public-domain-standard-notice)
-  - [License Standard Notice](#license-standard-notice)
-  - [Privacy Standard Notice](#privacy-standard-notice)
-  - [Contributing Standard Notice](#contributing-standard-notice)
-  - [Records Management Standard Notice](#records-management-standard-notice)
+  - [Acknowledgments](#acknowledgments)
+  - [Notices](#notices)
+    - [Public Domain Standard Notice](#public-domain-standard-notice)
+    - [License Standard Notice](#license-standard-notice)
+    - [Privacy Standard Notice](#privacy-standard-notice)
+    - [Contributing Standard Notice](#contributing-standard-notice)
+    - [Records Management Standard Notice](#records-management-standard-notice)
   - [Additional Standard Notices](#additional-standard-notices)
 
-# User-defined bioinformatics utilities for Impala SQL
+## User-defined bioinformatics utilities for Impala SQL
 
 Functions may be created in a schema such as `udx`. This is our default, but the user is free to change the function location to whatever they wish. To show functions already registered, one may write:
 
 ```sql
-use udx; 
+use udx;
 show functions;
 show aggregate functions;
 ```
@@ -166,7 +166,7 @@ md5(STRING field1 [,STRING field2, ...]) -> STRING
 ```
 
 **Purpose:** This function takes a variable number of STRING fields (i.e., "[variadic](https://en.wikipedia.org/wiki/Variadic_function)") and returns a 32 character [hexadecimal](https://en.wikipedia.org/wiki/Hexadecimal#Binary_conversion) from the [md5](https://en.wikipedia.org/wiki/MD5) hash.
-Any null value in an argument or all empty STRINGs returns `NULL`. Note: fields are concatenated with the [bell character](https://en.wikipedia.org/wiki/Bell_character) as the delimiter before hashing in order to preserve field boundaries.  
+Any null value in an argument or all empty STRINGs returns `NULL`. Note: fields are concatenated with the [bell character](https://en.wikipedia.org/wiki/Bell_character) as the delimiter before hashing in order to preserve field boundaries.
 
 &rarr; *See also the Impala native functions [MURMUR_HASH](https://docs.cloudera.com/cdp-private-cloud-base/7.1.8/impala-sql-reference/topics/impala-math-functions.html#math_functions__murmur_hash), [FNV_HASH](https://docs.cloudera.com/cdp-private-cloud-base/7.1.8/impala-sql-reference/topics/impala-math-functions.html#math_functions__fnv_hash), [SHA1/SHA2](https://docs.cloudera.com/cdp-private-cloud-base/7.1.8/impala-sql-reference/topics/impala-hash-functions.html), and [HEX](https://docs.cloudera.com/cdp-private-cloud-base/7.1.8/impala-sql-reference/topics/impala-math-functions.html#math_functions__hex).*
 <br /><br />
@@ -232,9 +232,9 @@ hamming_distance(STRING seq1, STRING seq2 [, STRING pairwise_deletion_set])
 nt_distance(STRING seq1, STRING seq2)
 ```
 
-**Return type:** `INT`  
+**Return type:** `INT`
 **Purpose:** Counts the [number of differences](https://en.wikipedia.org/wiki/Hamming_distance) between two sequences (though any STRINGs may be used).
-If one sequence is longer than the other, the extra characters are discarded from the calculation. By default, any pair of characters with a `.` as an element is ignored by the calculation. In *DAIS*, the `.` character is used for missing data. Optionally, one may explicitly add a pairwise deletion character set. If any pair of characters contain any of the characters in the argument, that position is ignored from the calculation. If any argument is `NULL` or either sequence argument is an empty STRING, a null value is returned. If the optional `pairwise_deletion_set` argument is an empty STRING, no pairwise deletion is performed. The `nt_distance` function is the same as the default version of `hamming_distance` but does not count ambiguated differences. For example, A ≠ T but A = R.  
+If one sequence is longer than the other, the extra characters are discarded from the calculation. By default, any pair of characters with a `.` as an element is ignored by the calculation. In *DAIS*, the `.` character is used for missing data. Optionally, one may explicitly add a pairwise deletion character set. If any pair of characters contain any of the characters in the argument, that position is ignored from the calculation. If any argument is `NULL` or either sequence argument is an empty STRING, a null value is returned. If the optional `pairwise_deletion_set` argument is an empty STRING, no pairwise deletion is performed. The `nt_distance` function is the same as the default version of `hamming_distance` but does not count ambiguated differences. For example, A ≠ T but A = R.
 
 &rarr; *See also the Impala native function [JARO_DISTANCE](https://docs.cloudera.com/cdp-private-cloud-base/7.1.8/impala-sql-reference/topics/impala-string-functions.html?#string_functions__jaro_distance).*
 
@@ -253,7 +253,7 @@ sequence_diff(STRING seq1, STRING seq2)
 sequence_diff_nt(STRING seq1, STRING seq2)
 ```
 
-**Return type:** `STRING`  
+**Return type:** `STRING`
 **Purpose:** Expects **aligned** biological sequences and returns a sequence that denotes the differences between `seq1` and `seq2` by returning the character from `seq2` in the differing positions. Otherwise, if the characters are the same at a given position, a `.` will be returned. For example, if `seq1` sequence is `AAAA-A` and `seq2` sequence is `AGA-AA`, the function will return `.G.-A.`.
 
 - The function `sequence_diff_nt` is similar to the vanilla `sequence_diff` function but will correctly account for degenerate nucleotides (e.g., Y for pyrimidine, R for purine).
@@ -268,7 +268,7 @@ mutation_list_nt(STRING seq1, STRING seq2)
 mutation_list_pds(STRING seq1, STRING seq2, STRING pairwise_deletion_set)
 ```
 
-**Return type:** `STRING`  
+**Return type:** `STRING`
 **Purpose:** Expects **aligned** biological sequences and returns a list of mutations from `seq1` to `seq2`, delimited by a comma + space.  If the `range` argument is included, only those sites will be compared (see the description of `range_coords` in `substr_range`). For example: `A2G, T160K, G340R`. If any argument is `NULL` or empty, a null value is returned. The function `mutation_list` returns differences and may be used for nucleotide, amino acid, or any other sequence. There are some alternative variants to the function:
 
 - The function `mutation_list_gly` is similar to the vanilla `mutation_list` function but annotates the addition or loss of an [N-linked glycosylation site](https://en.wikipedia.org/wiki/N-linked_glycosylation#Transfer_of_glycan_to_protein) due to substitution or single deletion (from `seq1` to `seq2`). Function `mutation_list_indel_gly` is an enhancement of `mutation_list_gly` which robustly accounts for the effects of indels on glycosylation for deletions no larger than 5 (a parameter that is adjustable at compile-time). Warning: `mutation_list_indel_gly` is substantially slower than `mutation_list_gly`.
@@ -310,7 +310,7 @@ nt_std(STRING sequence) -> STRING
 longest_deletion(STRING sequence), deletion_events(STRING sequence) -> INT
 ```
 
-**Return type:** `INT`  
+**Return type:** `INT`
 **Purpose:** Returns the length of the longest deletion in the `sequence` or the number of deletion events respectively. In either function, a *deletion event* must have upstream and downstream alphabetic character to the deletion span (using `-` for deletion characters only). The functions return `null` if the sequence is null and they return 0 if the empty STRING is used.
 
 ### String Manipulation and Matching
@@ -321,7 +321,7 @@ longest_deletion(STRING sequence), deletion_events(STRING sequence) -> INT
 any_instr(STRING haystack, STRING needles) -> BOOLEAN
 ```
 
-**Purpose:** Checks if any of the *characters* in the `needles` STRING is in the `haystack` STRING. Will return `NULL` if either argument is null. Note that if both `needles` and `haystack` has an empty string, the function always returns `TRUE`.  
+**Purpose:** Checks if any of the *characters* in the `needles` STRING is in the `haystack` STRING. Will return `NULL` if either argument is null. Note that if both `needles` and `haystack` has an empty string, the function always returns `TRUE`.
 
 &rarr; *See also the Impala native function [INSTR](https://docs.cloudera.com/cdp-private-cloud-base/7.1.8/impala-sql-reference/topics/impala-string-functions.html#string_functions__instr).*
 
@@ -352,7 +352,7 @@ cut_paste(STRING str, STRING delim, STRING fields [, STRING output_delim]) -> ST
 **Example:**
 
 ```sql
-select udx.cut_paste("The::fields::are::cut::pastable::!", "::", "1..3;6,6;4-3", " ") 
+select udx.cut_paste("The::fields::are::cut::pastable::!", "::", "1..3;6,6;4-3", " ")
 -- Returns: "The fields are ! ! cut are"
 ```
 
@@ -362,7 +362,7 @@ select udx.cut_paste("The::fields::are::cut::pastable::!", "::", "1..3;6,6;4-3",
 is_element(STRING str, STRING list, STRING delim) -> BOOLEAN
 ```
 
-**Purpose:** Returns true if `str` is equal to any element of `list` delimited by `delim`. The delimiter may be a sequence of characters, but if it is empty the list is split by character.  
+**Purpose:** Returns true if `str` is equal to any element of `list` delimited by `delim`. The delimiter may be a sequence of characters, but if it is empty the list is split by character.
 
 &rarr; *See also the Impala native function [FIND_IN_SET](https://docs.cloudera.com/cdp-private-cloud-base/latest/impala-sql-reference/topics/impala-string-functions.html#string_functions__find_in_set).*
 
@@ -382,7 +382,7 @@ substr_range(STRING str, STRING range_coords) -> STRING
 
 **Purpose:** Returns the characters in `str` specified by `range_coords`.
 All characters are concatenated as specified by `range_coords`. Ranges may be listed in forward and reverse, which affects output order, and are denoted by `#..#`.
-Multiple ranges or single characters may be separated using a semi-colon or comma. For example: `10..1;12;15;20..25`. If any argument is `NULL` or an empty STRING, a null value is returned.  
+Multiple ranges or single characters may be separated using a semi-colon or comma. For example: `10..1;12;15;20..25`. If any argument is `NULL` or an empty STRING, a null value is returned.
 
 &rarr; *See also the Impala native function [SUBSTR](https://docs.cloudera.com/cdp-private-cloud-base/7.1.8/impala-sql-reference/topics/impala-string-functions.html#string_functions__substr).*
 <br /><br />
@@ -395,7 +395,7 @@ Multiple ranges or single characters may be separated using a semi-colon or comm
 sort_alleles(STRING allele_or_mutation_list, STRING delim) -> STRING
 ```
 
-**Return type:** `STRING`  
+**Return type:** `STRING`
 **Purpose:** Returns a list of sorted mutations (e.g., `A2G, T160K`) or alleles (e.g., `2G 160K`) where the list delimiter `delim` is used both for splitting elements and for the output of the sorted list. Alleles and mutations are sorted first by their integer position, unlike other list sorting which looks at the element as a STRING. If any argument is `NULL` a null value is returned.
 
 #### Sort List Family of Functions
@@ -407,7 +407,7 @@ sort_list_set(STRING list, STRING delim_set, STRING output_delim)
 sort_site_list(SRING list)
 ```
 
-**Return type:** `STRING`  
+**Return type:** `STRING`
 **Purpose:** Returns an alphabetically sorted list of elements in the STRING `list` delimited by `delim` or `delim_set`. The function `sort_list` interprets multi-character delimiters as a whole STRING while the function `sort_list_set` treats each character in the argument `delim_set` as a single-character delimiter (all are applied). The input and output delimiter for `sort_list` are taken to be the same while the output delimiter for `sort_list_set` is specified by `output_delim`. If any argument is `NULL` a null value is returned. The function variant `sort_list_unique` behaves exactly like `sort_list` but removes redundant elements. `sort_site_list` is for numerically sorting a string of comma-separated integers returned by the output of `group_concat()`, and will return `NULL` if non-numeric values are found in the list.
 
 ### DAIS-ribosome Related Functions
@@ -439,18 +439,18 @@ select udx.codon_at_og_position("4..6;8..10;11..16", "1..3;4..6;7..12", "ATGTAGC
 ```
 
 #### Original Position to CDS Allele
+
 ```sql
 og_pos_to_cds_allele(STRING query_nt_coords, STRING cds_nt_coords, BIGINT original_position, STRING cds_aln) -> STRING
 ```
 
-**Purpose:** Takes coordinate mapping information provided by [DAIS-ribosome](https://hub.docker.com/r/cdcgov/dais-ribosome/tags), such as the  `query_nt_coords` and `cds_nt_coords`, the `cds_aln` (aligned coding sequence), and a nucleotide position `original_position` then returns the corresponding single-character allele from the cds_aln string. the function returns `NULL` if the mapping fails, inputs are invalid, or the computed position falls outside the alignment bounds. 
+**Purpose:** Takes coordinate mapping information provided by [DAIS-ribosome](https://hub.docker.com/r/cdcgov/dais-ribosome/tags), such as the  `query_nt_coords` and `cds_nt_coords`, the `cds_aln` (aligned coding sequence), and a nucleotide position (`original_position`) then returns the corresponding single-character allele from the cds_aln string. The function returns `NULL` if the mapping fails, inputs are invalid, or the computed position falls outside the alignment bounds.
 
 **Example:**
 
 ```sql
 select udx.og_pos_to_cds_allele("4..6;8..10;11..16", "1..3;4..6;7..12", 11, "AAAAAAGTTTTTTT") --> "G"
 ```
-
 
 #### Original Position to AA or CDS Position
 
@@ -562,11 +562,11 @@ The scalar function `alnum_entropy` is equivalent to `alphanumeric_entropy` but 
 pearson_corr(DOUBLE x, DOUBLE y) -> DOUBLE
 ```
 
-**Purpose:** Computes pearson correlation coefficient between two numeric columns `x` and `y`. This measures the strength and direction of a linear relationship between variables, returning a value in the range `[-1, 1]`. The function uses a Welford-style implementation. 
+**Purpose:** Computes the [pearson correlation coefficient](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient) between two numeric columns `x` and `y`. This measures the strength and direction of a linear relationship between variables, returning a value in the range `[-1, 1]`. The function uses a Welford-style implementation.
 
-Rows where either `x` or `y` is `NULL`, non-finite (`NaN`, `InF`), or invalid are ignored. The function returns `NULL` if fewer than two valid rows are present or if variance in either variable is zero.
+Rows where either `x` or `y` is `NULL`, non-finite (`NaN`, `InF`), or invalid are *ignored*. The function returns `NULL` if fewer than two valid rows are present or if variance in either variable is zero.
 
-# Acknowledgments
+## Acknowledgments
 
 We'd like to thank contributors (in alphabetical order) who have suggested features, identified bugs, or submitted merge requests:
 
@@ -574,29 +574,29 @@ We'd like to thank contributors (in alphabetical order) who have suggested featu
 - Kristine Lacek (CDC)
 - Clint Paden (CDC)
 
-# Notices
+## Notices
 
-**General disclaimer** This repository was created for use by CDC programs to collaborate on public health related projects in support of the [CDC mission](https://www.cdc.gov/about/cdc/index.html).  GitHub is not hosted by the CDC, but is a third party website used by CDC and its partners to share information and collaborate on software. CDC use of GitHub does not imply an endorsement of any one particular service, product, or enterprise.  
+**General disclaimer** This repository was created for use by CDC programs to collaborate on public health related projects in support of the [CDC mission](https://www.cdc.gov/about/cdc/index.html).  GitHub is not hosted by the CDC, but is a third party website used by CDC and its partners to share information and collaborate on software. CDC use of GitHub does not imply an endorsement of any one particular service, product, or enterprise.
 
-## Public Domain Standard Notice
+### Public Domain Standard Notice
 
 This repository constitutes a work of the United States Government and is not subject to domestic copyright protection under 17 USC § 105. This repository is in the public domain within the United States, and copyright and related rights in the work worldwide are waived through the [CC0 1.0 Universal public domain dedication](https://creativecommons.org/publicdomain/zero/1.0/).  All contributions to this repository will be released under the CC0 dedication.  By submitting a pull request you are agreeing to comply with this waiver of copyright interest.
 
-## License Standard Notice
+### License Standard Notice
 
 The repository utilizes code licensed under the terms of the Apache Software License and therefore is licensed under ASL v2 or later. This source code in this repository is free: you can redistribute it and/or modify it under the terms of the Apache Software License version 2, or (at your option) any later version. This source code in this repository is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the Apache Software License for more details. You should have received a copy of the Apache Software License along with this program. If not, see: <http://www.apache.org/licenses/LICENSE-2.0.html>. The source code forked from other open source projects will inherit its license.
 
-## Privacy Standard Notice
+### Privacy Standard Notice
 
-This repository contains only non-sensitive, publicly available data and information. All material and community participation is covered by the [Disclaimer](DISCLAIMER.md). For more information about CDC's privacy policy, please visit <http://www.cdc.gov/other/privacy.html>.
+This repository contains only non-sensitive, publicly available data and information. All material and community participation is covered by the [Disclaimer](https://github.com/CDCgov/template/blob/main/DISCLAIMER.md). For more information about CDC's privacy policy, please visit <http://www.cdc.gov/other/privacy.html>.
 
-## Contributing Standard Notice
+### Contributing Standard Notice
 
 Anyone is encouraged to contribute to the repository by [forking](https://help.github.com/articles/fork-a-repo) and submitting a pull request. (If you are new to GitHub, you might start with a [basic tutorial](https://help.github.com/articles/set-up-git).) By contributing to this project, you grant a world-wide, royalty-free, perpetual, irrevocable, non-exclusive, transferable license to all users under the terms of the [Apache Software License v2](http://www.apache.org/licenses/LICENSE-2.0.html) or later.
 
 All comments, messages, pull requests, and other submissions received through CDC including this GitHub page may be subject to applicable federal law, including but not limited to the Federal Records Act, and may be archived. Learn more at [http://www.cdc.gov/other/privacy.html](http://www.cdc.gov/other/privacy.html).
 
-## Records Management Standard Notice
+### Records Management Standard Notice
 
 This repository is not a source of government records, but is a copy to increase collaboration and collaborative potential. All government records will be published through the [CDC web site](http://www.cdc.gov).
 

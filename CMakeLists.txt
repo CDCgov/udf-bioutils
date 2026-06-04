@@ -3,19 +3,31 @@
 cmake_minimum_required(VERSION 3.5)
 project(UDX_BioUtils)
 
-# where to put generated libraries
-set(LIBRARY_OUTPUT_PATH "build")
-# where to put generated binaries
-set(EXECUTABLE_OUTPUT_PATH "build")
+# For in-source builds (cmake .), redirect outputs to build/.
+# For out-of-source builds (cmake -B build), the binary dir is already build/.
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+  set(LIBRARY_OUTPUT_PATH "build")
+  set(EXECUTABLE_OUTPUT_PATH "build")
+endif()
 
-find_program(CLANG_EXECUTABLE clang++)
-
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -ggdb -O2 -pedantic")
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# On standard RHEL8/AppStream (boost 1.66), system paths are used by default.
+# For ubi8 and other environments, set BOOST_INCLUDEDIR and BOOST_LIBRARYDIR env vars
+if(DEFINED ENV{BOOST_INCLUDEDIR} AND DEFINED ENV{BOOST_LIBRARYDIR})
+    set(BOOST_INCLUDEDIR "$ENV{BOOST_INCLUDEDIR}" CACHE PATH "Boost include directory" FORCE)
+    set(BOOST_LIBRARYDIR "$ENV{BOOST_LIBRARYDIR}" CACHE PATH "Boost library directory" FORCE)
+    include_directories(SYSTEM ${BOOST_INCLUDEDIR})
+    link_directories(${BOOST_LIBRARYDIR})
+    message(STATUS "Using custom Boost paths: ${BOOST_INCLUDEDIR}, ${BOOST_LIBRARYDIR}")
+endif()
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -pedantic")
 # Hide symbols in UDF code by default - UDF functions should be explicitly exported.
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=cascadelake")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
+set(MARCH "cascadelake" CACHE STRING "Target architecture for -march")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${MARCH}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s")
 
 

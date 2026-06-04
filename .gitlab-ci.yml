@@ -1,0 +1,30 @@
+stages:
+  - build
+  - test
+
+image: ghcr.io/cdcent/udf-bioutils/test-env:latest
+
+cache: {}
+
+compile-udfs:
+  stage: build
+  tags:
+    - docker
+  script:
+    - cmake -B build -DEXCLUDE_BENCHMARK=ON -DMARCH=x86-64-v3
+    - make -C build --no-print-directory
+  artifacts:
+    paths:
+      - build/*.so
+      - build/udf-bioutils-test
+      - build/uda-bioutils-test
+    expire_in: 12 hour
+
+test-udfs:
+  stage: test
+  needs: [compile-udfs]
+  tags:
+    - docker
+  script:
+    - build/udf-bioutils-test
+    - build/uda-bioutils-test

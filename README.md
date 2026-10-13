@@ -189,6 +189,10 @@ quantile_t(DOUBLE confidence, BIGINT samples, BOOLEAN is_two_sided) -> DOUBLE
 
 **Purpose:** Given some `confidence` level (e.g., 0.99), number of `samples` and a boolean for whether the [Student's T-distribution](https://en.wikipedia.org/wiki/Student%27s_t-distribution) is two-sided, estimate the [quantile function](https://en.wikipedia.org/wiki/Quantile_function).
 
+Both `quantile_t` and `ci_t` return `NULL` for invalid or non-finite inputs, fewer than two
+samples, or an unrepresentable result. Confidence must be below 1 and above 0, except that
+two-sided confidence 0 is valid and returns 0. Standard deviation must be finite and nonnegative.
+
 ### General Bioinformatic Functions
 
 #### Reverse Complement

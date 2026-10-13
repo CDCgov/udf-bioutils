@@ -1,5 +1,5 @@
 static void ${bm_function_name}(benchmark::State &state) {
-    FunctionContext::TypeDesc return_type;
+    FunctionContext::TypeDesc return_type{};
     std::vector<FunctionContext::TypeDesc> arg_types;
     FunctionContext *context = UdfTestHarness::CreateTestContext(return_type, arg_types);
 
@@ -8,4 +8,5 @@ static void ${bm_function_name}(benchmark::State &state) {
         ${function_call}
     }
     UdfTestHarness::CloseContext(context);
+    delete context;
 }

@@ -5,6 +5,9 @@
 
 #include <boost/math/distributions/normal.hpp>
 #include <boost/math/distributions/students_t.hpp>
+#include <cmath>
+#include <exception>
+#include <limits>
 using namespace boost::math;
 using namespace std;
 
@@ -18,7 +21,10 @@ DoubleVal qt(
         return DoubleVal::null();
     }
 
-    if (confidence.val > 1 || confidence.val < 0 || sample_size.val < 2) {
+    // Infinite quantiles and non-finite inputs are represented as SQL NULL.
+    // Two-tailed confidence zero is valid: its quantile is the median (zero).
+    if (!std::isfinite(confidence.val) || confidence.val >= 1 || confidence.val < 0 ||
+        (confidence.val == 0 && !two_tailed.val) || sample_size.val < 2) {
         return DoubleVal::null();
     }
 
@@ -28,23 +34,28 @@ DoubleVal qt(
     // Rounding errors occur past this point. Since the T distribution converges toward the normal
     // distribution as N grows large, we can switch to using the normal distribution without much of
     // a difference in the statistic.
-    if (Sn > 1404454273) {
-        normal dist(0.0, 1.0);
-        if (two_tailed.val) {
-            T = quantile(complement(dist, (1 - confidence.val) / 2.0));
+    try {
+        if (Sn > 1404454273) {
+            normal dist(0.0, 1.0);
+            if (two_tailed.val) {
+                T = quantile(complement(dist, (1 - confidence.val) / 2.0));
+            } else {
+                T = quantile(dist, confidence.val);
+            }
         } else {
-            T = quantile(dist, confidence.val);
+            students_t dist(Sn - 1);
+            if (two_tailed.val) {
+                T = quantile(complement(dist, (1 - confidence.val) / 2.0));
+            } else {
+                T = quantile(dist, confidence.val);
+            }
         }
-    } else {
-        students_t dist(Sn - 1);
-        if (two_tailed.val) {
-            T = quantile(complement(dist, (1 - confidence.val) / 2.0));
-        } else {
-            T = quantile(dist, confidence.val);
-        }
+    } catch (const std::exception &) {
+        // Boost may also overflow for finite probabilities very near an endpoint.
+        return DoubleVal::null();
     }
 
-    return DoubleVal(T);
+    return std::isfinite(T) ? DoubleVal(T) : DoubleVal::null();
 }
 
 // Confidence interval function. Normally we take alpha but I think backwards, so we take the
@@ -54,37 +65,25 @@ DoubleVal ci_t(
     FunctionContext *context, const DoubleVal &confidence, const BigIntVal &sample_size,
     const DoubleVal &sample_std, const BooleanVal &two_tailed
 ) {
-    if (confidence.is_null || two_tailed.is_null || sample_size.is_null || sample_std.is_null) {
-        return DoubleVal::null();
-    }
-    if (confidence.val > 1 || confidence.val < 0 || sample_size.val < 2 || sample_std.val < 0) {
+    if (sample_std.is_null || !std::isfinite(sample_std.val) || sample_std.val < 0) {
         return DoubleVal::null();
     }
 
-    int64_t Sn = sample_size.val;
-    double Sd  = sample_std.val;
-    double T   = 0;
-
-    // Rounding errors occur past this point. Since the T distribution converges toward the normal
-    // distribution as N grows large, we can switch to using the normal distribution without much of
-    // a difference in the statistic.
-    if (Sn > 1404454273) {
-        normal dist(0.0, 1.0);
-        if (two_tailed.val) {
-            T = quantile(complement(dist, (1 - confidence.val) / 2.0));
-        } else {
-            T = quantile(dist, confidence.val);
-        }
-    } else {
-        students_t dist(Sn - 1);
-        if (two_tailed.val) {
-            T = quantile(complement(dist, (1 - confidence.val) / 2.0));
-        } else {
-            T = quantile(dist, confidence.val);
-        }
+    const DoubleVal statistic = qt(context, confidence, sample_size, two_tailed);
+    if (statistic.is_null) {
+        return DoubleVal::null();
     }
 
-    return DoubleVal(T * Sd / sqrt(double(Sn)));
+    // Divide before multiplying so a representable interval does not overflow
+    // even on platforms where long double has the same range as double.
+    const long double interval =
+        (static_cast<long double>(statistic.val) /
+         std::sqrt(static_cast<long double>(sample_size.val))) * sample_std.val;
+    if (!std::isfinite(interval) ||
+        std::abs(interval) > std::numeric_limits<double>::max()) {
+        return DoubleVal::null();
+    }
+    return DoubleVal(static_cast<double>(interval));
 }
 
 

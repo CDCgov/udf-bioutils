@@ -15,9 +15,7 @@ using namespace impala_udf;
 using namespace std;
 
 inline StringVal to_StringVal(FunctionContext *context, const std::string &s) {
-    StringVal result(context, s.size());
-    memcpy(result.ptr, s.c_str(), s.size());
-    return result;
+    return StringVal::CopyFrom(context, reinterpret_cast<const uint8_t *>(s.data()), s.size());
 }
 
 
@@ -754,6 +752,17 @@ DoubleVal PearsonCorrFinalize(FunctionContext *context, const StringVal &val) {
 // Entropy Calculation Functions
 // ---------------------------------------------------------------------------
 
+// Preserve the serialized counter format, but fail instead of wrapping on large groups.
+inline bool AddEntropyCount(FunctionContext *context, unsigned int &count,
+                            unsigned int increment = 1) {
+    if (increment > std::numeric_limits<unsigned int>::max() - count) {
+        context->SetError("Entropy counter overflow: too many observations in one category.");
+        return false;
+    }
+    count += increment;
+    return true;
+}
+
 // String Entropy
 IMPALA_UDF_EXPORT
 void CalcCharEntropyInit(FunctionContext *context, StringVal *val) {
@@ -779,7 +788,7 @@ void CalcCharEntropyUpdate(FunctionContext *context, const StringVal &input, Str
     }
     unsigned int *tbl = reinterpret_cast<unsigned int *>(val->ptr);
     for (int i = 0; i < input.len; i++) {
-        tbl[input.ptr[i]]++;
+        if (!AddEntropyCount(context, tbl[input.ptr[i]])) return;
     }
 }
 
@@ -793,7 +802,7 @@ void CalcCharEntropyMerge(FunctionContext *context, const StringVal &src, String
     unsigned int *dst_tbl       = reinterpret_cast<unsigned int *>(dst->ptr);
 
     for (int i = '0'; i <= 'z'; i++) {
-        dst_tbl[i] += src_tbl[i];
+        if (!AddEntropyCount(context, dst_tbl[i], src_tbl[i])) return;
     }
 }
 
@@ -886,7 +895,7 @@ void CalcNTEntropyUpdate(FunctionContext *context, const StringVal &input, Strin
     if (index == 0) {
         context->AddWarning("Value ignored because is not a legitimate nucleotide.");
     }
-    ntmat[index]++;
+    AddEntropyCount(context, ntmat[index]);
 }
 
 IMPALA_UDF_EXPORT
@@ -899,7 +908,7 @@ void CalcNTEntropyMerge(FunctionContext *context, const StringVal &src, StringVa
     unsigned int *dst_tbl       = reinterpret_cast<unsigned int *>(dst->ptr);
 
     for (int i = 0; i < 5; i++) {
-        dst_tbl[i] += src_tbl[i];
+        if (!AddEntropyCount(context, dst_tbl[i], src_tbl[i])) return;
     }
 }
 
@@ -1002,7 +1011,7 @@ void CalcAAEntropyUpdate(FunctionContext *context, const StringVal &input, Strin
     if (index == 0) {
         context->AddWarning("Value ignored because is not a legitimate amino acid code.");
     }
-    ntmat[index]++;
+    AddEntropyCount(context, ntmat[index]);
 }
 
 IMPALA_UDF_EXPORT
@@ -1015,7 +1024,7 @@ void CalcAAEntropyMerge(FunctionContext *context, const StringVal &src, StringVa
     unsigned int *dst_tbl       = reinterpret_cast<unsigned int *>(dst->ptr);
 
     for (int i = 0; i < 21; i++) {
-        dst_tbl[i] += src_tbl[i];
+        if (!AddEntropyCount(context, dst_tbl[i], src_tbl[i])) return;
     }
 }
 
@@ -1056,6 +1065,8 @@ DoubleVal CalcAAEntropyFinalize(FunctionContext *context, const StringVal &val) 
 }
 
 // Codon Sequence Entropy
+constexpr unsigned int INVALID_CODON_INDEX = 64;
+
 unsigned int ConvertNTToCDIndex(const char &c) {
     switch (c) {
     case 'A':
@@ -1081,10 +1092,9 @@ unsigned int ConvertCodonToIndex(char *c) {
     unsigned int cod_3 = ConvertNTToCDIndex(c[2]);
 
     if (cod_1 == 4 || cod_2 == 4 || cod_3 == 4) {
-        return 4;
+        return INVALID_CODON_INDEX;
     }
-    return (ConvertNTToCDIndex(c[0]) << 4) | (ConvertNTToCDIndex(c[1]) << 2) |
-           ConvertNTToCDIndex(c[2]);
+    return (cod_1 << 4) | (cod_2 << 2) | cod_3;
 }
 
 IMPALA_UDF_EXPORT
@@ -1113,11 +1123,11 @@ void CalcCDEntropyUpdate(FunctionContext *context, const StringVal &input, Strin
 
     // Map codon to index
     unsigned int i = ConvertCodonToIndex(reinterpret_cast<char *>(input.ptr));
-    if (i == 4) {
+    if (i == INVALID_CODON_INDEX) {
         context->AddWarning("Value ignored because is not a codon.");
         return;
     }
-    cdmat[i]++;
+    AddEntropyCount(context, cdmat[i]);
 }
 
 IMPALA_UDF_EXPORT
@@ -1130,7 +1140,7 @@ void CalcCDEntropyMerge(FunctionContext *context, const StringVal &src, StringVa
     unsigned int *dst_tbl       = reinterpret_cast<unsigned int *>(dst->ptr);
 
     for (int i = 0; i < 64; i++) {
-        dst_tbl[i] += src_tbl[i];
+        if (!AddEntropyCount(context, dst_tbl[i], src_tbl[i])) return;
     }
 }
 

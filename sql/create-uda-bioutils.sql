@@ -23,6 +23,7 @@ CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.skewness(BIGINT)
     UPDATE_FN="RunningMomentUpdate"
     INIT_FN="RunningMomentInit"
     MERGE_FN="RunningMomentMerge"
+    SERIALIZE_FN="StringStructSerialize"
     FINALIZE_FN="RunningMomentSkewnessFinalize";
 
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.skewness(DOUBLE)
@@ -32,6 +33,7 @@ CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.skewness(DOUBLE)
     UPDATE_FN="RunningMomentUpdate"
     INIT_FN="RunningMomentInit"
     MERGE_FN="RunningMomentMerge"
+    SERIALIZE_FN="StringStructSerialize"
     FINALIZE_FN="RunningMomentSkewnessFinalize";
 
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.kurtosis(BIGINT)
@@ -41,6 +43,7 @@ CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.kurtosis(BIGINT)
     UPDATE_FN="RunningMomentUpdate"
     INIT_FN="RunningMomentInit"
     MERGE_FN="RunningMomentMerge"
+    SERIALIZE_FN="StringStructSerialize"
     FINALIZE_FN="RunningMomentKurtosisFinalize";
 
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.kurtosis(DOUBLE)
@@ -50,16 +53,8 @@ CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.kurtosis(DOUBLE)
     UPDATE_FN="RunningMomentUpdate"
     INIT_FN="RunningMomentInit"
     MERGE_FN="RunningMomentMerge"
+    SERIALIZE_FN="StringStructSerialize"
     FINALIZE_FN="RunningMomentKurtosisFinalize";
-
-CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.logfold_agreement(BIGINT)
-    RETURNS DOUBLE
-    INTERMEDIATE STRING
-    LOCATION "$UDF_BIOUTILS_PATH/libudabioutils.so"
-    UPDATE_FN="BoundedArrayUpdate"
-    INIT_FN="BoundedArrayInit"
-    MERGE_FN="BoundedArrayMerge"
-    FINALIZE_FN="AgreementFinalize";
 
 CREATE AGGREGATE FUNCTION IF NOT EXISTS udx.alphanumeric_entropy(STRING)
     RETURNS DOUBLE

@@ -1,7 +1,7 @@
-
-
+# Configure, build, test, and benchmark usage: INSTALL.md#compilation.
 cmake_minimum_required(VERSION 3.5)
 project(UDX_BioUtils)
+enable_testing()
 
 # For in-source builds (cmake .), redirect outputs to build/.
 # For out-of-source builds (cmake -B build), the binary dir is already build/.
@@ -50,11 +50,27 @@ target_link_libraries(udfmathutils ImpalaUdf)
 add_executable(udf-bioutils-test udf-bioutils-test.cc)
 target_link_libraries(udf-bioutils-test udfbioutils)
 
+add_executable(udf-mathutils-test udf-mathutils-test.cc)
+target_link_libraries(udf-mathutils-test udfmathutils)
+
+add_executable(udx-inlines-test udx-inlines-test.cc)
+target_link_libraries(udx-inlines-test ImpalaUdf)
+
+add_test(NAME udf-bioutils COMMAND udf-bioutils-test)
+add_test(NAME uda-bioutils COMMAND uda-bioutils-test)
+add_test(NAME udf-mathutils COMMAND udf-mathutils-test)
+add_test(NAME udx-inlines COMMAND udx-inlines-test)
+
 if(NOT EXCLUDE_BENCHMARK)
-add_executable(udf-bioutils-bmark udf-bioutils-bmark.cc)
-add_custom_command(OUTPUT udf-bioutils-bmark.cc
-    COMMAND benchmark/generate_bmark_code.py json/udf-bmark.json > udf-bioutils-bmark.cc
-    DEPENDS json/udf-bmark.json)
+set(BENCHMARK_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/udf-bioutils-bmark.cc")
+add_executable(udf-bioutils-bmark "${BENCHMARK_SOURCE}")
+target_include_directories(udf-bioutils-bmark PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+add_custom_command(OUTPUT "${BENCHMARK_SOURCE}"
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/benchmark/generate_bmark_code.py"
+        json/udf-bmark.json > "${BENCHMARK_SOURCE}"
+    DEPENDS json/udf-bmark.json benchmark/generate_bmark_code.py benchmark/function_tmpl.txt
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    VERBATIM)
 target_link_libraries(udf-bioutils-bmark udfbioutils)
 target_link_libraries(udf-bioutils-bmark pthread)
 target_link_libraries(udf-bioutils-bmark benchmark)

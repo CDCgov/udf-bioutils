@@ -1,6 +1,8 @@
 // Samuel S. Shepard, CDC
 
 #include <iostream>
+#include <cstring>
+#include <limits>
 
 #include "udf-bioutils.h"
 #include <impala_udf/udf-test-harness.h>
@@ -2128,6 +2130,138 @@ bool test__tn_93_gamma() {
 }
 
 
+bool test__memory_safety_regressions() {
+    bool passing = true;
+
+    for (const auto &list : {",,,", ",", ";,;"}) {
+        passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal>(
+            Sort_List_By_Set, StringVal(list), StringVal(",;"), StringVal(":"), StringVal("")
+        );
+    }
+    passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal>(
+        Sort_List_By_Set, StringVal(",B;;A,"), StringVal(",;"), StringVal(":"), StringVal("A:B")
+    );
+
+    for (const auto &range : {"1..", "..1", "..", "1..2..3", "..1..2", "1..2..",
+                              "1x..3", "1..3x", "2x", "2147483648..3"}) {
+        passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal>(
+            Mutation_List_Strict_Range, StringVal("AAA"), StringVal("AGA"), StringVal(range),
+            StringVal::null()
+        );
+    }
+    const std::tuple<StringVal, StringVal> ranges[] = {
+        {"-2147483648..2147483647", "A2G"},
+        {"2147483647..-2147483648", "A2G"},
+        {"-2147483648", ""},
+        {"2147483647", ""},
+        {"2..2", "A2G"}
+    };
+    for (const auto &[range, expected] : ranges) {
+        passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal>(
+            Mutation_List_Strict_Range, StringVal("AAA"), StringVal("AGA"), range, expected
+        );
+    }
+    passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
+        Substring_By_Range, StringVal("ACG"), StringVal("-2147483648..2147483647"), StringVal("ACG")
+    );
+    passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
+        Substring_By_Range, StringVal("ACG"), StringVal("-2147483648"), StringVal("")
+    );
+    passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal>(
+        Cut_Paste, StringVal("A,C,G"), StringVal(","), StringVal("2147483647"), StringVal("")
+    );
+    passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
+        Range_From_List, StringVal("2147483647;02147483647"), StringVal(";"),
+        StringVal("2147483647;2147483647")
+    );
+
+    // Exercise all consumers of CDS coordinates, including values that formerly
+    // wrapped when narrowing BIGINT input or adding an offset to an INT endpoint.
+    const std::tuple<StringVal, StringVal, BigIntVal, IntVal> mappings[] = {
+        {"1..3", "0..2", 1, IntVal::null()},
+        {"1..3", "-3..-1", 1, IntVal::null()},
+        {"1..3", "3..1", 1, IntVal::null()},
+        {"1..3", "1..1", 3, IntVal::null()},
+        {"1..3", "2147483647..2147483647", 2, IntVal::null()},
+        {"1..3", "2147483648..2147483650", 1, IntVal::null()},
+        {"-2147483648..3", "1..3", 1, IntVal::null()},
+        {"1..3", "1..3", BigIntVal(4294967297LL), IntVal::null()},
+        {"1..3", "1..3", BigIntVal(std::numeric_limits<int64_t>::max()), IntVal::null()},
+        {"2147483645..2147483647", "1..3", 2147483647, 3},
+        {"1..3", "2147483645..2147483647", 3, 2147483647},
+        {"1..3", "2147483645..2147483647", 2, 2147483646},
+        {"1..3", "1..3", 3, 3}
+    };
+    for (const auto &[ori, cds, pos, expected] : mappings) {
+        passing &= UdfTestHarness::ValidateUdf<IntVal, StringVal, StringVal, BigIntVal>(
+            NT_To_CDS_Position, ori, cds, pos, expected
+        );
+        const IntVal aa_pos = expected.is_null ? IntVal::null() : IntVal((expected.val - 1) / 3 + 1);
+        passing &= UdfTestHarness::ValidateUdf<IntVal, StringVal, StringVal, BigIntVal>(
+            NT_To_AA_Position, ori, cds, pos, aa_pos
+        );
+        const bool fits_alignment = !expected.is_null && expected.val == 3;
+        passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal, BigIntVal>(
+            NT_Position_To_CDS_Codon, ori, cds, StringVal("ATG"), pos,
+            fits_alignment ? StringVal("ATG") : StringVal::null()
+        );
+        passing &= UdfTestHarness::ValidateUdf<
+            StringVal, StringVal, StringVal, StringVal, BigIntVal, StringVal>(
+            NT_Position_To_CDS_Codon_Mutant, ori, cds, StringVal("ATG"), pos, StringVal("C"),
+            fits_alignment ? StringVal("ATC") : StringVal::null()
+        );
+        passing &= UdfTestHarness::ValidateUdf<
+            StringVal, StringVal, StringVal, StringVal, BigIntVal, StringVal, StringVal>(
+            NT_Position_To_Mutation_AA3, ori, cds, StringVal("ATG"), pos, StringVal("G"), StringVal("A"),
+            fits_alignment ? StringVal("M1I") : StringVal::null()
+        );
+        passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, BigIntVal, StringVal>(
+            OG_Pos_To_CDS_Allele, ori, cds, pos, StringVal("ATG"),
+            fits_alignment ? StringVal("G") : StringVal::null()
+        );
+    }
+    // A mapped base can exist while its complete codon is absent.
+    for (const auto &alignment : {"A", "AT", "ATGT", "ATGTG"}) {
+        const int len = std::strlen(alignment);
+        passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal, BigIntVal>(
+            NT_Position_To_CDS_Codon, StringVal("1..5"), StringVal("1..5"), StringVal(alignment),
+            BigIntVal(len), StringVal::null()
+        );
+        passing &= UdfTestHarness::ValidateUdf<
+            StringVal, StringVal, StringVal, StringVal, BigIntVal, StringVal>(
+            NT_Position_To_CDS_Codon_Mutant, StringVal("1..5"), StringVal("1..5"), StringVal(alignment),
+            BigIntVal(len), StringVal("C"), StringVal::null()
+        );
+        passing &= UdfTestHarness::ValidateUdf<
+            StringVal, StringVal, StringVal, StringVal, BigIntVal, StringVal, StringVal>(
+            NT_Position_To_Mutation_AA3, StringVal("1..5"), StringVal("1..5"), StringVal(alignment),
+            BigIntVal(len), StringVal("C"), StringVal("T"), StringVal::null()
+        );
+    }
+
+    uint8_t high_bytes[] = {0x80, 0xff};
+    const StringVal high(high_bytes, 2);
+    for (const auto &[left, right] : {std::pair(high, StringVal("AC")),
+                                     std::pair(StringVal("AC"), high), std::pair(high, high)}) {
+        passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
+            Sequence_Diff_NT, left, right, StringVal("??")
+        );
+    }
+    passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, IntVal>(
+        To_AA_Mutant, StringVal("ATG"), StringVal("GAA"), IntVal(2147483647), StringVal("ME")
+    );
+    passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, IntVal>(
+        To_AA_Mutant, StringVal("ATG"), StringVal("GAA"), IntVal(-2147483647 - 1), StringVal("EM")
+    );
+    passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal>(
+        md5, std::vector<StringVal>{StringVal("abc")}, StringVal("900150983cd24fb0d6963f7d28e17f72")
+    );
+    if (!passing) {
+        cerr << "Memory safety regression tests failed." << endl;
+    }
+    return passing;
+}
+
 int main(int argc, char **argv) {
     int passed = true;
 
@@ -2151,6 +2285,7 @@ int main(int argc, char **argv) {
     passed &= test__nt_id();
     passed &= test__pcd();
     passed &= test__range_from_list();
+    passed &= test__reverse_complement();
     passed &= test__to_aa();
     passed &= test__to_aa_mutant();
     passed &= test__to_aa3();
@@ -2175,6 +2310,7 @@ int main(int argc, char **argv) {
     passed &= test__sort_list_unique();
     passed &= test__sort_sites();
     passed &= test__og_pos_to_cds_allele();
+    passed &= test__memory_safety_regressions();
 
     cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
     return !passed;

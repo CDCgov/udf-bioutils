@@ -95,7 +95,7 @@ inline std::vector<int> split_int_by_substr(std::string_view str, std::string_vi
         if (first != second) {
             int ivalue;
             auto conversion_result = std::from_chars(first, first + (second - first), ivalue);
-            if (conversion_result.ec != std::errc::invalid_argument) {
+            if (conversion_result.ec == std::errc()) {
                 output.emplace_back(ivalue);
             } else {
                 output.clear();
@@ -162,7 +162,7 @@ inline std::vector<int> split_unique_sequence_by_substr(
         if (first != second) {
             int ivalue;
             auto conversion_result = std::from_chars(first, first + (second - first), ivalue);
-            if (conversion_result.ec != std::errc::invalid_argument) {
+            if (conversion_result.ec == std::errc()) {
                 iset.insert(ivalue);
             } else {
                 return output;
@@ -191,7 +191,7 @@ inline std::set<int> split_ordered_set_by_substr(std::string_view str, std::stri
         if (first != second) {
             int ivalue;
             auto conversion_result = std::from_chars(first, first + (second - first), ivalue);
-            if (conversion_result.ec != std::errc::invalid_argument) {
+            if (conversion_result.ec == std::errc()) {
                 iset.insert(ivalue);
             } else {
                 iset.clear();
@@ -229,11 +229,8 @@ inline std::map<std::string_view, int> split_ordered_map_by_substr(
 inline StringVal to_StringVal(FunctionContext *context, const std::string &s) {
     if (s.size() > StringVal::MAX_LENGTH) {
         return StringVal::null();
-    } else {
-        StringVal result(context, s.size());
-        memcpy(result.ptr, s.c_str(), s.size());
-        return result;
     }
+    return StringVal::CopyFrom(context, reinterpret_cast<const uint8_t *>(s.data()), s.size());
 }
 
 // Fast integer generation from a string

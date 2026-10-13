@@ -96,7 +96,7 @@ StringVal Range_From_List(
         int range = 0;
 
         while (it != tokens.end()) {
-            if (*it == (previous + 1)) {
+            if (static_cast<int64_t>(*it) - previous == 1) {
                 range = 1;
             } else {
                 if (range) {
@@ -187,6 +187,10 @@ StringVal Sort_List_By_Set(
         tokens.push_back(list.substr(lastPos, pos - lastPos));
         lastPos = list.find_first_not_of(delim, pos);
         pos     = list.find_first_of(delim, lastPos);
+    }
+
+    if (tokens.empty()) {
+        return StringVal("");
     }
 
     // Use the usual ascending sort
@@ -452,15 +456,17 @@ StringVal To_AA_Mutant(
         bases = allele + bases;
     } else if (pos.val > ntsVal.len) {
         bases = bases + allele;
-    } else if ((pos.val + alleleVal.len - 1) > ntsVal.len) {
+    } else if (alleleVal.len > ntsVal.len - pos.val + 1) {
         bases.replace(pos.val - 1, ntsVal.len - pos.val + 1, allele);
     } else {
         bases.replace(pos.val - 1, allele.size(), allele);
     }
 
-    // Copy sorted string to StringVal structure
-    StringVal result(context, bases.size());
-    memcpy(result.ptr, bases.c_str(), bases.size());
+    if (bases.size() > StringVal::MAX_LENGTH) {
+        return StringVal::null();
+    }
+    // To_AA consumes this view synchronously and returns its own managed result.
+    StringVal result(reinterpret_cast<uint8_t *>(bases.data()), bases.size());
     return To_AA(context, result);
 }
 
@@ -474,6 +480,9 @@ StringVal Rev_Complement(FunctionContext *context, const StringVal &ntsVal) {
     }
 
     StringVal revcomp(context, ntsVal.len);
+    if (revcomp.is_null) {
+        return revcomp;
+    }
 
     const int L = ntsVal.len;
     int r       = L - 1;
@@ -842,7 +851,7 @@ IntVal NT_To_CDS_Position(
 
     std::string_view ori((const char *)oriMap.ptr, oriMap.len);
     std::string_view cds((const char *)cdsMap.ptr, cdsMap.len);
-    int ori_pos = oriPos.val;
+    const int64_t ori_pos = oriPos.val;
 
     std::vector<std::string_view> ori_tokens = split_by_delims(ori, ";");
     std::vector<std::string_view> cds_tokens = split_by_delims(cds, ";");
@@ -855,14 +864,19 @@ IntVal NT_To_CDS_Position(
         std::vector<int> ori_range = split_int_by_substr(ori_tokens[i], "..");
 
         // We must be in range
-        if (ori_range.size() == 2 && ori_range[0] <= ori_pos && ori_pos <= ori_range[1]) {
+        if (ori_range.size() == 2 && ori_range[0] > 0 && ori_range[0] <= ori_pos &&
+            ori_pos <= ori_range[1]) {
             // The CDS is a subset of the nt sequence, so only co-ranges may be considered
             std::vector<int> cds_range = split_int_by_substr(cds_tokens[i], "..");
-            if (cds_range.size() == 2) {
-                int offset = ori_pos - ori_range[0];
+            if (cds_range.size() == 2 && cds_range[0] > 0) {
+                const int64_t offset = ori_pos - ori_range[0];
+                const int64_t cds_position = static_cast<int64_t>(cds_range[0]) + offset;
+                if (cds_position > cds_range[1]) {
+                    return IntVal::null();
+                }
                 // We only care about the first matching range found, but theoretically CDS
                 // could have overlapping exons.
-                return IntVal(cds_range[0] + offset);
+                return IntVal(static_cast<int>(cds_position));
             }
         }
     }
@@ -882,7 +896,7 @@ StringVal NT_Position_To_CDS_Codon_Mutant(
     }
 
     IntVal v = NT_To_CDS_Position(context, oriMap, cdsMap, oriPos);
-    if (v.is_null) {
+    if (v.is_null || v.val < 1) {
         return StringVal::null();
     } else {
         // Zero-based index for String. Codon position is also zero-based.
@@ -890,8 +904,7 @@ StringVal NT_Position_To_CDS_Codon_Mutant(
         int codon_position = cds_index % 3;
         int codon_index    = cds_index - codon_position;
 
-        // Last codon index is +2 and for length +1
-        if (cdsAlignment.len < codon_index + 3) {
+        if (cdsAlignment.len < 3 || codon_index > cdsAlignment.len - 3) {
             return StringVal::null();
         }
 
@@ -914,7 +927,7 @@ StringVal NT_Position_To_Mutation_AA3(
     }
 
     IntVal v = NT_To_CDS_Position(context, oriMap, cdsMap, oriPos);
-    if (v.is_null) {
+    if (v.is_null || v.val < 1) {
         return StringVal::null();
     } else {
         // Zero-based index codon_position. Codon_index is WRT the whole string.
@@ -924,8 +937,7 @@ StringVal NT_Position_To_Mutation_AA3(
         int codon_index    = cds_index - codon_position;
         int aa_position    = cds_index / 3 + 1;
 
-        // Last codon index is +2 and for length +1
-        if (cdsAlignment.len < codon_index + 3) {
+        if (cdsAlignment.len < 3 || codon_index > cdsAlignment.len - 3) {
             return StringVal::null();
         }
 
@@ -951,15 +963,14 @@ StringVal NT_Position_To_CDS_Codon(
     }
 
     IntVal v = NT_To_CDS_Position(context, oriMap, cdsMap, oriPos);
-    if (v.is_null) {
+    if (v.is_null || v.val < 1) {
         return StringVal::null();
     } else {
         // Zero-based index for String
         int cds_index   = v.val - 1;
         int codon_index = cds_index - (cds_index % 3);
 
-        // Last codon index is +2 and for length +1
-        if (cdsAlignment.len < codon_index + 3) {
+        if (cdsAlignment.len < 3 || codon_index > cdsAlignment.len - 3) {
             return StringVal::null();
         }
 
@@ -985,19 +996,8 @@ Substring_By_Range(FunctionContext *context, const StringVal &sequence, const St
         std::vector<int> range = split_int_by_substr(t, "..");
         const int R            = range.size();
         if (R > 1) {
-            int a = range[0] - 1;
-            if (a >= L) {
-                a = L - 1;
-            } else if (a < 0) {
-                a = 0;
-            }
-
-            int b = range[1] - 1;
-            if (b >= L) {
-                b = L - 1;
-            } else if (b < 0) {
-                b = 0;
-            }
+            const int a = std::clamp(range[0], 1, L) - 1;
+            const int b = std::clamp(range[1], 1, L) - 1;
 
             if (a <= b) {
                 buffer += seq.substr(a, b - a + 1);
@@ -1008,9 +1008,8 @@ Substring_By_Range(FunctionContext *context, const StringVal &sequence, const St
                 }
             }
         } else if (R == 1) {
-            const int x = range[0] - 1;
-            if (x < L && x >= 0) {
-                buffer += seq[x];
+            if (range[0] > 0 && range[0] <= L) {
+                buffer += seq[range[0] - 1];
             }
             // R == 0
         } else {
@@ -1072,11 +1071,11 @@ IMPALA_UDF_EXPORT StringVal Cut_Paste_Output(
 
         // Multi-value range
         if (R == 2) {
-            int a = range[0] - 1;
-            int b = range[1] - 1;
-            if (a >= L || a < 0 || b >= L || b < 0) {
+            if (range[0] < 1 || range[0] > L || range[1] < 1 || range[1] > L) {
                 continue;
             }
+            const int a = range[0] - 1;
+            const int b = range[1] - 1;
 
             if (a <= b) {
                 for (int i = a; i <= b; i++) {
@@ -1091,11 +1090,10 @@ IMPALA_UDF_EXPORT StringVal Cut_Paste_Output(
                 }
             }
         } else if (R == 1) {
-            const int x = range[0] - 1;
-            if (x >= L || x < 0) {
+            if (range[0] < 1 || range[0] > L) {
                 continue;
             }
-
+            const int x = range[0] - 1;
             buffer += tokens[x];
             buffer += od;
         } else {
@@ -1230,31 +1228,30 @@ StringVal Mutation_List_Strict_Range(
     std::vector<std::string> tokens;
     boost::split(tokens, map, boost::is_any_of(";,"));
     for (int i = 0; i < tokens.size(); i++) {
-        if (tokens[i].find("..") != std::string::npos) {
+        const auto separator = tokens[i].find("..");
+        if (separator != std::string::npos) {
+            if (separator == 0 || separator + 2 == tokens[i].size() ||
+                tokens[i].find("..", separator + 2) != std::string::npos) {
+                return StringVal::null();
+            }
             std::vector<std::string> range = split_by_substr(tokens[i], "..");
-            if (range.size() == 0) {
+            if (range.size() != 2) {
                 return StringVal::null();
             }
 
             try {
-                a = std::stoi(range[0]) - 1;
-                b = std::stoi(range[1]) - 1;
+                std::size_t first_end, second_end;
+                a = std::stoi(range[0], &first_end);
+                b = std::stoi(range[1], &second_end);
+                if (first_end != range[0].size() || second_end != range[1].size()) {
+                    return StringVal::null();
+                }
             } catch (...) {
                 return StringVal::null();
             }
 
-            if (b >= L) {
-                b = L - 1;
-            }
-            if (a >= L) {
-                a = L - 1;
-            }
-            if (a < 0) {
-                a = 0;
-            }
-            if (b < 0) {
-                b = 0;
-            }
+            a = std::clamp(a, 1, L) - 1;
+            b = std::clamp(b, 1, L) - 1;
 
             if (a <= b) {
                 for (int j = a; j <= b; j++) {
@@ -1267,13 +1264,17 @@ StringVal Mutation_List_Strict_Range(
             }
         } else {
             try {
-                x = std::stoi(tokens[i]) - 1;
+                std::size_t end;
+                x = std::stoi(tokens[i], &end);
+                if (end != tokens[i].size()) {
+                    return StringVal::null();
+                }
             } catch (...) {
                 return StringVal::null();
             }
 
-            if (x < L && x >= 0) {
-                sites.push_back(x);
+            if (x > 0 && x <= L) {
+                sites.push_back(x - 1);
             }
         }
     }
@@ -1821,7 +1822,7 @@ StringVal Sequence_Diff_NT(FunctionContext *context, const StringVal &seq1, cons
     it     = seq.begin();
 
     while (it_ref != seq_ref.end() && it != seq.end()) {
-        diff_seq.push_back(NT_DIFF[*it_ref][*it]);
+        diff_seq.push_back(NT_DIFF[static_cast<uint8_t>(*it_ref)][static_cast<uint8_t>(*it)]);
         it_ref++;
         it++;
     }
@@ -2084,10 +2085,12 @@ StringVal md5(FunctionContext *context, int num_vars, const StringVal *args) {
     MD5((const unsigned char *)input.c_str(), input.size(), obuf);
 
     StringVal hash(context, 32);
+    if (hash.is_null) {
+        return hash;
+    }
     // Courtesy:
     // https://stackoverflow.com/questions/6357031/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-in-c/17147874#17147874
     constexpr unsigned char HEX[17] = "0123456789abcdef";
-    auto *p                         = hash.ptr;
     for (int j = 0; j < 16; j++) {
         hash.ptr[2 * j]     = HEX[(obuf[j] >> 4) & 0x0F];
         hash.ptr[2 * j + 1] = HEX[(obuf[j]) & 0x0F];

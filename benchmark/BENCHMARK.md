@@ -20,12 +20,21 @@ The input for this is based on a JSON file that is located in `json/udf-bmark.js
 4. data type of the argument
 5. value of the argument.
 
-This script is automatically triggered during `make` unless specifically
-disabled during `cmake` with `-DEXCLUDE_BENCHMARK=true`. This may be desirable
-if the necessary dependencies are not available. To run the benchmark itself,
-run the executable (`build/udf-bioutils-bmark`). For advanced options, there is
-a help prompt associated with the executable which can be called with the flag
-`-h`.
+Configure and build the benchmark from the repository root:
+
+```bash
+cmake -S . -B build -DEXCLUDE_BENCHMARK=OFF
+cmake --build build --target udf-bioutils-bmark --parallel 4
+./build/udf-bioutils-bmark --benchmark_filter='^BM_Hamming_Distance$'
+```
+
+Omit the filter to run all benchmarks; use `--help` for runtime options. Disable the
+benchmark target with `-DEXCLUDE_BENCHMARK=ON`. The generator requires Python 3 at
+`/bin/python`.
+
+Edit `json/udf-bmark.json` or `benchmark/function_tmpl.txt`; CMake regenerates
+`build/udf-bioutils-bmark.cc` when either input or the generator changes. See
+[INSTALL.md](../INSTALL.md#compilation) for general build options.
 
 ## Example
 

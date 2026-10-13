@@ -1,7 +1,10 @@
 // Samuel S. Shepard, CDC
 
 #include <iostream>
+#include <array>
+#include <limits>
 #include <math.h>
+#include <string>
 
 #include "uda-bioutils.h"
 #include <impala_udf/uda-test-harness.h>
@@ -134,6 +137,37 @@ bool TestVariance() {
     return true;
 }
 
+template <typename Input>
+bool TestHigherMoments() {
+    using TestHarness = UdaTestHarness<DoubleVal, StringVal, Input>;
+    TestHarness skewness(
+        RunningMomentInit, RunningMomentUpdate, RunningMomentMerge, StringStructSerialize,
+        RunningMomentSkewnessFinalize
+    );
+    TestHarness kurtosis(
+        RunningMomentInit, RunningMomentUpdate, RunningMomentMerge, StringStructSerialize,
+        RunningMomentKurtosisFinalize
+    );
+    skewness.SetResultComparator(FuzzyCompare);
+    kurtosis.SetResultComparator(FuzzyCompare);
+
+    // ALL exercises Init/Update/Serialize and Init/Merge/Serialize/Finalize, including
+    // empty partial states. Closing the harness contexts detects missing state cleanup.
+    const vector<Input> empty;
+    const vector<Input> values = {Input(1), Input(2), Input(3), Input(4), Input::null()};
+    if (!skewness.Execute(empty, DoubleVal::null()) ||
+        !skewness.Execute(values, DoubleVal(0))) {
+        cerr << "Skewness: " << skewness.GetErrorMsg() << endl;
+        return false;
+    }
+    if (!kurtosis.Execute(empty, DoubleVal::null()) ||
+        !kurtosis.Execute(values, DoubleVal(-1.2))) {
+        cerr << "Kurtosis: " << kurtosis.GetErrorMsg() << endl;
+        return false;
+    }
+    return true;
+}
+
 bool TestBitwiseOr() {
     UdaTestHarness<BigIntVal, BigIntVal, BigIntVal> bw_or(
         BitwiseOrInit, BitwiseOrUpdateMerge, BitwiseOrUpdateMerge, NULL, BitwiseOrFinalize
@@ -240,6 +274,7 @@ bool TestCDEntropy() {
         CalcCDEntropyInit, CalcCDEntropyUpdate, CalcCDEntropyMerge,
         reinterpret_cast<TestHarness::SerializeFn>(CalcCDEntropySerialize), CalcCDEntropyFinalize
     );
+    test.SetResultComparator(FuzzyCompare);
     bool passing = true;
 
     vector<StringVal> vals;
@@ -249,10 +284,109 @@ bool TestCDEntropy() {
     vals.push_back(StringVal("TCT"));
 
     if (!test.Execute<StringVal>(vals, DoubleVal(1.5))) {
-        cerr << "Calculate AA entropy: " << test.GetErrorMsg() << endl;
+        cerr << "Calculate codon entropy: " << test.GetErrorMsg() << endl;
+        passing = false;
+    }
+
+    // ACA has index 4, which used to collide with the invalid-codon sentinel.
+    vals = {StringVal("AAA"), StringVal("ACA"), StringVal("aaa"), StringVal("aca")};
+    if (!test.Execute(vals, DoubleVal(1))) {
+        cerr << "Codon entropy including ACA: " << test.GetErrorMsg() << endl;
+        passing = false;
+    }
+
+    // Equal frequencies of all 64 canonical codons have log2(64) == 6 bits of entropy.
+    // Keep the character buffers alive while the distributed harness reads the StringVals.
+    array<array<uint8_t, 3>, 64> codons;
+    vals.clear();
+    size_t index = 0;
+    for (uint8_t first : string("ACGT")) {
+        for (uint8_t second : string("ACGT")) {
+            for (uint8_t third : string("ACGT")) {
+                codons[index] = {first, second, third};
+                vals.emplace_back(codons[index].data(), 3);
+                ++index;
+            }
+        }
+    }
+    if (!test.Execute(vals, DoubleVal(6))) {
+        cerr << "Codon entropy across all 64 codons: " << test.GetErrorMsg() << endl;
+        passing = false;
+    }
+
+    // Reject invalid bases in each position without dropping valid ACA observations.
+    vals = {StringVal("AAA"), StringVal("ACA"), StringVal("NAA"), StringVal("ANA"),
+            StringVal("AAN")};
+    if (!test.Execute(vals, DoubleVal(1), SINGLE_NODE)) {
+        cerr << "Codon entropy with invalid codons: " << test.GetErrorMsg() << endl;
         passing = false;
     }
     return passing;
+}
+
+bool TestEntropyCounterOverflow() {
+    using TestHarness = UdaTestHarness<DoubleVal, StringVal, StringVal>;
+    struct EntropyFunctions {
+        const char *name;
+        TestHarness::InitFn init;
+        TestHarness::UpdateFn update;
+        TestHarness::MergeFn merge;
+        TestHarness::FinalizeFn finalize;
+        const char *input;
+        size_t counter_index;
+    };
+    const EntropyFunctions functions[] = {
+        {"Character", CalcCharEntropyInit, CalcCharEntropyUpdate, CalcCharEntropyMerge,
+         CalcCharEntropyFinalize, "A", 'A'},
+        {"Nucleotide", CalcNTEntropyInit, CalcNTEntropyUpdate, CalcNTEntropyMerge,
+         CalcNTEntropyFinalize, "A", 1},
+        {"Amino acid", CalcAAEntropyInit, CalcAAEntropyUpdate, CalcAAEntropyMerge,
+         CalcAAEntropyFinalize, "A", 1},
+        {"Codon", CalcCDEntropyInit, CalcCDEntropyUpdate, CalcCDEntropyMerge,
+         CalcCDEntropyFinalize, "ACA", 4}
+    };
+    const auto maximum = std::numeric_limits<unsigned int>::max();
+    bool passed = true;
+    for (const auto &fn : functions) {
+        // Seed states near the serialized counter limit to test billions of observations
+        // without billions of Update calls. The intermediate format remains unchanged.
+        for (bool merge : {false, true}) {
+            FunctionContext *context = UdfTestHarness::CreateTestContext(
+                FunctionContext::TypeDesc{}, {}
+            );
+            StringVal dst;
+            StringVal src;
+            fn.init(context, &dst);
+            fn.init(context, &src);
+            auto *dst_counts = reinterpret_cast<unsigned int *>(dst.ptr);
+            auto *src_counts = reinterpret_cast<unsigned int *>(src.ptr);
+            dst_counts[fn.counter_index] = maximum - 1;
+            src_counts[fn.counter_index] = 1;
+
+            auto add_one = [&]() {
+                if (merge) fn.merge(context, src, &dst);
+                else fn.update(context, StringVal(fn.input), &dst);
+            };
+            add_one();
+            bool exact_limit_ok = !context->has_error() &&
+                                  dst_counts[fn.counter_index] == maximum;
+            add_one();
+            bool overflow_detected = context->has_error() &&
+                string(context->error_msg()).find("Entropy counter overflow") != string::npos &&
+                dst_counts[fn.counter_index] == maximum;
+
+            fn.finalize(context, src);
+            fn.finalize(context, dst);
+            UdfTestHarness::CloseContext(context);
+            delete context;
+            if (!exact_limit_ok || !overflow_detected) {
+                cerr << fn.name << " entropy " << (merge ? "merge" : "update")
+                     << " counter overflow test failed." << endl;
+                passed = false;
+            }
+        }
+    }
+    return passed;
 }
 
 bool TestPearsonCorrelation() {
@@ -437,12 +571,15 @@ int main(int argc, char **argv) {
     bool passed = true;
     passed &= TestAgreement();
     passed &= TestVariance();
+    passed &= TestHigherMoments<BigIntVal>();
+    passed &= TestHigherMoments<DoubleVal>();
     passed &= TestBitwiseOr();
     passed &= TestCharEntropy();
     passed &= TestNTEntropy();
     passed &= TestAAEntropy();
     passed &= TestCDEntropy();
+    passed &= TestEntropyCounterOverflow();
     passed &= TestPearsonCorrelation();
     cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
-    return 0;
+    return passed ? 0 : 1;
 }

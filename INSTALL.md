@@ -34,26 +34,48 @@ sudo yum install -y google-benchmark-devel google-benchmark
 
 ## Compilation
 
-Configuration is done via `cmake` but `make` handles the build process. UDX tests are also provided. The test artifacts should be able to execute on the target Impala daemon. If they do not additional dependencies may be missing.
+Run from the repository root using CMake 3.20+:
 
 ```bash
-# Load the toolchain.
-# This example assumes `gcc-toolset-13`` was installed on RHEL 8.
+# On RHEL 8, load the installed compiler toolchain.
 source /opt/rh/gcc-toolset-13/enable
 
-# Configure and compile
-cmake -B build .
-make
-
-## Run tests
-./build/udf-bioutils-test
-./build/uda-bioutils-test
-
-## Run benchmarks
-./build/udf-bioutils-bmark
+cmake -S . -B build -DEXCLUDE_BENCHMARK=ON
+cmake --build build --parallel 4
+ctest --test-dir build --output-on-failure
 ```
 
-Built libraries will need to be put in HDFS / S3 / ADLS and then instantiated within Impala using the appropriate SQL.
+Libraries and test executables are written to `build/`. CTest runs four C++ suites and
+one SQL registration check; no Impala server is required. Rebuild before rerunning tests.
+
+| Configure option           | Purpose                                                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `-DMARCH=x86-64`           | Select a baseline CPU target instead of the default `cascadelake`; choose a target supported by the destination machines. |
+| `-DEXCLUDE_BENCHMARK=ON`   | Skip benchmarks and their dependencies; benchmarks are enabled by default.                                                |
+| `-DCMAKE_BUILD_TYPE=Debug` | Select Debug flags, although the project still adds `-O2` and `-s` in every configuration.                                |
+
+For custom Boost locations, set both `BOOST_INCLUDEDIR` and `BOOST_LIBRARYDIR`
+**environment variables** before configuring. Rerun configuration to change options;
+use a fresh build directory when changing compilers or generators.
+
+To build or run a subset:
+
+```bash
+cmake --build build --target uda-bioutils-test
+ctest --test-dir build --output-on-failure -R '^uda-'
+```
+
+For benchmarks, install Google Benchmark and ensure `/bin/python` provides Python 3:
+
+```bash
+cmake -S . -B build -DEXCLUDE_BENCHMARK=OFF
+cmake --build build --target udf-bioutils-bmark --parallel 4
+./build/udf-bioutils-bmark --benchmark_filter='^BM_Hamming_Distance$'
+```
+
+See [benchmark/BENCHMARK.md](benchmark/BENCHMARK.md) for benchmark inputs. Existing
+`cmake .` builds use `cmake --build .` and `ctest` from the repository root. There is no
+CMake install target; `install_SO.sh` expects the three shared libraries in `build/`.
 
 ## Deployment
 

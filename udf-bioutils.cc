@@ -10,6 +10,7 @@
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <boost/xpressive/xpressive.hpp>
 #include <cctype>
+#include <charconv>
 #include <cmath>
 #include <locale>
 #include <openssl/md5.h>
@@ -784,12 +785,12 @@ IntVal Convert_String_To_EPI_Week(
     }
 }
 
-__attribute__((visibility("default")))
-double date_to_double_inner(int32_t dateval) {
+__attribute__((visibility("default"))) double date_to_double_inner(int32_t dateval) {
     auto d = boost::gregorian::date(dateval + EPOCH_OFFSET);
-    if (d.day() == 31 && d.month() == 12) return (d.year() + 0.999);
+    if (d.day() == 31 && d.month() == 12)
+        return (d.year() + 0.999);
     int days_in_year = 365 + int(boost::gregorian::gregorian_calendar::is_leap_year(d.year()));
-    double ratio = d.year() + static_cast<double>(d.day_of_year()) / days_in_year;
+    double ratio     = d.year() + static_cast<double>(d.day_of_year()) / days_in_year;
     // Round to 3 decimal places
     double rounded = std::round(ratio * 1000.0) / 1000.0;
     return rounded;
@@ -798,26 +799,28 @@ double date_to_double_inner(int32_t dateval) {
 // Convert Gregorian Date to float for portion of the year passed
 IMPALA_UDF_EXPORT
 DoubleVal Date_to_Double(FunctionContext *context, const DateVal &dateVal) {
-    if (dateVal.is_null) return DoubleVal::null();
+    if (dateVal.is_null)
+        return DoubleVal::null();
     double result = date_to_double_inner(dateVal.val);
     return DoubleVal(result);
 }
 
-__attribute__((visibility("default")))
-int32_t double_to_date_inner(double doubleval) {
+__attribute__((visibility("default"))) int32_t double_to_date_inner(double doubleval) {
     double year;
-    double decimal = std::modf(doubleval, &year);
-    int days_in_year = 365 + int(boost::gregorian::gregorian_calendar::is_leap_year(year));
+    double decimal     = std::modf(doubleval, &year);
+    int days_in_year   = 365 + int(boost::gregorian::gregorian_calendar::is_leap_year(year));
     double day_of_year = std::round(days_in_year * decimal);
 
-    auto result = boost::gregorian::date(year, 1, 1) + boost::gregorian::date_duration(day_of_year - 1);
+    auto result =
+        boost::gregorian::date(year, 1, 1) + boost::gregorian::date_duration(day_of_year - 1);
     int32_t impala_val = result.day_number() - EPOCH_OFFSET;
     return impala_val;
 }
 
 IMPALA_UDF_EXPORT
 DateVal Double_to_Date(FunctionContext *context, const DoubleVal &doubleVal) {
-    if (doubleVal.is_null) return DateVal::null();
+    if (doubleVal.is_null)
+        return DateVal::null();
     int32_t result = double_to_date_inner(doubleVal.val);
     return DateVal(result);
 }
@@ -869,7 +872,7 @@ IntVal NT_To_CDS_Position(
             // The CDS is a subset of the nt sequence, so only co-ranges may be considered
             std::vector<int> cds_range = split_int_by_substr(cds_tokens[i], "..");
             if (cds_range.size() == 2 && cds_range[0] > 0) {
-                const int64_t offset = ori_pos - ori_range[0];
+                const int64_t offset       = ori_pos - ori_range[0];
                 const int64_t cds_position = static_cast<int64_t>(cds_range[0]) + offset;
                 if (cds_position > cds_range[1]) {
                     return IntVal::null();
@@ -1222,28 +1225,24 @@ StringVal Mutation_List_Strict_Range(
     std::string seq2((const char *)sequence2.ptr, sequence2.len);
     std::string map((const char *)rangeMap.ptr, rangeMap.len);
 
+    std::string range_start, range_end;
+
     int x, a, b;
     int L = length;
     std::vector<int> sites;
     std::vector<std::string> tokens;
     boost::split(tokens, map, boost::is_any_of(";,"));
     for (int i = 0; i < tokens.size(); i++) {
-        const auto separator = tokens[i].find("..");
+        const auto &token    = tokens[i];
+        const auto separator = token.find("..");
         if (separator != std::string::npos) {
-            if (separator == 0 || separator + 2 == tokens[i].size() ||
-                tokens[i].find("..", separator + 2) != std::string::npos) {
-                return StringVal::null();
-            }
-            std::vector<std::string> range = split_by_substr(tokens[i], "..");
-            if (range.size() != 2) {
-                return StringVal::null();
-            }
-
+            range_start.assign(token, 0, separator);
+            range_end.assign(token, separator + 2, std::string::npos);
             try {
                 std::size_t first_end, second_end;
-                a = std::stoi(range[0], &first_end);
-                b = std::stoi(range[1], &second_end);
-                if (first_end != range[0].size() || second_end != range[1].size()) {
+                a = std::stoi(range_start, &first_end);
+                b = std::stoi(range_end, &second_end);
+                if (first_end != range_start.size() || second_end != range_end.size()) {
                     return StringVal::null();
                 }
             } catch (...) {
@@ -1265,8 +1264,8 @@ StringVal Mutation_List_Strict_Range(
         } else {
             try {
                 std::size_t end;
-                x = std::stoi(tokens[i], &end);
-                if (end != tokens[i].size()) {
+                x = std::stoi(token, &end);
+                if (end != token.size()) {
                     return StringVal::null();
                 }
             } catch (...) {
@@ -1404,7 +1403,7 @@ StringVal Mutation_List_Strict_GLY(
             is_mut = 0;
 
             // N.[^P][ST] -> N-[^P][ST]
-            if (i >= 1 && (i + 2) < length &&           // checking for length
+            if (i >= 1 && (i + 2) < length &&                 // checking for length
                 seq2[i - 1] == 'N' &&                         // -2 position
                 seq2[i + 1] != 'P' &&                         // -1 position
                 (seq2[i + 2] == 'S' || seq2[i + 2] == 'T')) { // 0 position
@@ -1412,7 +1411,7 @@ StringVal Mutation_List_Strict_GLY(
             }
 
             // N[^P].[ST] -> N[^P]-[ST]
-            if (i >= 2 && (i + 1) < length &&           // checking for length
+            if (i >= 2 && (i + 1) < length &&                 // checking for length
                 seq2[i - 2] == 'N' &&                         // -2 position
                 seq2[i - 1] != 'P' &&                         // -1 position
                 (seq2[i + 1] == 'S' || seq2[i + 1] == 'T')) { // 0 position
@@ -1420,7 +1419,7 @@ StringVal Mutation_List_Strict_GLY(
             }
 
             // N[^P][ST] -> -[^P][ST]
-            if ((i + 2) < length &&                 // checking for length
+            if ((i + 2) < length &&                           // checking for length
                 seq1[i] == 'N' &&                             // -2 position
                 seq1[i + 1] != 'P' &&                         // -1 position
                 (seq1[i + 2] == 'S' || seq1[i + 2] == 'T')) { // 0 position
@@ -1428,7 +1427,7 @@ StringVal Mutation_List_Strict_GLY(
             }
 
             // N[^P][ST] -> N-[ST]
-            if (i >= 1 && (i + 1) < length &&           // checking for length
+            if (i >= 1 && (i + 1) < length &&                 // checking for length
                 seq1[i - 1] == 'N' &&                         // -2 position
                 seq1[i] != 'P' &&                             // -1 position
                 (seq1[i + 1] == 'S' || seq1[i + 1] == 'T')) { // 0 position
@@ -1436,7 +1435,7 @@ StringVal Mutation_List_Strict_GLY(
             }
 
             // N[^P][ST] -> N[^P]-
-            if (i >= 2 && i < length &&         // checking for length
+            if (i >= 2 && i < length &&               // checking for length
                 seq1[i - 2] == 'N' &&                 // -2 position
                 seq1[i - 1] != 'P' &&                 // -1 position
                 (seq1[i] == 'S' || seq1[i] == 'T')) { // 0 position
@@ -1584,13 +1583,12 @@ StringVal Mutation_List_Indel_GLY(
     // Annotate mutations
     for (size_t i = 0; i < max_i; i++) {
         // Annotate the mutation
-        if (// Checks if mutation is not indel
-            ((toupper(seq1[i]) != toupper(seq2[i]) &&
-              isalpha(seq1[i]) && isalpha(seq2[i])) ||
+        if ( // Checks if mutation is not indel
+            ((toupper(seq1[i]) != toupper(seq2[i]) && isalpha(seq1[i]) && isalpha(seq2[i])) ||
 
-            // If mutation is indel, check if it changes recognition sequence
-             (toupper(seq1[i]) != toupper(seq2[i]) &&
-              is_motif[i][0] != is_motif[i][1]))) {
+             // If mutation is indel, check if it changes recognition sequence
+             (toupper(seq1[i]) != toupper(seq2[i]) && is_motif[i][0] != is_motif[i][1]))
+        ) {
 
             if (!buffer.empty()) {
                 buffer.append(", ");
@@ -2283,23 +2281,25 @@ DoubleVal Tn_93_Gamma(
 }
 
 IMPALA_UDF_EXPORT
-StringVal OG_Pos_To_CDS_Allele(FunctionContext *context, const StringVal &oriMap, 
-    const StringVal &cdsMap, const BigIntVal &oriPos, const StringVal &cdsAlignment) {
-        if (cdsAlignment.is_null || cdsAlignment.len == 0) {
-            return StringVal::null();
-        }
-        // Convert orig nucleotide position into a 1-based CDS position
-        IntVal v = NT_To_CDS_Position(context, oriMap, cdsMap, oriPos);
-        if (v.is_null) {
-            // mapping failed or position does not correspond to a CDS position
-            return StringVal::null();
-        }
-        // Convert from 1-based CDS coordinate to a 0-based string index
-        int cds_index = v.val - 1;
-        // check in case mapped position falls outside alignment
-        if (cds_index < 0 || cds_index >= cdsAlignment.len) {
-            return StringVal::null();
-        }
-        // Return single-character allele at mapped CDS position
-        return StringVal::CopyFrom(context, cdsAlignment.ptr + cds_index, 1);
+StringVal OG_Pos_To_CDS_Allele(
+    FunctionContext *context, const StringVal &oriMap, const StringVal &cdsMap,
+    const BigIntVal &oriPos, const StringVal &cdsAlignment
+) {
+    if (cdsAlignment.is_null || cdsAlignment.len == 0) {
+        return StringVal::null();
+    }
+    // Convert orig nucleotide position into a 1-based CDS position
+    IntVal v = NT_To_CDS_Position(context, oriMap, cdsMap, oriPos);
+    if (v.is_null) {
+        // mapping failed or position does not correspond to a CDS position
+        return StringVal::null();
+    }
+    // Convert from 1-based CDS coordinate to a 0-based string index
+    int cds_index = v.val - 1;
+    // check in case mapped position falls outside alignment
+    if (cds_index < 0 || cds_index >= cdsAlignment.len) {
+        return StringVal::null();
+    }
+    // Return single-character allele at mapped CDS position
+    return StringVal::CopyFrom(context, cdsAlignment.ptr + cds_index, 1);
 }

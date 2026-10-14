@@ -2151,7 +2151,8 @@ bool test__mutation_list_range_rejects_invalid_endpoints() {
     bool passing = true;
 
     for (const auto &range : {"1..", "..1", "..", "1..2..3", "..1..2", "1..2..",
-                              "1x..3", "1..3x", "2x", "2147483648..3"}) {
+                              "1....2", "1...2", "1x..3", "1..3x", "2x", "2147483648..3",
+                              "+-1..3", "1..+", "1..  ", "1..2 "}) {
         passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal>(
             Mutation_List_Strict_Range, StringVal("AAA"), StringVal("AGA"), StringVal(range),
             StringVal::null()
@@ -2171,7 +2172,9 @@ bool test__mutation_list_range_integer_limits() {
         {"2147483647..-2147483648", "A2G"},
         {"-2147483648", ""},
         {"2147483647", ""},
-        {"2..2", "A2G"}
+        {"2..2", "A2G"},
+        {" +1.. +3", "A2G"},
+        {" +2", "A2G"}
     };
     for (const auto &[range, expected] : ranges) {
         passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal>(

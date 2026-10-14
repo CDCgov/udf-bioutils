@@ -2130,7 +2130,7 @@ bool test__tn_93_gamma() {
 }
 
 
-bool test__memory_safety_regressions() {
+bool test__sort_list_set_ignores_empty_elements() {
     bool passing = true;
 
     for (const auto &list : {",,,", ",", ";,;"}) {
@@ -2141,6 +2141,14 @@ bool test__memory_safety_regressions() {
     passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal>(
         Sort_List_By_Set, StringVal(",B;;A,"), StringVal(",;"), StringVal(":"), StringVal("A:B")
     );
+    if (!passing) {
+        cerr << "Sort_List_By_Set ignores empty elements tests failed." << endl;
+    }
+    return passing;
+}
+
+bool test__mutation_list_range_rejects_invalid_endpoints() {
+    bool passing = true;
 
     for (const auto &range : {"1..", "..1", "..", "1..2..3", "..1..2", "1..2..",
                               "1x..3", "1..3x", "2x", "2147483648..3"}) {
@@ -2149,6 +2157,15 @@ bool test__memory_safety_regressions() {
             StringVal::null()
         );
     }
+    if (!passing) {
+        cerr << "Mutation_List_Strict_Range rejects invalid endpoints tests failed." << endl;
+    }
+    return passing;
+}
+
+bool test__mutation_list_range_integer_limits() {
+    bool passing = true;
+
     const std::tuple<StringVal, StringVal> ranges[] = {
         {"-2147483648..2147483647", "A2G"},
         {"2147483647..-2147483648", "A2G"},
@@ -2161,19 +2178,54 @@ bool test__memory_safety_regressions() {
             Mutation_List_Strict_Range, StringVal("AAA"), StringVal("AGA"), range, expected
         );
     }
+    if (!passing) {
+        cerr << "Mutation_List_Strict_Range handles integer limits tests failed." << endl;
+    }
+    return passing;
+}
+
+bool test__substr_range_integer_limits() {
+    bool passing = true;
+
     passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
         Substring_By_Range, StringVal("ACG"), StringVal("-2147483648..2147483647"), StringVal("ACG")
     );
     passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
         Substring_By_Range, StringVal("ACG"), StringVal("-2147483648"), StringVal("")
     );
+    if (!passing) {
+        cerr << "Substring_By_Range handles integer limits tests failed." << endl;
+    }
+    return passing;
+}
+
+bool test__cut_paste_field_index_int_max() {
+    bool passing = true;
+
     passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, StringVal>(
         Cut_Paste, StringVal("A,C,G"), StringVal(","), StringVal("2147483647"), StringVal("")
     );
+    if (!passing) {
+        cerr << "Cut_Paste returns empty for INT_MAX field index tests failed." << endl;
+    }
+    return passing;
+}
+
+bool test__range_from_list_duplicate_int_max() {
+    bool passing = true;
+
     passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
         Range_From_List, StringVal("2147483647;02147483647"), StringVal(";"),
         StringVal("2147483647;2147483647")
     );
+    if (!passing) {
+        cerr << "Range_From_List handles duplicate INT_MAX values tests failed." << endl;
+    }
+    return passing;
+}
+
+bool test__cds_coordinate_bounds() {
+    bool passing = true;
 
     // Exercise all consumers of CDS coordinates, including values that formerly
     // wrapped when narrowing BIGINT input or adding an offset to an INT endpoint.
@@ -2220,6 +2272,15 @@ bool test__memory_safety_regressions() {
             fits_alignment ? StringVal("G") : StringVal::null()
         );
     }
+    if (!passing) {
+        cerr << "CDS coordinate bounds tests failed." << endl;
+    }
+    return passing;
+}
+
+bool test__codon_functions_reject_incomplete_triplets() {
+    bool passing = true;
+
     // A mapped base can exist while its complete codon is absent.
     for (const auto &alignment : {"A", "AT", "ATGT", "ATGTG"}) {
         const int len = std::strlen(alignment);
@@ -2238,6 +2299,14 @@ bool test__memory_safety_regressions() {
             BigIntVal(len), StringVal("C"), StringVal("T"), StringVal::null()
         );
     }
+    if (!passing) {
+        cerr << "Codon functions reject incomplete triplets tests failed." << endl;
+    }
+    return passing;
+}
+
+bool test__sequence_diff_nt_non_ascii_bytes() {
+    bool passing = true;
 
     uint8_t high_bytes[] = {0x80, 0xff};
     const StringVal high(high_bytes, 2);
@@ -2247,17 +2316,35 @@ bool test__memory_safety_regressions() {
             Sequence_Diff_NT, left, right, StringVal("??")
         );
     }
+    if (!passing) {
+        cerr << "Sequence_Diff_NT returns question marks for non-ASCII bytes tests failed." << endl;
+    }
+    return passing;
+}
+
+bool test__to_aa_mutant_position_integer_limits() {
+    bool passing = true;
+
     passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, IntVal>(
         To_AA_Mutant, StringVal("ATG"), StringVal("GAA"), IntVal(2147483647), StringVal("ME")
     );
     passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal, IntVal>(
         To_AA_Mutant, StringVal("ATG"), StringVal("GAA"), IntVal(-2147483647 - 1), StringVal("EM")
     );
+    if (!passing) {
+        cerr << "To_AA_Mutant handles position integer limits tests failed." << endl;
+    }
+    return passing;
+}
+
+bool test__md5_known_digest() {
+    bool passing = true;
+
     passing &= UdfTestHarness::ValidateUdf<StringVal, StringVal>(
         md5, std::vector<StringVal>{StringVal("abc")}, StringVal("900150983cd24fb0d6963f7d28e17f72")
     );
     if (!passing) {
-        cerr << "Memory safety regression tests failed." << endl;
+        cerr << "MD5 known digest tests failed." << endl;
     }
     return passing;
 }
@@ -2310,7 +2397,17 @@ int main(int argc, char **argv) {
     passed &= test__sort_list_unique();
     passed &= test__sort_sites();
     passed &= test__og_pos_to_cds_allele();
-    passed &= test__memory_safety_regressions();
+    passed &= test__sort_list_set_ignores_empty_elements();
+    passed &= test__mutation_list_range_rejects_invalid_endpoints();
+    passed &= test__mutation_list_range_integer_limits();
+    passed &= test__substr_range_integer_limits();
+    passed &= test__cut_paste_field_index_int_max();
+    passed &= test__range_from_list_duplicate_int_max();
+    passed &= test__cds_coordinate_bounds();
+    passed &= test__codon_functions_reject_incomplete_triplets();
+    passed &= test__sequence_diff_nt_non_ascii_bytes();
+    passed &= test__to_aa_mutant_position_integer_limits();
+    passed &= test__md5_known_digest();
 
     cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
     return !passed;

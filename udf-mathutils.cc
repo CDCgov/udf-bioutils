@@ -7,7 +7,6 @@
 #include <boost/math/distributions/students_t.hpp>
 #include <cmath>
 #include <exception>
-#include <limits>
 using namespace boost::math;
 using namespace std;
 
@@ -74,16 +73,10 @@ DoubleVal ci_t(
         return DoubleVal::null();
     }
 
-    // Divide before multiplying so a representable interval does not overflow
-    // even on platforms where long double has the same range as double.
-    const long double interval =
-        (static_cast<long double>(statistic.val) /
-         std::sqrt(static_cast<long double>(sample_size.val))) * sample_std.val;
-    if (!std::isfinite(interval) ||
-        std::abs(interval) > std::numeric_limits<double>::max()) {
-        return DoubleVal::null();
-    }
-    return DoubleVal(static_cast<double>(interval));
+    // Preserve the original double precision and operation order for existing callers.
+    const double interval =
+        statistic.val * sample_std.val / std::sqrt(static_cast<double>(sample_size.val));
+    return std::isfinite(interval) ? DoubleVal(interval) : DoubleVal::null();
 }
 
 

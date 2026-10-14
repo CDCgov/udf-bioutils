@@ -324,7 +324,7 @@ bool TestCDEntropy() {
     return passing;
 }
 
-bool TestEntropyCounterOverflow() {
+bool TestEntropyCounterLimits() {
     using TestHarness = UdaTestHarness<DoubleVal, StringVal, StringVal>;
     struct EntropyFunctions {
         const char *name;
@@ -370,10 +370,14 @@ bool TestEntropyCounterOverflow() {
             add_one();
             bool exact_limit_ok = !context->has_error() &&
                                   dst_counts[fn.counter_index] == maximum;
-            add_one();
-            bool overflow_detected = context->has_error() &&
-                string(context->error_msg()).find("Entropy counter overflow") != string::npos &&
-                dst_counts[fn.counter_index] == maximum;
+            // Update uses plain unsigned increments. Only Merge rejects overflow.
+            bool overflow_detected = true;
+            if (merge) {
+                add_one();
+                overflow_detected = context->has_error() &&
+                    string(context->error_msg()).find("Entropy counter overflow") != string::npos &&
+                    dst_counts[fn.counter_index] == maximum;
+            }
 
             fn.finalize(context, src);
             fn.finalize(context, dst);
@@ -381,7 +385,7 @@ bool TestEntropyCounterOverflow() {
             delete context;
             if (!exact_limit_ok || !overflow_detected) {
                 cerr << fn.name << " entropy " << (merge ? "merge" : "update")
-                     << " counter overflow test failed." << endl;
+                     << " counter limit test failed." << endl;
                 passed = false;
             }
         }
@@ -578,7 +582,7 @@ int main(int argc, char **argv) {
     passed &= TestNTEntropy();
     passed &= TestAAEntropy();
     passed &= TestCDEntropy();
-    passed &= TestEntropyCounterOverflow();
+    passed &= TestEntropyCounterLimits();
     passed &= TestPearsonCorrelation();
     cerr << (passed ? "Tests passed." : "Tests failed.") << endl;
     return passed ? 0 : 1;

@@ -5,7 +5,7 @@
 - Add missing `skewness`/`kurtosis` serializers; existing registrations need manual reinitialization.
 - Handle failed string-result allocations and fix invalid memory access for malformed ranges, CDS maps, delimiter-only lists, and non-ASCII sequence bytes.
 - Reject overflowing integer parses, prevent coordinate arithmetic overflow, and release benchmark test contexts.
-- Correct codon entropy for `ACA`; report entropy counter overflow without changing the intermediate-state format.
+- Correct codon entropy for `ACA`; detect entropy counter overflow during Merge while keeping Update increments branch-free and preserving the intermediate-state format.
 - Return `NULL` for undefined or unrepresentable t-distribution results instead of allowing exceptions to escape.
 - Add regression tests and CTest registration, check SQL serializer bindings, and return a failing exit status when UDA tests fail.
 

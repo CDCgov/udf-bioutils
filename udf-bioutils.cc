@@ -899,7 +899,7 @@ StringVal NT_Position_To_CDS_Codon_Mutant(
     }
 
     IntVal v = NT_To_CDS_Position(context, oriMap, cdsMap, oriPos);
-    if (v.is_null || v.val < 1) {
+    if (v.is_null) {
         return StringVal::null();
     } else {
         // Zero-based index for String. Codon position is also zero-based.
@@ -907,7 +907,9 @@ StringVal NT_Position_To_CDS_Codon_Mutant(
         int codon_position = cds_index % 3;
         int codon_index    = cds_index - codon_position;
 
-        if (cdsAlignment.len < 3 || codon_index > cdsAlignment.len - 3) {
+        // The mapper guarantees v.val >= 1, so codon_index is nonnegative.
+        // Signed len - 3 also rejects short alignments without risking codon_index + 3 overflow.
+        if (codon_index > cdsAlignment.len - 3) {
             return StringVal::null();
         }
 
@@ -930,7 +932,7 @@ StringVal NT_Position_To_Mutation_AA3(
     }
 
     IntVal v = NT_To_CDS_Position(context, oriMap, cdsMap, oriPos);
-    if (v.is_null || v.val < 1) {
+    if (v.is_null) {
         return StringVal::null();
     } else {
         // Zero-based index codon_position. Codon_index is WRT the whole string.
@@ -940,7 +942,9 @@ StringVal NT_Position_To_Mutation_AA3(
         int codon_index    = cds_index - codon_position;
         int aa_position    = cds_index / 3 + 1;
 
-        if (cdsAlignment.len < 3 || codon_index > cdsAlignment.len - 3) {
+        // The mapper guarantees v.val >= 1, so codon_index is nonnegative.
+        // Signed len - 3 also rejects short alignments without risking codon_index + 3 overflow.
+        if (codon_index > cdsAlignment.len - 3) {
             return StringVal::null();
         }
 
@@ -966,14 +970,16 @@ StringVal NT_Position_To_CDS_Codon(
     }
 
     IntVal v = NT_To_CDS_Position(context, oriMap, cdsMap, oriPos);
-    if (v.is_null || v.val < 1) {
+    if (v.is_null) {
         return StringVal::null();
     } else {
         // Zero-based index for String
         int cds_index   = v.val - 1;
         int codon_index = cds_index - (cds_index % 3);
 
-        if (cdsAlignment.len < 3 || codon_index > cdsAlignment.len - 3) {
+        // The mapper guarantees v.val >= 1, so codon_index is nonnegative.
+        // Signed len - 3 also rejects short alignments without risking codon_index + 3 overflow.
+        if (codon_index > cdsAlignment.len - 3) {
             return StringVal::null();
         }
 

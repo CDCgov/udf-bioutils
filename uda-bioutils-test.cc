@@ -305,7 +305,7 @@ bool TestCDEntropy() {
             for (uint8_t third : string("ACGT")) {
                 codons[index] = {first, second, third};
                 vals.emplace_back(codons[index].data(), 3);
-                ++index;
+                index++;
             }
         }
     }

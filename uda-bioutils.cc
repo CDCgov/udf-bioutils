@@ -788,7 +788,7 @@ void CalcCharEntropyUpdate(FunctionContext *context, const StringVal &input, Str
     }
     unsigned int *tbl = reinterpret_cast<unsigned int *>(val->ptr);
     for (int i = 0; i < input.len; i++) {
-        ++tbl[input.ptr[i]];
+        tbl[input.ptr[i]]++;
     }
 }
 
@@ -895,7 +895,7 @@ void CalcNTEntropyUpdate(FunctionContext *context, const StringVal &input, Strin
     if (index == 0) {
         context->AddWarning("Value ignored because is not a legitimate nucleotide.");
     }
-    ++ntmat[index];
+    ntmat[index]++;
 }
 
 IMPALA_UDF_EXPORT
@@ -1011,7 +1011,7 @@ void CalcAAEntropyUpdate(FunctionContext *context, const StringVal &input, Strin
     if (index == 0) {
         context->AddWarning("Value ignored because is not a legitimate amino acid code.");
     }
-    ++ntmat[index];
+    ntmat[index]++;
 }
 
 IMPALA_UDF_EXPORT
@@ -1127,7 +1127,7 @@ void CalcCDEntropyUpdate(FunctionContext *context, const StringVal &input, Strin
         context->AddWarning("Value ignored because is not a codon.");
         return;
     }
-    ++cdmat[i];
+    cdmat[i]++;
 }
 
 IMPALA_UDF_EXPORT

@@ -5,9 +5,11 @@
 - Add missing `skewness`/`kurtosis` serializers; existing registrations need manual reinitialization.
 - Handle failed string-result allocations and fix invalid memory access for malformed ranges, CDS maps, delimiter-only lists, and non-ASCII sequence bytes.
 - Reject overflowing integer parses, prevent coordinate arithmetic overflow, and release benchmark test contexts.
-- Correct codon entropy for `ACA`; detect entropy counter overflow during Merge while keeping Update increments branch-free and preserving the intermediate-state format.
-- Return `NULL` for undefined or unrepresentable t-distribution results instead of allowing exceptions to escape.
-- Add regression tests and CTest registration, check SQL serializer bindings, and return a failing exit status when UDA tests fail.
+- Parse strict mutation-range endpoints with `std::stoi` and reusable strings, rejecting missing endpoints and trailing text.
+- Correct codon entropy for `ACA`; check entropy counter overflow only during Merge, keeping Update increments branch-free and preserving the intermediate-state format.
+- Return `NULL` for invalid inputs, nonfinite results, and Boost exceptions in `qt`/`ci_t`; preserve the original `double` arithmetic and normal-distribution cutoff.
+- Add focused tests for scalar input boundaries, UDA serialization and entropy, math utilities, and integer-list parsers; register all four test suites with CTest and return a failing exit status when UDA tests fail.
+- Document CMake usage and fix benchmark generation dependencies and out-of-source builds.
 
 ## v1.6.0 (2026-05-20) ##
 

@@ -522,7 +522,7 @@ bitwise_sum(BIGINT values) -> BIGINT
 kurtosis(<INT or DOUBLE> values) -> DOUBLE
 ```
 
-**Purpose:** Compute the [4th moment or kurtosis](https://en.wikipedia.org/wiki/Kurtosis) using [a one-pass formula](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Higher-order_statistics).
+**Purpose:** Compute the [kurtosis (based on the 4th moment)](https://en.wikipedia.org/wiki/Kurtosis) using [a one-pass formula](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Higher-order_statistics). This computation corrects bias and matches SAS as well as R's [`e1071::kurtosis(..., type = 2)`](https://psiaims.github.io/CAMIS/R/summary_skew_kurt.html).
 
 ### LogFold Titer Distribution Agreement
 

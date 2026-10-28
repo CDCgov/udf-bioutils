@@ -35,6 +35,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines
 set(MARCH "cascadelake" CACHE STRING "Target architecture for -march")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${MARCH}")
 
+# Strip Release libraries and executables while retaining symbols in debug builds.
+set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} -s")
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -s")
+
 
 # Build the UDA/UDFs into a shared library.
 add_library(udfbioutils SHARED udf-bioutils.cc )

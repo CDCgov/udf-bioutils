@@ -45,9 +45,9 @@ cmake --build --preset release
 ctest --preset release
 ```
 
-The preset builds Release with four parallel jobs and skips benchmarks. Libraries and
-test executables are written to `build/`. CTest runs three C++ suites; no Impala server
-is required. Rebuild before rerunning tests.
+The preset builds stripped Release binaries with `-O2 -DNDEBUG`, uses four parallel jobs,
+and skips benchmarks. Libraries and test executables are written to `build/`. CTest
+runs three C++ suites; no Impala server is required. Rebuild before rerunning tests.
 
 For an unoptimized build with debug symbols, use the `debug` preset for all three
 commands. Its output goes to `build/debug/`. Override the job count with

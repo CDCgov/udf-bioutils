@@ -1494,7 +1494,7 @@ bool test__sort_list_unique() {
 bool test__sort_sites() {
     int passing = true;
 
-    std::tuple<StringVal, StringVal> table[7] = {
+    const std::tuple<StringVal, StringVal> table[] = {
         std::make_tuple(
             "1, 177, 697, 731, 740, 869, 900, 902, 1029, 1050, 1229, 1233, 1237",
             "1, 177, 697, 731, 740, 869, 900, 902, 1029, 1050, 1229, 1233, 1237"
@@ -1515,12 +1515,19 @@ bool test__sort_sites() {
         std::make_tuple("1, 2, 3, 5, A, 52, 77", StringVal::null()),
         std::make_tuple("A, B, C, D", StringVal::null()),
         std::make_tuple("Apple", StringVal::null()),
+        // Both integer limits are valid sites and must sort without overflow.
+        std::make_tuple("2147483647, 0, -2147483648", "-2147483648, 0, 2147483647"),
+        std::make_tuple("2147483648", StringVal::null()),
+        std::make_tuple("-2147483649", StringVal::null()),
+        std::make_tuple("999999999999999999999999999999", StringVal::null()),
+        // A bad token rejects the entire list, including any valid prefix.
+        std::make_tuple("1, 2147483648, 2", StringVal::null()),
+        std::make_tuple("1, -2147483649, 2", StringVal::null()),
+        std::make_tuple("1, invalid, 2", StringVal::null()),
     };
-    for (int i = 0; i < 7; i++) {
-        auto [arg0_s, expected] = table[i];
-
+    for (const auto &[arg0_s, expected] : table) {
         if (!UdfTestHarness::ValidateUdf<StringVal, StringVal>(Sort_Site_List, arg0_s, expected)) {
-            cout << "UDX sort_list_unique(ss)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
+            cout << "UDX sort_sites(s)->s failed:\n\t|" << arg0_s.ptr << "|\n\t|"
                  << expected.ptr << "|\n";
             passing = false;
         }

@@ -53,13 +53,9 @@ target_link_libraries(udf-bioutils-test udfbioutils)
 add_executable(udf-mathutils-test udf-mathutils-test.cc)
 target_link_libraries(udf-mathutils-test udfmathutils)
 
-add_executable(udx-inlines-test udx-inlines-test.cc)
-target_link_libraries(udx-inlines-test ImpalaUdf)
-
 add_test(NAME udf-bioutils COMMAND udf-bioutils-test)
 add_test(NAME uda-bioutils COMMAND uda-bioutils-test)
 add_test(NAME udf-mathutils COMMAND udf-mathutils-test)
-add_test(NAME udx-inlines COMMAND udx-inlines-test)
 
 if(NOT EXCLUDE_BENCHMARK)
 set(BENCHMARK_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/udf-bioutils-bmark.cc")

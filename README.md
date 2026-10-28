@@ -271,7 +271,7 @@ mutation_list_pds(STRING seq1, STRING seq2, STRING pairwise_deletion_set)
 ```
 
 **Return type:** `STRING`
-**Purpose:** Expects **aligned** biological sequences and returns a list of mutations from `seq1` to `seq2`, delimited by a comma + space.  If the `range` argument is included, only those sites will be compared (see the description of `range_coords` in `substr_range`). For example: `A2G, T160K, G340R`. If any argument is `NULL` or empty, a null value is returned. The function `mutation_list` returns differences and may be used for nucleotide, amino acid, or any other sequence. There are some alternative variants to the function:
+**Purpose:** Expects **aligned** biological sequences and returns a list of mutations from `seq1` to `seq2`, delimited by a comma + space.  If the `range` argument is included, only those sites will be compared (see the description of `range_coords` in UDF `substr_range()`). For example: `A2G, T160K, G340R`. If any argument is `NULL` or empty, a null value is returned. The function `mutation_list` returns differences and may be used for nucleotide, amino acid, or any other sequence. There are some alternative variants to the function:
 
 - The function `mutation_list_gly` is similar to the vanilla `mutation_list` function but annotates the addition or loss of an [N-linked glycosylation site](https://en.wikipedia.org/wiki/N-linked_glycosylation#Transfer_of_glycan_to_protein) due to substitution or single deletion (from `seq1` to `seq2`). Function `mutation_list_indel_gly` is an enhancement of `mutation_list_gly` which robustly accounts for the effects of indels on glycosylation for deletions no larger than 5 (a parameter that is adjustable at compile-time). Warning: `mutation_list_indel_gly` is substantially slower than `mutation_list_gly`.
 - The function `mutation_list_nt` is *suitable only for nucleotide sequences* and ignores resolvable differences involving ambiguous nucleotides (e.g., "R2G" would not be listed).
@@ -384,6 +384,7 @@ substr_range(STRING str, STRING range_coords) -> STRING
 
 **Purpose:** Returns the characters in `str` specified by `range_coords`.
 All characters are concatenated as specified by `range_coords`. Ranges may be listed in forward and reverse, which affects output order, and are denoted by `#..#`.
+Positions are one-based. Range endpoints are clamped to sequence bounds; out-of-bounds individual positions are ignored.
 Multiple ranges or single characters may be separated using a semi-colon or comma. For example: `10..1;12;15;20..25`. If any argument is `NULL` or an empty STRING, a null value is returned.
 
 &rarr; *See also the Impala native function [SUBSTR](https://docs.cloudera.com/cdp-private-cloud-base/7.1.8/impala-sql-reference/topics/impala-string-functions.html#string_functions__substr).*

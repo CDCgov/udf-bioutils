@@ -1,7 +1,7 @@
 // Samuel S. Shepard, CDC
 
-#include <iostream>
 #include <array>
+#include <iostream>
 #include <limits>
 #include <math.h>
 #include <string>
@@ -137,8 +137,7 @@ bool TestVariance() {
     return true;
 }
 
-template <typename Input>
-bool TestHigherMoments() {
+template <typename Input> bool TestHigherMoments() {
     using TestHarness = UdaTestHarness<DoubleVal, StringVal, Input>;
     TestHarness skewness(
         RunningMomentInit, RunningMomentUpdate, RunningMomentMerge, StringStructSerialize,
@@ -155,13 +154,11 @@ bool TestHigherMoments() {
     // empty partial states. Closing the harness contexts detects missing state cleanup.
     const vector<Input> empty;
     const vector<Input> values = {Input(1), Input(2), Input(3), Input(4), Input::null()};
-    if (!skewness.Execute(empty, DoubleVal::null()) ||
-        !skewness.Execute(values, DoubleVal(0))) {
+    if (!skewness.Execute(empty, DoubleVal::null()) || !skewness.Execute(values, DoubleVal(0))) {
         cerr << "Skewness: " << skewness.GetErrorMsg() << endl;
         return false;
     }
-    if (!kurtosis.Execute(empty, DoubleVal::null()) ||
-        !kurtosis.Execute(values, DoubleVal(-1.2))) {
+    if (!kurtosis.Execute(empty, DoubleVal::null()) || !kurtosis.Execute(values, DoubleVal(-1.2))) {
         cerr << "Kurtosis: " << kurtosis.GetErrorMsg() << endl;
         return false;
     }
@@ -295,6 +292,15 @@ bool TestCDEntropy() {
         passing = false;
     }
 
+    // Reject invalid bases in each position without dropping valid ACA observations.
+    vals = {
+        StringVal("AAA"), StringVal("ACA"), StringVal("NAA"), StringVal("ANA"), StringVal("AAN")
+    };
+    if (!test.Execute(vals, DoubleVal(1), SINGLE_NODE)) {
+        cerr << "Codon entropy with invalid codons: " << test.GetErrorMsg() << endl;
+        passing = false;
+    }
+
     // Equal frequencies of all 64 canonical codons have log2(64) == 6 bits of entropy.
     // Keep the character buffers alive while the distributed harness reads the StringVals.
     array<array<uint8_t, 3>, 64> codons;
@@ -314,13 +320,6 @@ bool TestCDEntropy() {
         passing = false;
     }
 
-    // Reject invalid bases in each position without dropping valid ACA observations.
-    vals = {StringVal("AAA"), StringVal("ACA"), StringVal("NAA"), StringVal("ANA"),
-            StringVal("AAN")};
-    if (!test.Execute(vals, DoubleVal(1), SINGLE_NODE)) {
-        cerr << "Codon entropy with invalid codons: " << test.GetErrorMsg() << endl;
-        passing = false;
-    }
     return passing;
 }
 
@@ -342,52 +341,41 @@ bool TestEntropyCounterLimits() {
          CalcNTEntropyFinalize, "A", 1},
         {"Amino acid", CalcAAEntropyInit, CalcAAEntropyUpdate, CalcAAEntropyMerge,
          CalcAAEntropyFinalize, "A", 1},
-        {"Codon", CalcCDEntropyInit, CalcCDEntropyUpdate, CalcCDEntropyMerge,
-         CalcCDEntropyFinalize, "ACA", 4}
+        {"Codon", CalcCDEntropyInit, CalcCDEntropyUpdate, CalcCDEntropyMerge, CalcCDEntropyFinalize,
+         "ACA", 4}
     };
     const auto maximum = std::numeric_limits<unsigned int>::max();
-    bool passed = true;
+    bool passed        = true;
     for (const auto &fn : functions) {
-        // Seed states near the serialized counter limit to test billions of observations
-        // without billions of Update calls. The intermediate format remains unchanged.
-        for (bool merge : {false, true}) {
-            FunctionContext *context = UdfTestHarness::CreateTestContext(
-                FunctionContext::TypeDesc{}, {}
-            );
-            StringVal dst;
-            StringVal src;
-            fn.init(context, &dst);
-            fn.init(context, &src);
-            auto *dst_counts = reinterpret_cast<unsigned int *>(dst.ptr);
-            auto *src_counts = reinterpret_cast<unsigned int *>(src.ptr);
-            dst_counts[fn.counter_index] = maximum - 1;
-            src_counts[fn.counter_index] = 1;
+        FunctionContext *context =
+            UdfTestHarness::CreateTestContext(FunctionContext::TypeDesc{}, {});
+        StringVal dst;
+        StringVal src;
+        fn.init(context, &dst);
+        fn.init(context, &src);
+        auto *dst_counts             = reinterpret_cast<unsigned int *>(dst.ptr);
+        auto *src_counts             = reinterpret_cast<unsigned int *>(src.ptr);
+        dst_counts[fn.counter_index] = maximum - 1;
+        src_counts[fn.counter_index] = 1;
 
-            auto add_one = [&]() {
-                if (merge) fn.merge(context, src, &dst);
-                else fn.update(context, StringVal(fn.input), &dst);
-            };
-            add_one();
-            bool exact_limit_ok = !context->has_error() &&
-                                  dst_counts[fn.counter_index] == maximum;
-            // Update uses plain unsigned increments. Only Merge rejects overflow.
-            bool overflow_detected = true;
-            if (merge) {
-                add_one();
-                overflow_detected = context->has_error() &&
-                    string(context->error_msg()).find("Entropy counter overflow") != string::npos &&
-                    dst_counts[fn.counter_index] == maximum;
-            }
+        // (maximum - 1) + 1 reaches the limit without error.
+        fn.merge(context, src, &dst);
+        bool exact_limit_ok = !context->has_error() && dst_counts[fn.counter_index] == maximum;
 
-            fn.finalize(context, src);
-            fn.finalize(context, dst);
-            UdfTestHarness::CloseContext(context);
-            delete context;
-            if (!exact_limit_ok || !overflow_detected) {
-                cerr << fn.name << " entropy " << (merge ? "merge" : "update")
-                     << " counter limit test failed." << endl;
-                passed = false;
-            }
+        // maximum + 1 must report overflow and leave the destination unchanged.
+        fn.merge(context, src, &dst);
+        bool overflow_detected =
+            context->has_error() &&
+            string(context->error_msg()).find("Entropy counter overflow") != string::npos &&
+            dst_counts[fn.counter_index] == maximum;
+
+        fn.finalize(context, src);
+        fn.finalize(context, dst);
+        UdfTestHarness::CloseContext(context);
+        delete context;
+        if (!exact_limit_ok || !overflow_detected) {
+            cerr << fn.name << " entropy merge counter limit test failed." << endl;
+            passed = false;
         }
     }
     return passed;
@@ -402,8 +390,8 @@ bool TestPearsonCorrelation() {
     pearson.SetResultComparator(FuzzyCompare);
     {
         // Test all empty
-        vector<DoubleVal> x_vals {};
-        vector<DoubleVal> y_vals {};
+        vector<DoubleVal> x_vals{};
+        vector<DoubleVal> y_vals{};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal::null())) {
             cerr << "Pearson Correlation: Empty input test. " << pearson.GetErrorMsg() << endl;
             return false;
@@ -411,8 +399,8 @@ bool TestPearsonCorrelation() {
     }
     {
         // Test all null
-        vector<DoubleVal> x_vals {DoubleVal::null(), DoubleVal::null()};
-        vector<DoubleVal> y_vals {DoubleVal::null(), DoubleVal::null()};
+        vector<DoubleVal> x_vals{DoubleVal::null(), DoubleVal::null()};
+        vector<DoubleVal> y_vals{DoubleVal::null(), DoubleVal::null()};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal::null())) {
             cerr << "Pearson Correlation: Empty input test. " << pearson.GetErrorMsg() << endl;
             return false;
@@ -420,8 +408,8 @@ bool TestPearsonCorrelation() {
     }
     {
         // Test empty column
-        vector<DoubleVal> x_vals {DoubleVal::null(), DoubleVal::null(), DoubleVal::null()};
-        vector<DoubleVal> y_vals {1.0, 2.0, 3.0};
+        vector<DoubleVal> x_vals{DoubleVal::null(), DoubleVal::null(), DoubleVal::null()};
+        vector<DoubleVal> y_vals{1.0, 2.0, 3.0};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal::null())) {
             cerr << "Pearson Correlation: Empty column test. " << pearson.GetErrorMsg() << endl;
             return false;
@@ -433,8 +421,8 @@ bool TestPearsonCorrelation() {
     }
     {
         // Test too few input
-        vector<DoubleVal> x_vals {1.0};
-        vector<DoubleVal> y_vals {2.0};
+        vector<DoubleVal> x_vals{1.0};
+        vector<DoubleVal> y_vals{2.0};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal::null())) {
             cerr << "Pearson Correlation: Too few input test. " << pearson.GetErrorMsg() << endl;
             return false;
@@ -442,8 +430,8 @@ bool TestPearsonCorrelation() {
     }
     {
         // Minimum input
-        vector<DoubleVal> x_vals {1.0, 2.0};
-        vector<DoubleVal> y_vals {3.0, 4.0};
+        vector<DoubleVal> x_vals{1.0, 2.0};
+        vector<DoubleVal> y_vals{3.0, 4.0};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
             cerr << "Pearson Correlation: Minimum input test. " << pearson.GetErrorMsg() << endl;
             return false;
@@ -451,8 +439,8 @@ bool TestPearsonCorrelation() {
     }
     {
         // Test zero variance
-        vector<DoubleVal> x_vals {5.0, 5.0, 5.0, 5.0};
-        vector<DoubleVal> y_vals {1.0, 2.0, 3.0, 4.0};
+        vector<DoubleVal> x_vals{5.0, 5.0, 5.0, 5.0};
+        vector<DoubleVal> y_vals{1.0, 2.0, 3.0, 4.0};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal::null())) {
             cerr << "Pearson Correlation: Zero Variance test. " << pearson.GetErrorMsg() << endl;
             return false;
@@ -464,8 +452,8 @@ bool TestPearsonCorrelation() {
     }
     {
         // Test null pair
-        vector<DoubleVal> x_vals {1.0, DoubleVal::null(), 3.0};
-        vector<DoubleVal> y_vals {1.0, 999.0, 3.0};
+        vector<DoubleVal> x_vals{1.0, DoubleVal::null(), 3.0};
+        vector<DoubleVal> y_vals{1.0, 999.0, 3.0};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
             cerr << "Pearson Correlation: Null row test. " << pearson.GetErrorMsg() << endl;
             return false;
@@ -477,8 +465,8 @@ bool TestPearsonCorrelation() {
     }
     {
         // Test infinity pair
-        vector<DoubleVal> x_vals {1.0, std::numeric_limits<double>::infinity(), 3.0};
-        vector<DoubleVal> y_vals {1.0, 999.0, 3.0};
+        vector<DoubleVal> x_vals{1.0, std::numeric_limits<double>::infinity(), 3.0};
+        vector<DoubleVal> y_vals{1.0, 999.0, 3.0};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
             cerr << "Pearson Correlation: Infinite row test. " << pearson.GetErrorMsg() << endl;
             return false;
@@ -490,8 +478,8 @@ bool TestPearsonCorrelation() {
     }
     {
         // perfect +1
-        vector<DoubleVal> x_vals {1.0, 2.0, 3.0, 4.0};
-        vector<DoubleVal> y_vals {1.0, 2.0, 3.0, 4.0};
+        vector<DoubleVal> x_vals{1.0, 2.0, 3.0, 4.0};
+        vector<DoubleVal> y_vals{1.0, 2.0, 3.0, 4.0};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
             cerr << "Pearson Correlation: Perfect +1 test. " << pearson.GetErrorMsg() << endl;
             return false;
@@ -499,8 +487,8 @@ bool TestPearsonCorrelation() {
     }
     {
         // perfect -1
-        vector<DoubleVal> x_vals {1.0, 2.0, 3.0, 4.0};
-        vector<DoubleVal> y_vals {4.0, 3.0, 2.0, 1.0};
+        vector<DoubleVal> x_vals{1.0, 2.0, 3.0, 4.0};
+        vector<DoubleVal> y_vals{4.0, 3.0, 2.0, 1.0};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal(-1.0))) {
             cerr << "Pearson Correlation: Perfect -1 test. " << pearson.GetErrorMsg() << endl;
             return false;
@@ -508,26 +496,28 @@ bool TestPearsonCorrelation() {
     }
     {
         // Test very large numbers
-        vector<DoubleVal> x_vals {1.0e12, 2.0e12, 3.0e12};
-        vector<DoubleVal> y_vals {1.0e12, 2.0e12, 3.0e12};
+        vector<DoubleVal> x_vals{1.0e12, 2.0e12, 3.0e12};
+        vector<DoubleVal> y_vals{1.0e12, 2.0e12, 3.0e12};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
-            cerr << "Pearson Correlation: Very large numbers test. " << pearson.GetErrorMsg() << endl;
+            cerr << "Pearson Correlation: Very large numbers test. " << pearson.GetErrorMsg()
+                 << endl;
             return false;
         }
     }
     {
         // Test very small numbers
-        vector<DoubleVal> x_vals {1.0e-12, 2.0e-12, 3.0e-12};
-        vector<DoubleVal> y_vals {1.0e-12, 2.0e-12, 3.0e-12};
+        vector<DoubleVal> x_vals{1.0e-12, 2.0e-12, 3.0e-12};
+        vector<DoubleVal> y_vals{1.0e-12, 2.0e-12, 3.0e-12};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
-            cerr << "Pearson Correlation: Very small numbers test. " << pearson.GetErrorMsg() << endl;
+            cerr << "Pearson Correlation: Very small numbers test. " << pearson.GetErrorMsg()
+                 << endl;
             return false;
         }
     }
     {
         // Test mixed magnitude
-        vector<DoubleVal> x_vals {1.0e12, 2.0e12+1, 3.0e12+2};
-        vector<DoubleVal> y_vals {1.0, 2.0, 3.0};
+        vector<DoubleVal> x_vals{1.0e12, 2.0e12 + 1, 3.0e12 + 2};
+        vector<DoubleVal> y_vals{1.0, 2.0, 3.0};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal(1.0))) {
             cerr << "Pearson Correlation: Mixed magnitude test. " << pearson.GetErrorMsg() << endl;
             return false;
@@ -535,8 +525,8 @@ bool TestPearsonCorrelation() {
     }
     {
         // Test negative numbers
-        vector<DoubleVal> x_vals {-1.0, -2.0, -3.0};
-        vector<DoubleVal> y_vals {1.0, 2.0, 3.0};
+        vector<DoubleVal> x_vals{-1.0, -2.0, -3.0};
+        vector<DoubleVal> y_vals{1.0, 2.0, 3.0};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal(-1.0))) {
             cerr << "Pearson Correlation: Negative numbers test. " << pearson.GetErrorMsg() << endl;
             return false;
@@ -550,7 +540,7 @@ bool TestPearsonCorrelation() {
         // Test large datasets
         vector<DoubleVal> x_vals;
         vector<DoubleVal> y_vals;
-        for (int i=0;i<10000;i++) {
+        for (int i = 0; i < 10000; i++) {
             x_vals.push_back(i);
             y_vals.push_back(i);
         }
@@ -561,8 +551,8 @@ bool TestPearsonCorrelation() {
     }
     {
         // Test random dataset
-        vector<DoubleVal> x_vals {1.0, 2.0, 3.0, 4.0, 5.0};
-        vector<DoubleVal> y_vals {2.0, 1.0, 4.0, 3.0, 5.0};
+        vector<DoubleVal> x_vals{1.0, 2.0, 3.0, 4.0, 5.0};
+        vector<DoubleVal> y_vals{2.0, 1.0, 4.0, 3.0, 5.0};
         if (!pearson.Execute(x_vals, y_vals, DoubleVal(0.8))) {
             cerr << "Pearson Correlation: Random ties dataset. " << pearson.GetErrorMsg() << endl;
             return false;

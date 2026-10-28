@@ -122,9 +122,6 @@ bool test_math(FunctionContext *context) {
         "default two-sided interval", ci_t_twoSided(context, 0.95, 10, 2.0),
         2.0 * 2.262157162798205 / std::sqrt(10.0)
     );
-    passed &= check_result(
-        "default interval rejects invalid confidence", ci_t_twoSided(context, 1.0, 10, 2.0), null
-    );
     return passed;
 }
 

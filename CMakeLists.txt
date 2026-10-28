@@ -3,6 +3,12 @@ cmake_minimum_required(VERSION 3.5)
 project(UDX_BioUtils)
 enable_testing()
 
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+        Debug Release RelWithDebInfo MinSizeRel)
+endif()
+
 # For in-source builds (cmake .), redirect outputs to build/.
 # For out-of-source builds (cmake -B build), the binary dir is already build/.
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
@@ -23,12 +29,11 @@ if(DEFINED ENV{BOOST_INCLUDEDIR} AND DEFINED ENV{BOOST_LIBRARYDIR})
     message(STATUS "Using custom Boost paths: ${BOOST_INCLUDEDIR}, ${BOOST_LIBRARYDIR}")
 endif()
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -pedantic")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
 # Hide symbols in UDF code by default - UDF functions should be explicitly exported.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 set(MARCH "cascadelake" CACHE STRING "Target architecture for -march")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${MARCH}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s")
 
 
 # Build the UDA/UDFs into a shared library.

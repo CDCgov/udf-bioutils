@@ -12,3 +12,4 @@ udf-bioutils-bmark.cc
 valgrind*
 *tmp*
 *.rpm
+CTestTestfile.cmake

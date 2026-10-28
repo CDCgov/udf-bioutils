@@ -40,19 +40,27 @@ Run from the repository root using CMake 3.20+:
 # On RHEL 8, load the installed compiler toolchain.
 source /opt/rh/gcc-toolset-13/enable
 
-cmake -S . -B build -DEXCLUDE_BENCHMARK=ON
-cmake --build build --parallel 4
-ctest --test-dir build --output-on-failure
+cmake --preset release
+cmake --build --preset release
+ctest --preset release
 ```
 
-Libraries and test executables are written to `build/`. CTest runs four C++ suites and
-one SQL registration check; no Impala server is required. Rebuild before rerunning tests.
+The preset builds Release with four parallel jobs and skips benchmarks. Libraries and
+test executables are written to `build/`. CTest runs three C++ suites; no Impala server
+is required. Rebuild before rerunning tests.
+
+For an unoptimized build with debug symbols, use the `debug` preset for all three
+commands. Its output goes to `build/debug/`. Override the job count with
+`cmake --build --preset release --parallel N`.
+
+Without presets, the build type defaults to Release. Explicit build types are preserved;
+build parallelism is selected with `--parallel 4` or `CMAKE_BUILD_PARALLEL_LEVEL`.
 
 | Configure option           | Purpose                                                                                                                   |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `-DMARCH=x86-64`           | Select a baseline CPU target instead of the default `cascadelake`; choose a target supported by the destination machines. |
 | `-DEXCLUDE_BENCHMARK=ON`   | Skip benchmarks and their dependencies; benchmarks are enabled by default.                                                |
-| `-DCMAKE_BUILD_TYPE=Debug` | Select Debug flags, although the project still adds `-O2` and `-s` in every configuration.                                |
+| `-DCMAKE_BUILD_TYPE=Debug` | Build without optimization and with debug symbols.                                                                        |
 
 For custom Boost locations, set both `BOOST_INCLUDEDIR` and `BOOST_LIBRARYDIR`
 **environment variables** before configuring. Rerun configuration to change options;

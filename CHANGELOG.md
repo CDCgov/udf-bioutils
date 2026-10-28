@@ -1,15 +1,14 @@
 # UDF-BioUtils Changelog #
 
-## Unreleased ##
+## v1.6.1 (2026-10-28) ##
 
-- Add missing `skewness`/`kurtosis` serializers; existing registrations need manual reinitialization.
-- Handle failed string-result allocations and fix invalid memory access for malformed ranges, CDS maps, delimiter-only lists, and non-ASCII sequence bytes.
-- Reject overflowing integer parses, prevent coordinate arithmetic overflow, and release benchmark test contexts.
-- Parse strict mutation-range endpoints with `std::stoi` and reusable strings, rejecting missing endpoints and trailing text.
-- Correct codon entropy for `ACA`; check entropy counter overflow only during Merge, keeping Update increments branch-free and preserving the intermediate-state format.
-- Return `NULL` for invalid inputs, nonfinite results, and Boost exceptions in `qt`/`ci_t`; preserve the original `double` arithmetic and normal-distribution cutoff.
-- Add focused tests for scalar input boundaries, UDA serialization and entropy, math utilities, and integer-list parsers; register all four test suites with CTest and return a failing exit status when UDA tests fail.
-- Document CMake usage and fix benchmark generation dependencies and out-of-source builds.
+- Added missing serializers for `skewness` and `kurtosis` (can leak memory without them). Existing SQL registrations must be recreated.
+- Guard against potential memory errors and integer overflow in sequence, range, and list functions.
+- Reject malformed endpoints in mutation ranges.
+- Fixed codon entropy for `ACA` and added overflow checks when merging entropy counts.
+- `quantile_t` and `ci_t` return `NULL` for invalid inputs or unrepresentable results.
+- Expanded tests, added CTest support, and fixed benchmark builds and cleanup.
+- Updated documentation.
 
 ## v1.6.0 (2026-05-20) ##
 

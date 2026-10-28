@@ -785,7 +785,7 @@ IntVal Convert_String_To_EPI_Week(
     }
 }
 
-__attribute__((visibility("default"))) double date_to_double_inner(int32_t dateval) {
+double date_to_double_inner(int32_t dateval) {
     auto d = boost::gregorian::date(dateval + EPOCH_OFFSET);
     if (d.day() == 31 && d.month() == 12)
         return (d.year() + 0.999);
@@ -805,7 +805,7 @@ DoubleVal Date_to_Double(FunctionContext *context, const DateVal &dateVal) {
     return DoubleVal(result);
 }
 
-__attribute__((visibility("default"))) int32_t double_to_date_inner(double doubleval) {
+int32_t double_to_date_inner(double doubleval) {
     double year;
     double decimal     = std::modf(doubleval, &year);
     int days_in_year   = 365 + int(boost::gregorian::gregorian_calendar::is_leap_year(year));

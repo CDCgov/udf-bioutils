@@ -241,7 +241,9 @@ bool test__doubleday_fuzz() {
 
     for (int i = 0; i < 100; i++) {
         int32_t date = dist(rng);
-        if (date != double_to_date_inner(date_to_double_inner(date))) {
+        const DoubleVal decimal_date = Date_to_Double(nullptr, DateVal(date));
+        const DateVal round_trip     = Double_to_Date(nullptr, decimal_date);
+        if (round_trip.is_null || date != round_trip.val) {
             cout << "UDX Double_to_Date/Date_to_Double Fuzz failed:\n\t|" << date;
             passing = false;
         }

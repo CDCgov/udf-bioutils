@@ -73,7 +73,6 @@ DoubleVal ci_t(
         return DoubleVal::null();
     }
 
-    // Preserve the original double precision and operation order for existing callers.
     const double interval =
         statistic.val * sample_std.val / std::sqrt(static_cast<double>(sample_size.val));
     return std::isfinite(interval) ? DoubleVal(interval) : DoubleVal::null();
